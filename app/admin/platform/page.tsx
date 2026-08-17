@@ -4,6 +4,7 @@ import { getAdminContext } from "@/lib/admin-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isProductionEmailReady } from "@/lib/resend";
 import ConfirmSubmitButton from "@/app/admin/ui/ConfirmSubmitButton";
+import ActionSubmitButton from "@/app/admin/ui/ActionSubmitButton";
 import AppIcon from "@/app/ui/AppIcon";
 import FlashNotice from "@/app/ui/FlashNotice";
 import { deriveOrganizationSubscriptionState } from "@/lib/organization-subscription";
@@ -65,6 +66,13 @@ type SubscriptionRow = {
   last_renewed_at: string | null;
 };
 
+type AuthDirectoryRow = {
+  id: string;
+  email: string | null;
+  confirmed: boolean;
+  last_sign_in_at: string | null;
+};
+
 export default async function PlatformPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams;
   const context = await getAdminContext();
@@ -72,15 +80,12 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
   if (!context.profile.isPlatformOwner) redirect("/admin");
 
   const admin = createAdminClient();
-  const [organizationsResult, adminsResult, membershipsResult, subscriptionsResult, authUsersResult, healthResult, r6HealthResult, r7HealthResult] = await Promise.all([
+  const [organizationsResult, adminsResult, membershipsResult, subscriptionsResult, authUsersResult] = await Promise.all([
     admin.from("organizations").select("id, code, name, slug, active, created_at").order("created_at", { ascending: true }),
     admin.from("admin_profiles").select("id, full_name, role, active, is_platform_owner, created_at").order("created_at", { ascending: true }),
     admin.from("organization_members").select("id, organization_id, user_id, role, active, created_at").order("created_at", { ascending: true }),
     admin.from("organization_subscriptions").select("organization_id, plan_code, access_started_at, access_until, retention_until, suspended_at, suspension_reason, last_renewed_at"),
-    admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
-    admin.rpc("exam_platform_healthcheck"),
-    admin.rpc("exam_platform_r6_healthcheck"),
-    admin.rpc("exam_platform_r7_healthcheck"),
+    admin.rpc("exam_platform_admin_auth_directory"),
   ]);
 
   if (organizationsResult.error) throw new Error("Gagal membaca organisasi platform.");
@@ -93,59 +98,36 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
         subscriptionsResult.error.hint || null,
       ].filter(Boolean).join(" · ")
     : null;
-  if (authUsersResult.error) console.warn("LIST AUTH USERS WARNING", authUsersResult.error.message);
+  if (authUsersResult.error) console.warn("AUTH DIRECTORY WARNING", authUsersResult.error.message);
 
   const organizations = (organizationsResult.data ?? []) as OrganizationRow[];
   const admins = (adminsResult.data ?? []) as AdminProfileRow[];
   const memberships = (membershipsResult.data ?? []) as MembershipRow[];
   const subscriptions = (subscriptionsResult.error ? [] : (subscriptionsResult.data ?? [])) as SubscriptionRow[];
   const subscriptionMap = new Map(subscriptions.map((item) => [item.organization_id, item]));
-  const authUserMap = new Map((authUsersResult.data?.users ?? []).map((user) => [user.id, {
-    email: user.email ?? "",
-    confirmed: Boolean(user.email_confirmed_at || user.confirmed_at),
-    lastSignInAt: user.last_sign_in_at ?? null,
-  }]));
+  const authDirectory = (authUsersResult.data ?? []) as unknown as AuthDirectoryRow[];
+  const authUserMap = new Map(
+    authDirectory.map((user) => [
+      String(user.id),
+      {
+        email: user.email ? String(user.email) : "",
+        confirmed: Boolean(user.confirmed),
+        lastSignInAt: user.last_sign_in_at ? String(user.last_sign_in_at) : null,
+      },
+    ])
+  );
   const resendConfigured = Boolean(process.env.RESEND_API_KEY?.trim());
   const resendProductionSender = isProductionEmailReady();
 
   const activeOrganizations = organizations.filter((item) => item.active);
   const activeAdmins = admins.filter((item) => item.active && (item.is_platform_owner || authUserMap.get(item.id)?.confirmed));
 
-  const health =
-    !healthResult.error &&
-    healthResult.data &&
-    typeof healthResult.data === "object"
-      ? (healthResult.data as { version?: string; ok?: boolean; missing?: unknown })
-      : null;
-  const healthMissing = Array.isArray(health?.missing)
-    ? health.missing.map(String)
-    : [];
-  const r6Health =
-    !r6HealthResult.error &&
-    r6HealthResult.data &&
-    typeof r6HealthResult.data === "object"
-      ? (r6HealthResult.data as { version?: string; ok?: boolean; missing?: unknown })
-      : null;
-  const r6Missing = Array.isArray(r6Health?.missing) ? r6Health.missing.map(String) : [];
-  const r7Health =
-    !r7HealthResult.error &&
-    r7HealthResult.data &&
-    typeof r7HealthResult.data === "object"
-      ? (r7HealthResult.data as { version?: string; ok?: boolean; missing?: unknown })
-      : null;
-  const r7Missing = Array.isArray(r7Health?.missing) ? r7Health.missing.map(String) : [];
-  const combinedHealthOk =
-    health?.ok === true &&
-    r6Health?.ok === true &&
-    r7Health?.ok === true &&
-    !subscriptionReadError;
+  const platformDatabaseReady = !subscriptionReadError && !authUsersResult.error;
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-10 sm:px-8">
       <section className="liquid-enter">
         <div className="admin-page-hero relative overflow-hidden rounded-[28px] border border-white/[0.07] bg-white/[0.025] p-7 sm:p-9">
-          <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-28 left-1/3 h-64 w-64 rounded-full bg-violet-500/[0.08] blur-3xl" />
           <div className="relative">
             <div className="flex flex-wrap items-center gap-2">
               <span className="liquid-badge px-3 py-1.5 text-xs text-cyan-200">Platform Owner</span>
@@ -179,23 +161,11 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
         </section>
       ) : null}
 
-      {!combinedHealthOk && !subscriptionReadError ? (
+      {!platformDatabaseReady && !subscriptionReadError ? (
         <section className="mt-5">
           <div className="rounded-[18px] border border-amber-400/15 bg-amber-400/[0.04] px-5 py-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-amber-200">Sistem membutuhkan pemeriksaan database</p>
-                <p className="mt-1 text-xs leading-5 text-slate-500">
-                  Jalankan file setup database terbaru sebelum menggunakan fitur platform. Detail teknis hanya ditampilkan saat ada masalah.
-                </p>
-                {[...healthMissing, ...r6Missing, ...r7Missing].length ? (
-                  <p className="mt-2 break-words font-mono text-[11px] leading-5 text-amber-100/70">
-                    {[...healthMissing, ...r6Missing, ...r7Missing].slice(0, 8).join(" · ")}
-                  </p>
-                ) : null}
-              </div>
-              <span className="rounded-full border border-amber-400/15 bg-amber-400/[0.06] px-3 py-1 text-[11px] font-semibold text-amber-200">PERLU DICEK</span>
-            </div>
+            <p className="text-sm font-semibold text-amber-200">Direktori Auth R8.3 belum siap</p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">Jalankan migration R8.3 lalu ulangi npm.cmd run verify.</p>
           </div>
         </section>
       ) : null}
@@ -249,7 +219,7 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
                       : "Isi RESEND_API_KEY dan sender email sebelum onboarding pelanggan nyata."}
                 </p>
               </div>
-              <button className="liquid-button-primary mt-5 w-full rounded-[14px] px-4 py-3.5 text-sm font-semibold">Buat Pelanggan & Kirim Undangan</button>
+              <ActionSubmitButton pendingLabel="Membuat pelanggan & mengirim email..." className="liquid-button-primary mt-5 w-full rounded-[14px] px-4 py-3.5 text-sm font-semibold">Buat Pelanggan & Kirim Undangan</ActionSubmitButton>
             </div>
           </div>
         </form>
@@ -288,7 +258,7 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
                       </div>
                     </div>
                     <form action={renewOrganizationSubscription.bind(null, organization.id)}>
-                      <button className="liquid-button-primary rounded-[12px] px-4 py-2.5 text-xs font-semibold">+30 Hari</button>
+                      <ActionSubmitButton pendingLabel="Memperpanjang..." className="liquid-button-primary rounded-[12px] px-4 py-2.5 text-xs font-semibold">+30 Hari</ActionSubmitButton>
                     </form>
                   </div>
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -308,6 +278,7 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
                     <ConfirmSubmitButton
                       message={subscription.suspendedAt ? `Aktifkan kembali langganan ${organization.name}?` : `Tangguhkan langganan ${organization.name}? Admin pelanggan akan kehilangan akses perubahan dan sesi peserta baru.`}
                       className={`rounded-[12px] border px-4 py-2.5 text-xs font-semibold transition ${subscription.suspendedAt ? "border-emerald-400/15 bg-emerald-400/[0.04] text-emerald-200" : "border-amber-400/15 bg-amber-400/[0.04] text-amber-200"}`}
+                      pendingLabel="Memproses langganan..."
                     >
                       {subscription.suspendedAt ? "Aktifkan Kembali" : "Tangguhkan"}
                     </ConfirmSubmitButton>
@@ -345,11 +316,11 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
                             <div className="flex shrink-0 flex-wrap gap-2">
                               {!authUser.confirmed ? (
                                 <form action={resendOrganizationAdminInvite.bind(null, profile.id, organization.id)}>
-                                  <button className="liquid-button rounded-[10px] px-3 py-2 text-[10px] font-semibold">Kirim Ulang Undangan</button>
+                                  <ActionSubmitButton pendingLabel="Mengirim..." className="liquid-button rounded-[10px] px-3 py-2 text-[10px] font-semibold">Kirim Ulang Undangan</ActionSubmitButton>
                                 </form>
                               ) : (
                                 <form action={sendAdminPasswordReset.bind(null, profile.id, organization.id)}>
-                                  <button className="liquid-button rounded-[10px] px-3 py-2 text-[10px] font-semibold">Kirim Link Password</button>
+                                  <ActionSubmitButton pendingLabel="Mengirim..." className="liquid-button rounded-[10px] px-3 py-2 text-[10px] font-semibold">Kirim Link Password</ActionSubmitButton>
                                 </form>
                               )}
                             </div>
@@ -363,7 +334,7 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
                     <input type="hidden" name="organization_id" value={organization.id} />
                     <Field name="full_name" label="Tambah Admin" placeholder="Nama admin" required />
                     <Field name="email" label="Email" type="email" placeholder="admin@organisasi.id" required />
-                    <button className="liquid-button-primary rounded-[12px] px-4 py-3 text-xs font-semibold">Kirim Undangan</button>
+                    <ActionSubmitButton pendingLabel="Mengirim undangan..." className="liquid-button-primary rounded-[12px] px-4 py-3 text-xs font-semibold">Kirim Undangan</ActionSubmitButton>
                   </form>
                 </div>
 
@@ -374,15 +345,15 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
                     <Field name="code" label="Kode" defaultValue={organization.code} required />
                   </div>
                   <div className="mt-3"><Field name="slug" label="Slug" defaultValue={organization.slug} required /></div>
-                  <button className="liquid-button mt-4 rounded-[12px] px-4 py-2.5 text-xs font-semibold">Simpan Perubahan</button>
+                  <ActionSubmitButton pendingLabel="Menyimpan..." className="liquid-button mt-4 rounded-[12px] px-4 py-2.5 text-xs font-semibold">Simpan Perubahan</ActionSubmitButton>
                 </form>
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   <form action={toggleOrganizationStatus.bind(null, organization.id)}>
-                    <button className="liquid-button rounded-[12px] px-4 py-2.5 text-xs font-semibold">{organization.active ? "Nonaktifkan" : "Aktifkan"}</button>
+                    <ActionSubmitButton pendingLabel="Memproses..." className="liquid-button rounded-[12px] px-4 py-2.5 text-xs font-semibold">{organization.active ? "Nonaktifkan" : "Aktifkan"}</ActionSubmitButton>
                   </form>
                   <form action={deleteOrganization.bind(null, organization.id)}>
-                    <ConfirmSubmitButton message={`Hapus organisasi ${organization.name}? Hanya bisa jika belum memiliki modul, batch, peserta, atau ujian.`} className="rounded-[12px] border border-rose-400/15 bg-rose-400/[0.04] px-4 py-2.5 text-xs font-semibold text-rose-200 transition hover:bg-rose-400/[0.08]">Hapus Organisasi</ConfirmSubmitButton>
+                    <ConfirmSubmitButton pendingLabel="Menghapus organisasi..." message={`Hapus organisasi ${organization.name}? Hanya bisa jika belum memiliki modul, batch, peserta, atau ujian. Admin yang tidak punya workspace lain ikut dibersihkan.`} className="rounded-[12px] border border-rose-400/15 bg-rose-400/[0.04] px-4 py-2.5 text-xs font-semibold text-rose-200 transition hover:bg-rose-400/[0.08]">Hapus Organisasi</ConfirmSubmitButton>
                   </form>
                 </div>
               </article>
@@ -442,13 +413,13 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
                     </div>
                   </div>
 
-                  <button className="liquid-button mt-5 rounded-[12px] px-4 py-2.5 text-xs font-semibold">Simpan Admin</button>
+                  <ActionSubmitButton pendingLabel="Menyimpan admin..." className="liquid-button mt-5 rounded-[12px] px-4 py-2.5 text-xs font-semibold">Simpan Admin</ActionSubmitButton>
                 </form>
 
                 {!profile.is_platform_owner ? (
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <form action={toggleAdminStatus.bind(null, profile.id)}><button className="liquid-button rounded-[12px] px-4 py-2.5 text-xs font-semibold" disabled={isSelf}>{profile.active ? "Nonaktifkan Admin" : "Aktifkan Admin"}</button></form>
-                    <form action={deleteAdmin.bind(null, profile.id)}><ConfirmSubmitButton message={`Hapus akun admin ${profile.full_name} beserta akses login dan membership?`} className="rounded-[12px] border border-rose-400/15 bg-rose-400/[0.04] px-4 py-2.5 text-xs font-semibold text-rose-200 transition hover:bg-rose-400/[0.08]">Hapus Admin</ConfirmSubmitButton></form>
+                    <form action={toggleAdminStatus.bind(null, profile.id)}><ActionSubmitButton pendingLabel="Memproses admin..." className="liquid-button rounded-[12px] px-4 py-2.5 text-xs font-semibold" disabled={isSelf}>{profile.active ? "Nonaktifkan Admin" : "Aktifkan Admin"}</ActionSubmitButton></form>
+                    <form action={deleteAdmin.bind(null, profile.id)}><ConfirmSubmitButton pendingLabel="Menghapus admin..." message={`Hapus akun admin ${profile.full_name} beserta akses login dan membership? Data organisasi, modul, peserta, dan ujian tidak ikut dihapus.`} className="rounded-[12px] border border-rose-400/15 bg-rose-400/[0.04] px-4 py-2.5 text-xs font-semibold text-rose-200 transition hover:bg-rose-400/[0.08]">Hapus Admin</ConfirmSubmitButton></form>
                   </div>
                 ) : null}
               </article>

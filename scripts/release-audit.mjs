@@ -276,6 +276,27 @@ if (!examGuardSource.includes("Math.random() * 10000") || !examGuardSource.inclu
   failures.push("Heartbeat browser belum memakai jitter R8.2.");
 }
 
+// R8.3 admin speed/UX contract.
+const r83MigrationPath = path.join(root, "supabase/migrations/20260817_r8_3_admin_speed_ux.sql");
+if (!fs.existsSync(r83MigrationPath)) {
+  failures.push("Migration R8.3 admin speed/UX belum tersedia.");
+}
+const adminLayoutSource = fs.readFileSync(path.join(root, "app/admin/layout.tsx"), "utf8");
+if (!adminLayoutSource.includes("AdminActionScrollMemory") || !adminLayoutSource.includes("admin-performance-shell")) {
+  failures.push("Admin R8.3 belum mengaktifkan scroll preservation/performance shell.");
+}
+const platformActionsR83 = fs.readFileSync(path.join(root, "app/admin/platform/actions.ts"), "utf8");
+if (!platformActionsR83.includes("exam_platform_find_auth_user_by_email") || platformActionsR83.includes("admin.auth.admin.listUsers({ page, perPage: 1000 })")) {
+  failures.push("Platform onboarding masih memakai Auth listUsers fan-out lama.");
+}
+const platformPageR83 = fs.readFileSync(path.join(root, "app/admin/platform/page.tsx"), "utf8");
+if (!platformPageR83.includes("exam_platform_admin_auth_directory") || !platformPageR83.includes("ActionSubmitButton")) {
+  failures.push("Platform page belum memakai auth directory/pending action UX R8.3.");
+}
+if (!platformActionsR83.includes("akun admin tanpa workspace ikut dibersihkan") || !platformActionsR83.includes("Promise.all(")) {
+  failures.push("Organization delete R8.3 belum menjaga orphan-admin cleanup / parallel precheck.");
+}
+
 
 if (/console\.error\([^\n]*(?:SUBSCRIPTION|ORGANIZATION SUBSCRIPTION)/i.test(combined)) {
   failures.push("Subscription read/event error masih menggunakan console.error dan dapat memicu Next.js dev overlay.");

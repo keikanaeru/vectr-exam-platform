@@ -148,6 +148,22 @@ if (!r82Health || r82Health.ok !== true) {
 }
 console.log(`[PRE-FLIGHT] Database contract ${r82Health.version ?? "R8.2-CONCURRENCY"}: OK`);
 
+const { data: r83Health, error: r83HealthError } = await supabase.rpc("exam_platform_r83_healthcheck");
+if (r83HealthError) {
+  fail(`RPC exam_platform_r83_healthcheck belum siap (${r83HealthError.code ?? "NO_CODE"}): ${r83HealthError.message}. Jalankan migration 20260817_r8_3_admin_speed_ux.sql.`);
+}
+if (!r83Health || r83Health.ok !== true) {
+  const missing = Array.isArray(r83Health?.missing) ? r83Health.missing : [];
+  for (const item of missing) console.error(`  - ${String(item)}`);
+  fail("Database contract R8.3 admin speed belum lengkap.");
+}
+console.log(`[PRE-FLIGHT] Database contract ${r83Health.version ?? "R8.3-ADMIN-SPEED"}: OK`);
+
+const { error: authDirectoryError } = await supabase.rpc("exam_platform_admin_auth_directory");
+if (authDirectoryError) {
+  fail(`RPC exam_platform_admin_auth_directory belum dapat dipanggil service_role: ${authDirectoryError.message}`);
+}
+
 const { error: brandingBucketError } = await supabase.storage
   .from("exam-branding")
   .list("organizations", { limit: 1 });

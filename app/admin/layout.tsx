@@ -3,13 +3,13 @@ import { redirect } from "next/navigation";
 
 import { getAdminContext } from "@/lib/admin-context";
 import { createAdminClient } from "@/lib/supabase/admin";
-import AdminAmbient from "./AdminAmbient";
 import VectrBrand from "@/app/ui/VectrBrand";
 import AdminNav from "./AdminNav";
 import OrganizationSwitcher from "./OrganizationSwitcher";
 import AdminAccountMenu from "./AdminAccountMenu";
 import { setActiveOrganization } from "./organization-actions";
 import AdminSubscriptionGate from "./AdminSubscriptionGate";
+import AdminActionScrollMemory from "./ui/AdminActionScrollMemory";
 import { getOrganizationSubscriptionState } from "@/lib/organization-subscription";
 
 
@@ -45,7 +45,7 @@ export default async function AdminLayout({
     !context.activeOrganization
   ) {
     return (
-      <div className="admin-shell relative min-h-screen">
+      <div className="admin-shell admin-performance-shell relative min-h-screen">
         <div className="fixed right-5 top-5 z-50">
           <AdminAccountMenu fullName={context.profile.fullName} role={context.profile.globalRole || "ADMIN"} />
         </div>
@@ -109,9 +109,9 @@ export default async function AdminLayout({
   // =====================================
 
   return (
-    <div className="admin-shell relative isolate min-h-screen overflow-x-clip">
+    <div className="admin-shell admin-performance-shell relative isolate min-h-screen overflow-x-clip">
 
-      <AdminAmbient />
+      <AdminActionScrollMemory />
 
       <div className="relative z-10">
 

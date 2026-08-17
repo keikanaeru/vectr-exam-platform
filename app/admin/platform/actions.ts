@@ -43,16 +43,32 @@ type AdminAuthUser = {
   confirmed_at?: string;
 };
 
+type AdminAuthLookupRow = {
+  id: string;
+  email: string | null;
+  email_confirmed_at: string | null;
+};
+
 async function findAuthUserByEmail(admin: ReturnType<typeof createAdminClient>, email: string) {
   const normalized = email.trim().toLowerCase();
-  for (let page = 1; page <= 10; page += 1) {
-    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
-    if (error) throw new Error(`Gagal memeriksa akun Auth: ${error.message}`);
-    const match = data.users.find((user) => (user.email ?? "").trim().toLowerCase() === normalized);
-    if (match) return match as AdminAuthUser;
-    if (data.users.length < 1000) break;
+  const { data, error } = await admin
+    .rpc("exam_platform_find_auth_user_by_email", { p_email: normalized })
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Gagal memeriksa akun Auth: ${error.message}. Jalankan migration R8.3.`);
   }
-  return null;
+  if (!data) return null;
+
+  const authRow = data as unknown as AdminAuthLookupRow;
+
+  return {
+    id: String(authRow.id),
+    email: authRow.email ? String(authRow.email) : normalized,
+    email_confirmed_at: authRow.email_confirmed_at
+      ? String(authRow.email_confirmed_at)
+      : undefined,
+  } as AdminAuthUser;
 }
 
 
@@ -61,7 +77,7 @@ async function preflightCustomerAdminEmail(
   email: string
 ) {
   const authUser = await findAuthUserByEmail(admin, email);
-  if (!authUser) return;
+  if (!authUser) return null;
 
   const { data: profile, error } = await admin
     .from("admin_profiles")
@@ -75,6 +91,7 @@ async function preflightCustomerAdminEmail(
   if (profile && !profile.active) {
     redirectWithError("Email admin utama sudah terdaftar tetapi akunnya sedang nonaktif. Aktifkan akun tersebut terlebih dahulu.");
   }
+  return authUser;
 }
 
 async function writeAdminInviteEvent(
@@ -156,10 +173,13 @@ async function generateAndSendAdminAccess(
     email: string;
     actorUserId: string;
     forceSetupLink?: boolean;
+    knownAuthUser?: AdminAuthUser | null;
   }
 ) {
   const origin = await getPublicAppOrigin();
-  let authUser = await findAuthUserByEmail(admin, input.email);
+  let authUser = input.knownAuthUser === undefined
+    ? await findAuthUserByEmail(admin, input.email)
+    : input.knownAuthUser;
   let newAuthUser = false;
   let setupMode: "invite" | "magiclink" | "recovery" | "existing";
   let emailMode: "invite" | "recovery" = "invite";
@@ -230,7 +250,7 @@ async function generateAndSendAdminAccess(
 
   if (setupMode === "existing") {
     const loginUrl = `${origin}/login`;
-    await sendAccessGrantedEmail({
+    const providerMessageId = await sendAccessGrantedEmail({
       email: input.email,
       fullName: input.fullName,
       organizationName: input.organizationName,
@@ -243,12 +263,12 @@ async function generateAndSendAdminAccess(
       eventType: "ADMIN_ACCESS_NOTICE_SENT",
       note: `${input.email} mendapat akses organisasi; akun sebelumnya sudah aktif.`,
     });
-    return { userId: authUser.id, mode: setupMode } as const;
+    return { userId: authUser.id, mode: setupMode, providerMessageId } as const;
   }
 
   const next = emailMode === "invite" ? "/update-password?mode=invite" : "/update-password?mode=recovery";
   const actionUrl = buildAuthConfirmUrl(origin, tokenHash, setupMode, next);
-  await sendAdminSetupEmail({
+  const providerMessageId = await sendAdminSetupEmail({
     email: input.email,
     fullName: input.fullName,
     organizationName: input.organizationName,
@@ -262,15 +282,14 @@ async function generateAndSendAdminAccess(
     eventType: setupMode === "invite" ? "ADMIN_INVITE_SENT" : "ADMIN_SETUP_LINK_SENT",
     note: `Link aktivasi dikirim ke ${input.email}.`,
   });
-  return { userId: authUser.id, mode: setupMode } as const;
+  return { userId: authUser.id, mode: setupMode, providerMessageId } as const;
 }
 
 function refreshPlatform() {
+  // Platform mutations tidak perlu menginvalidasi seluruh modul/peserta/ujian.
+  // Halaman lain bersifat dynamic dan akan membaca data terbaru ketika dibuka.
   revalidatePath("/admin/platform");
   revalidatePath("/admin");
-  revalidatePath("/admin/participants");
-  revalidatePath("/admin/modules");
-  revalidatePath("/admin/exams");
 }
 
 async function validateOrganizationInput(
@@ -324,7 +343,7 @@ export async function createCustomerWithAdmin(formData: FormData) {
   await validateOrganizationInput(admin, { name, code, slug });
   if (fullName.length < 2 || fullName.length > 150) redirectWithError("Nama admin utama wajib 2–150 karakter.");
   if (!isValidEmail(email)) redirectWithError("Email admin utama tidak valid.");
-  await preflightCustomerAdminEmail(admin, email);
+  const preflightAuthUser = await preflightCustomerAdminEmail(admin, email);
 
   const { data: organization, error: organizationError } = await admin
     .from("organizations")
@@ -343,6 +362,7 @@ export async function createCustomerWithAdmin(formData: FormData) {
       fullName,
       email,
       actorUserId: context.userId,
+      knownAuthUser: preflightAuthUser,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Undangan admin gagal diproses.";
@@ -354,8 +374,8 @@ export async function createCustomerWithAdmin(formData: FormData) {
   refreshPlatform();
   redirectWithSuccess(
     delivery.mode === "existing"
-      ? `${organization.name} dibuat. ${fullName} sudah punya akun dan akses barunya sudah dikirim lewat email.`
-      : `${organization.name} dibuat dan undangan aktivasi sudah dikirim ke ${email}.`
+      ? `${organization.name} dibuat. Akses ${fullName} diperbarui dan email diterima Resend untuk dikirim ke ${email}.`
+      : `${organization.name} dibuat. Undangan diterima Resend untuk dikirim ke ${email}.`
   );
 }
 
@@ -520,20 +540,42 @@ export async function deleteOrganization(organizationId: string) {
     .maybeSingle();
   if (!organization) redirectWithError("Organisasi tidak ditemukan.");
 
-  const dependencyTables = ["modules", "batches", "candidates", "exams"] as const;
-  for (const table of dependencyTables) {
-    const { count, error } = await admin
-      .from(table)
-      .select("id", { count: "exact", head: true })
-      .eq("organization_id", organizationId);
-    if (error) {
-      console.error(`CHECK ${table} ERROR`, error);
-      throw new Error("Gagal memeriksa data organisasi sebelum penghapusan.");
-    }
-    if ((count ?? 0) > 0) {
-      redirectWithError(`Organisasi masih memiliki data ${table}. Nonaktifkan organisasi bila ingin mempertahankan histori.`);
-    }
+  const dependencies = [
+    { table: "modules", label: "modul" },
+    { table: "batches", label: "batch" },
+    { table: "candidates", label: "peserta" },
+    { table: "exams", label: "ujian" },
+  ] as const;
+
+  const dependencyResults = await Promise.all(
+    dependencies.map(async ({ table, label }) => {
+      const { count, error } = await admin
+        .from(table)
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", organizationId);
+      if (error) throw new Error(`Gagal memeriksa ${label}: ${error.message}`);
+      return { label, count: count ?? 0 };
+    })
+  );
+
+  const blockers = dependencyResults.filter((item) => item.count > 0);
+  if (blockers.length) {
+    redirectWithError(
+      `Organisasi tidak dihapus karena masih menyimpan ${blockers.map((item) => `${item.count} ${item.label}`).join(", ")}. Gunakan Nonaktifkan agar histori tetap aman.`
+    );
   }
+
+  // Simpan daftar admin sebelum membership dilepas. Setelah organisasi terhapus,
+  // akun admin yang benar-benar tidak punya workspace lain ikut dibersihkan agar
+  // tidak meninggalkan akun orphan di daftar Platform Owner.
+  const { data: membershipsBeforeDelete, error: membershipReadError } = await admin
+    .from("organization_members")
+    .select("user_id")
+    .eq("organization_id", organizationId);
+  if (membershipReadError) {
+    redirectWithError(databaseErrorMessage("ORGANIZATION_MEMBERSHIP_READ", "Akses admin organisasi gagal diperiksa.", membershipReadError));
+  }
+  const formerAdminIds = [...new Set((membershipsBeforeDelete ?? []).map((row) => String(row.user_id)))];
 
   const { error: membershipDeleteError } = await admin
     .from("organization_members")
@@ -554,8 +596,42 @@ export async function deleteOrganization(organizationId: string) {
     redirectWithError(databaseErrorMessage("ORGANIZATION_DELETE", "Organisasi gagal dihapus.", error));
   }
 
+  let orphanAdminsRemoved = 0;
+  let orphanCleanupWarnings = 0;
+
+  for (const userId of formerAdminIds) {
+    const [{ count: remainingMemberships, error: remainingError }, { data: profile, error: profileError }] = await Promise.all([
+      admin.from("organization_members").select("id", { count: "exact", head: true }).eq("user_id", userId),
+      admin.from("admin_profiles").select("id, is_platform_owner").eq("id", userId).maybeSingle(),
+    ]);
+
+    if (remainingError || profileError) {
+      orphanCleanupWarnings += 1;
+      console.warn("ORPHAN ADMIN CHECK WARNING", userId, remainingError?.message, profileError?.message);
+      continue;
+    }
+    if (!profile || profile.is_platform_owner || (remainingMemberships ?? 0) > 0) continue;
+
+    const { error: profileDeleteError } = await admin.from("admin_profiles").delete().eq("id", userId);
+    if (profileDeleteError) {
+      orphanCleanupWarnings += 1;
+      console.warn("ORPHAN ADMIN PROFILE DELETE WARNING", userId, profileDeleteError.message);
+      continue;
+    }
+
+    const { error: authDeleteError } = await admin.auth.admin.deleteUser(userId);
+    if (authDeleteError) {
+      orphanCleanupWarnings += 1;
+      console.warn("ORPHAN ADMIN AUTH DELETE WARNING", userId, authDeleteError.message);
+      continue;
+    }
+    orphanAdminsRemoved += 1;
+  }
+
   refreshPlatform();
-  redirectWithSuccess(`${organization.name} berhasil dihapus.`);
+  redirectWithSuccess(
+    `${organization.name} berhasil dihapus.${orphanAdminsRemoved ? ` ${orphanAdminsRemoved} akun admin tanpa workspace ikut dibersihkan.` : ""}${orphanCleanupWarnings ? ` ${orphanCleanupWarnings} akun perlu dicek manual di Supabase Auth.` : ""}`
+  );
 }
 
 export async function createOrganizationAdmin(formData: FormData) {
@@ -594,8 +670,8 @@ export async function createOrganizationAdmin(formData: FormData) {
   refreshPlatform();
   redirectWithSuccess(
     delivery.mode === "existing"
-      ? `${fullName} mendapat akses ke ${organization.name}. Email pemberitahuan sudah dikirim.`
-      : `Undangan admin ${organization.name} sudah dikirim ke ${email}.`
+      ? `${fullName} mendapat akses ke ${organization.name}. Email diterima Resend untuk dikirim ke ${email}.`
+      : `Undangan admin ${organization.name} diterima Resend untuk dikirim ke ${email}.`
   );
 }
 
@@ -629,7 +705,7 @@ export async function resendOrganizationAdminInvite(adminId: string, organizatio
   }
 
   refreshPlatform();
-  redirectWithSuccess(`Link aktivasi baru dikirim ke ${authUser.user.email}.`);
+  redirectWithSuccess(`Link aktivasi baru diterima Resend untuk dikirim ke ${authUser.user.email}.`);
 }
 
 export async function sendAdminPasswordReset(adminId: string, organizationId: string) {
@@ -660,7 +736,7 @@ export async function sendAdminPasswordReset(adminId: string, organizationId: st
   }
 
   refreshPlatform();
-  redirectWithSuccess(`Link pengaturan password dikirim ke ${authUser.user.email}.`);
+  redirectWithSuccess(`Link pengaturan password diterima Resend untuk dikirim ke ${authUser.user.email}.`);
 }
 
 export async function updateAdmin(adminId: string, formData: FormData) {
