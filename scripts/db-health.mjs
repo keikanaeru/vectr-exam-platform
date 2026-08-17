@@ -137,6 +137,17 @@ if (!r7Health || r7Health.ok !== true) {
 }
 console.log(`[PRE-FLIGHT] Database contract ${r7Health.version ?? "R7-SUBSCRIPTION"}: OK`);
 
+const { data: r82Health, error: r82HealthError } = await supabase.rpc("exam_platform_r82_healthcheck");
+if (r82HealthError) {
+  fail(`RPC exam_platform_r82_healthcheck belum siap (${r82HealthError.code ?? "NO_CODE"}): ${r82HealthError.message}. Jalankan migration 20260817_r8_2_concurrency_hardening.sql.`);
+}
+if (!r82Health || r82Health.ok !== true) {
+  const missing = Array.isArray(r82Health?.missing) ? r82Health.missing : [];
+  for (const item of missing) console.error(`  - ${String(item)}`);
+  fail("Database contract R8.2 concurrency belum lengkap.");
+}
+console.log(`[PRE-FLIGHT] Database contract ${r82Health.version ?? "R8.2-CONCURRENCY"}: OK`);
+
 const { error: brandingBucketError } = await supabase.storage
   .from("exam-branding")
   .list("organizations", { limit: 1 });

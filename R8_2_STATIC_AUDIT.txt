@@ -1,0 +1,42 @@
+VECTR EXAM PLATFORM R8.2 STATIC AUDIT
+=====================================
+Release audit: PASS — 114 source files checked
+TS/TSX parsed: 117
+TS/TSX parse diagnostics: 0
+JS/TS source files in import scan: 121
+Imports scanned: 469
+Unresolved local imports: 0
+
+Candidate hot path:
+- heartbeat: 1 atomic RPC
+- answer autosave: 1 atomic RPC
+- flag autosave: 1 atomic RPC
+- scoring/finalize: 1 atomic RPC
+
+Start/resume provisioning:
+- batched source reads
+- deterministic shuffle per session
+- session_questions batch upsert (100 rows max/batch)
+- section progress bulk upsert
+- snapshot_ready_at fast path
+
+Single-device:
+- server-issued candidate_device identity
+- deviceId signed into candidate session token
+- DB lease validated by heartbeat + answer + flag
+- take page + submit/section mutation must acquire active device lease
+- lease takeover after 90s stale or Proctor Release Device Lock
+
+Bulk finalization:
+- bounded worker pool concurrency 8
+
+Secret pattern review:
+- no sb_secret_ value found in public GitHub code search
+- no RESEND_API_KEY= value found in public GitHub code search
+
+NOT EXECUTED IN THIS CONTAINER:
+- npm/Next semantic typecheck + next build (dependencies are intentionally absent)
+- live DB migration execution against the user's Supabase project
+
+Required user-side proof after migration:
+  npm.cmd run verify

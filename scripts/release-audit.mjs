@@ -23,7 +23,6 @@ const banned = [
   ["window.confirm(", "Masih ada browser-native confirm."],
   ["start_or_resume_exam_session", "Runtime masih mereferensikan RPC start legacy."],
   ["submit_and_score_exam_session", "Runtime masih mereferensikan RPC submit legacy."],
-  ["onConflict: \"session_id,question_id\"", "Provisioning soal masih bergantung pada ON CONFLICT session_id,question_id."],
   ["Database Compatibility · R6", "Label development R6 masih terlihat di UI."],
   ["Credential Sudah Ready", "Status credential masih dirender sebagai label tombol."],
   ["export async function setExamAccessCode", "Compatibility action setExamAccessCode lama masih tersisa."],
@@ -215,6 +214,66 @@ if (!campaignActions.includes("Email credential harus dijadwalkan sebelum Hard C
 const examPolicyActionsSource = fs.readFileSync(path.join(root, "app/admin/exams/[id]/settings/actions.ts"), "utf8");
 if (!examPolicyActionsSource.includes('runtimeLocked = String(exam.status) !== "DRAFT"')) {
   failures.push("Security/punishment runtime belum dikunci setelah ujian diaktifkan.");
+}
+
+// R8.2 concurrency hardening: candidate hot paths must stay batched/atomic.
+const r82MigrationPath = path.join(root, "supabase/migrations/20260817_r8_2_concurrency_hardening.sql");
+if (!fs.existsSync(r82MigrationPath)) {
+  failures.push("Migration R8.2 concurrency hardening belum tersedia.");
+}
+const examSectionsSource = fs.readFileSync(path.join(root, "lib/exam-sections.ts"), "utf8");
+for (const marker of [
+  '.in("module_id", moduleIds)',
+  'ignoreDuplicates: true',
+  'offset += 100',
+  'snapshot_ready_at',
+  'createHash("sha256")',
+]) {
+  if (!examSectionsSource.includes(marker)) {
+    failures.push(`Provisioning R8.2 kehilangan marker batch: ${marker}`);
+  }
+}
+const candidateTakeActionsSource = fs.readFileSync(path.join(root, "app/candidate/exam/[id]/take/actions.ts"), "utf8");
+for (const rpc of [
+  "exam_candidate_heartbeat_r82",
+  "exam_candidate_save_answer_r82",
+  "exam_candidate_save_flag_r82",
+]) {
+  if (!candidateTakeActionsSource.includes(rpc)) {
+    failures.push(`Candidate hot path belum memakai RPC R8.2: ${rpc}`);
+  }
+}
+if (candidateTakeActionsSource.includes("async function validateQuestion(")) {
+  failures.push("Autosave masih memakai validateQuestion fan-out lama.");
+}
+const examRuntimeSource = fs.readFileSync(path.join(root, "lib/exam-session-runtime.ts"), "utf8");
+if (!examRuntimeSource.includes("exam_finalize_session_r82")) {
+  failures.push("Finalisasi sesi masih memakai multi-request scoring path lama.");
+}
+const candidateSessionSource = fs.readFileSync(path.join(root, "lib/candidate-session.ts"), "utf8");
+const candidateDeviceSource = fs.readFileSync(path.join(root, "lib/candidate-device.ts"), "utf8");
+const candidateLoginSource = fs.readFileSync(path.join(root, "app/candidate/login/actions.ts"), "utf8");
+const candidateJoinSource = fs.readFileSync(path.join(root, "app/join/[id]/actions.ts"), "utf8");
+if (!candidateSessionSource.includes("deviceId: string") || !candidateDeviceSource.includes('candidate_device')) {
+  failures.push("Device identity belum terikat ke signed candidate session.");
+}
+if (!candidateLoginSource.includes("getOrCreateCandidateDeviceId") || !candidateJoinSource.includes("getOrCreateCandidateDeviceId")) {
+  failures.push("Semua candidate login flow belum menerbitkan device identity R8.2.");
+}
+if (!candidateTakeActionsSource.includes("requireActiveDeviceLease") || !candidateTakeActionsSource.includes("p_client_id: candidateSession.deviceId")) {
+  failures.push("State mutation peserta belum fail-closed terhadap single-device lease.");
+}
+const candidateTakePageR82 = fs.readFileSync(path.join(root, "app/candidate/exam/[id]/take/page.tsx"), "utf8");
+if (!candidateTakePageR82.includes("exam_candidate_heartbeat_r82") || !candidateTakePageR82.includes("lease?.conflict")) {
+  failures.push("Take page belum fail-closed sebelum menampilkan soal pada device yang konflik.");
+}
+const proctorActionsR82Source = fs.readFileSync(path.join(root, "app/admin/exams/[id]/proctor/actions.ts"), "utf8");
+if (!proctorActionsR82Source.includes("finalizeSessionBatch") || !proctorActionsR82Source.includes("concurrency = 8")) {
+  failures.push("Bulk finalization admin belum dibatasi dengan worker pool R8.2.");
+}
+const examGuardSource = fs.readFileSync(path.join(root, "app/candidate/exam/[id]/take/ExamGuard.tsx"), "utf8");
+if (!examGuardSource.includes("Math.random() * 10000") || !examGuardSource.includes("scheduleNext")) {
+  failures.push("Heartbeat browser belum memakai jitter R8.2.");
 }
 
 

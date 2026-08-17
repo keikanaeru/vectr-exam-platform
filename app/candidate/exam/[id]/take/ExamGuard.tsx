@@ -28,7 +28,6 @@ export default function ExamGuard({ examId, policy }: Props) {
   const [deviceConflict, setDeviceConflict] = useState(false);
 
   const tabIdRef = useRef("");
-  const deviceIdRef = useRef("");
   const eventCounterRef = useRef(0);
   const violationCountRef = useRef(0);
   const lastEventAtRef = useRef<Record<string, number>>({});
@@ -43,22 +42,6 @@ export default function ExamGuard({ examId, policy }: Props) {
         : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     }
     return tabIdRef.current;
-  }, []);
-
-  const getDeviceId = useCallback(() => {
-    if (deviceIdRef.current) return deviceIdRef.current;
-    const storageKey = "exam-platform-device-id-v1";
-    const existing = window.localStorage.getItem(storageKey);
-    if (existing) {
-      deviceIdRef.current = existing;
-      return existing;
-    }
-    const created = typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    window.localStorage.setItem(storageKey, created);
-    deviceIdRef.current = created;
-    return created;
   }, []);
 
   const autoSubmitFallback = useCallback(async () => {
@@ -159,14 +142,23 @@ export default function ExamGuard({ examId, policy }: Props) {
   }, [autoSubmitFallback, examId, getTabId, policy.security, router]);
 
   useEffect(() => {
-    if (!policy.security.enableProctoring) return;
+    // Device lock is a session-integrity control, so keep the heartbeat alive
+    // when enforceSingleDevice is enabled even if the rest of proctoring is off.
+    if (!policy.security.enableProctoring && !policy.security.enforceSingleDevice) return;
+
+    let cancelled = false;
+    let timer: number | null = null;
 
     const beat = async () => {
       try {
-        const result = await heartbeatExam(examId, getDeviceId(), navigator.userAgent);
+        const result = await heartbeatExam(examId, navigator.userAgent);
+        if (cancelled) return;
+
         if (result && "conflict" in result && result.conflict) {
           setDeviceConflict(true);
-          void report("MULTIPLE_DEVICE", { conflict: true }, "multiple-device", 30000);
+          if (policy.security.enableProctoring) {
+            void report("MULTIPLE_DEVICE", { conflict: true }, "multiple-device", 30000);
+          }
         } else {
           setDeviceConflict(false);
         }
@@ -175,13 +167,32 @@ export default function ExamGuard({ examId, policy }: Props) {
       }
     };
 
-    void beat();
-    const timer = window.setInterval(() => {
-      void beat();
-    }, 25000);
+    const scheduleNext = (initial = false) => {
+      if (cancelled) return;
+      // Spread 100–200 candidates over time instead of synchronizing every
+      // browser on the same 25-second boundary.
+      const delay = initial
+        ? 400 + Math.floor(Math.random() * 2600)
+        : 25000 + Math.floor(Math.random() * 10000);
 
-    return () => window.clearInterval(timer);
-  }, [examId, getDeviceId, policy.security.enableProctoring, report]);
+      timer = window.setTimeout(async () => {
+        await beat();
+        scheduleNext(false);
+      }, delay);
+    };
+
+    scheduleNext(true);
+
+    return () => {
+      cancelled = true;
+      if (timer !== null) window.clearTimeout(timer);
+    };
+  }, [
+    examId,
+    policy.security.enableProctoring,
+    policy.security.enforceSingleDevice,
+    report,
+  ]);
 
   useEffect(() => {
     if (!policy.security.enableProctoring) return;
@@ -392,7 +403,7 @@ export default function ExamGuard({ examId, policy }: Props) {
     }
   }
 
-  if (!policy.security.enableProctoring) return null;
+  if (!policy.security.enableProctoring && !policy.security.enforceSingleDevice) return null;
 
   return (
     <>
