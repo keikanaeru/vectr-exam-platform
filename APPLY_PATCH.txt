@@ -1,0 +1,14 @@
+CARA PASANG PATCH R2
+
+1. Stop server dev di VS Code: Ctrl+C pada terminal yang menjalankan npm.cmd run dev.
+2. Extract isi ZIP patch ini.
+3. Copy semua folder/file dari hasil extract ke:
+   C:\Users\User\exam-platform-final\
+4. Pilih Replace/Overwrite files saat Windows bertanya.
+5. Jangan hapus atau ubah .env.local.
+6. Jalankan lagi:
+   npm.cmd run dev
+7. Refresh browser dengan Ctrl+Shift+R.
+
+Tidak perlu menjalankan FINAL_SETUP.sql lagi.
+Tidak perlu npm install lagi.
