@@ -43,3 +43,6 @@ next-env.d.ts
 
 # local archives
 *.zip
+
+# repomix
+repomix-output.*
