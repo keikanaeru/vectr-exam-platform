@@ -49,3 +49,4 @@ repomix-output.*playwright-report/
 test-results/
 load-tests/results/
 load-tests/.stateful-fixture.json
+.lighthouseci/

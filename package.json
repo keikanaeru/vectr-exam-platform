@@ -33,6 +33,7 @@
     "resend": "^6.18.1"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
@@ -43,5 +44,8 @@
     "repomix": "^1.18.0",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "uuid": "11.1.1"
   }
 }
