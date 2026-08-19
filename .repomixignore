@@ -1,4 +1,32 @@
-# Add patterns to ignore here, one per line
-# Example:
-# *.log
-# tmp/
+# VECTR AI context exclusions
+
+# Local/generated
+*.log
+coverage/
+playwright-report/
+test-results/
+
+# Historical release notes and superseded patch instructions.
+# Current application code + migrations remain included.
+PATCH_*.md
+COMPLETE_V2.md
+DEEP_SCAN_R4.md
+FINAL_V3.md
+PRE_PRODUCTION_R7_3.md
+R5_*.md
+R6_*.md
+R7_*.md
+R8_1_BUILD_FIX.md
+R8_PRODUCTION_CANDIDATE.md
+UI_FINAL.md
+RELEASE_AUDIT.md
+APPLY_PATCH.txt
+R8_2_APPLY.txt
+R8_2_STATIC_AUDIT.txt
+R8_STATIC_AUDIT.txt
+
+# Superseded root SQL helpers. Canonical migrations under supabase/migrations stay included.
+FINAL_SETUP.sql
+FIX_*.sql
+R6_UPGRADE.sql
+R7_*.sql

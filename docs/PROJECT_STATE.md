@@ -1,0 +1,71 @@
+# VECTR Project State
+
+## Current baseline
+
+The current repository contains both:
+
+- **R8.2 Concurrency Hardening**
+- **R8.3 Admin Speed & Action UX**
+
+The database migration set includes:
+
+- `20260813_exam_proctoring.sql`
+- `20260814_r5_database_contract.sql`
+- `20260815_r6_accessibility_branding_multisection.sql`
+- `20260817_r8_2_concurrency_hardening.sql`
+- `20260817_r8_3_admin_speed_ux.sql`
+
+## Runtime stack
+
+- Next.js 16.3.0
+- React 19.2.x
+- Supabase JS 2.x
+- Resend
+- ExcelJS / docx / pdf-lib for exports
+- Vercel deployment
+
+## Candidate runtime
+
+Candidate flow is approximately:
+
+`/candidate/login`
+→ signed candidate session + server-issued device identity
+→ `/candidate`
+→ `/candidate/exam/[id]`
+→ policy acknowledgement/start
+→ `/candidate/exam/[id]/take`
+→ heartbeat/device lease
+→ answer/flag persistence
+→ section completion/final submit
+→ `/candidate/exam/[id]/result`
+
+R8.2 introduced server-side device identity in the signed candidate session and server-side device-lock checks. A second device must not silently take over an active session.
+
+## Platform Owner runtime
+
+`/admin/platform` owns customer organization/admin onboarding and management.
+
+R8.3 includes:
+
+- targeted admin auth directory RPC
+- pending button states
+- scroll preservation after server actions
+- reduced revalidation
+- safer organization deletion
+- orphan-admin cleanup for empty deleted organizations
+
+Admin onboarding does not use temporary passwords. Resend sends activation/setup links.
+
+## Release gate
+
+Current mandatory baseline command:
+
+```powershell
+npm.cmd run verify
+```
+
+Expected gates include database contract audit, release audit, and Next production build/type-check.
+
+## Tooling branch
+
+Developer tooling should remain isolated from product behavior until verified. Tooling must not change database runtime behavior.

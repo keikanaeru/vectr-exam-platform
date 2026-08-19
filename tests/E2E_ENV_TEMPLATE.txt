@@ -1,0 +1,26 @@
+Create a local file named:
+
+.env.e2e.local
+
+Do NOT commit it.
+
+Minimum safe smoke:
+
+E2E_BASE_URL=http://127.0.0.1:3000
+
+E2E_ADMIN_EMAIL=
+E2E_ADMIN_PASSWORD=
+E2E_PLATFORM_OWNER=1
+
+E2E_CANDIDATE_CODE=
+E2E_CANDIDATE_ACCESS_CODE=
+
+Optional mutating exam tests — DUMMY EXAM ONLY:
+
+E2E_EXAM_ID=
+E2E_ALLOW_EXAM_MUTATION=0
+
+When testing a deployed Preview instead of localhost:
+
+E2E_BASE_URL=https://your-preview-url
+E2E_NO_WEBSERVER=1
