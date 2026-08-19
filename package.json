@@ -8,29 +8,39 @@
     "start": "next start",
     "lint": "eslint",
     "audit:db": "node scripts/db-health.mjs",
-    "verify": "npm run audit:db && npm run audit:release && next build",
-    "audit:release": "node scripts/release-audit.mjs"
+    "verify": "npm run audit:db && npm run audit:r832-finalizer && npm run audit:release && next build",
+    "audit:release": "node scripts/release-audit.mjs",
+    "context": "repomix",
+    "test:e2e": "playwright test",
+    "test:e2e:safe": "playwright test tests/admin-platform.spec.js tests/candidate-login.spec.js",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "audit:r832-finalizer": "node scripts/check-r832-finalizer.mjs",
+    "test:golden": "playwright test tests/golden-path.spec.js --headed --workers=1",
+    "test:golden:full": "playwright test tests/golden-full.spec.js --headed --workers=1"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.2",
     "bcryptjs": "^3.0.3",
     "docx": "^9.7.1",
-    "exceljs": "^4.4.0",
+    "exceljs": "^3.4.0",
+    "jszip": "^3.10.1",
     "next": "16.3.0",
     "pdf-lib": "^1.17.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "resend": "^6.18.1",
-    "jszip": "^3.10.1"
+    "resend": "^6.18.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
+    "repomix": "^1.18.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

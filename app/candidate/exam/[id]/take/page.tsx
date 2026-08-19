@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyCandidateSessionToken } from "@/lib/candidate-session";
+import { getCandidateDeviceId } from "@/lib/candidate-device";
 import { getExamPolicy } from "@/lib/exam-policy";
 import {
   ensureExamSectionsForSession,
@@ -27,7 +28,24 @@ export default async function TakeExamPage({ params }: { params: Promise<{ id: s
   if (!candidateSession) redirect("/candidate/login");
   if (candidateSession.examId !== examId) redirect("/candidate");
 
+  const deviceId = await getCandidateDeviceId();
+  if (!deviceId || deviceId !== candidateSession.deviceId) redirect("/candidate/login");
+
   const supabase = createAdminClient();
+  const { data: leaseData, error: leaseError } = await supabase.rpc("exam_candidate_heartbeat_r82", {
+    p_assignment_id: candidateSession.assignmentId,
+    p_candidate_id: candidateSession.candidateId,
+    p_exam_id: examId,
+    p_client_id: candidateSession.deviceId,
+    p_user_agent: "take-page",
+  });
+  if (leaseError) throw new Error("Device lease ujian gagal diperiksa.");
+  const lease = Array.isArray(leaseData) ? leaseData[0] : leaseData;
+  if (lease?.conflict) {
+    redirect(`/candidate/exam/${examId}?error=${encodeURIComponent("Credential sedang aktif di perangkat lain. Tutup perangkat lain atau minta pengawas melepas device lock.")}`);
+  }
+  if (!lease?.ok) redirect(`/candidate/exam/${examId}`);
+
   const { data: examSession, error: sessionError } = await supabase
     .from("exam_sessions")
     .select("id, assignment_id, attempt_no, started_at, deadline_at, status")

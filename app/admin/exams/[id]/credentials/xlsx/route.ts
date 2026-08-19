@@ -153,8 +153,6 @@ export async function GET(
 
     const workbook = new ExcelJS.Workbook();
     workbook.creator = "VECTR Exam Platform";
-    workbook.title = `Master Credential - ${exam.title}`;
-
     const sheet = workbook.addWorksheet("Credential", {
       views: [
         {

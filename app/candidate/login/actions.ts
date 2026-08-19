@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getOrCreateCandidateDeviceId } from "@/lib/candidate-device";
 import {
   createCandidateSessionToken,
 } from "@/lib/candidate-session";
@@ -507,6 +508,11 @@ export async function loginCandidate(
     twelveHours;
 
 
+  const cookieStore =
+    await cookies();
+
+  const deviceId = await getOrCreateCandidateDeviceId();
+
   const token =
     createCandidateSessionToken({
       assignmentId:
@@ -518,13 +524,11 @@ export async function loginCandidate(
       examId:
         exam.id,
 
+      deviceId,
+
       exp:
         expiresAt,
     });
-
-
-  const cookieStore =
-    await cookies();
 
 
   cookieStore.set(

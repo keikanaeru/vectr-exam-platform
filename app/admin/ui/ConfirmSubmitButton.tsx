@@ -1,6 +1,6 @@
 "use client";
 
-import { createPortal } from "react-dom";
+import { createPortal, useFormStatus } from "react-dom";
 import { useEffect, useRef, useState } from "react";
 
 export default function ConfirmSubmitButton({
@@ -9,13 +9,16 @@ export default function ConfirmSubmitButton({
   className = "liquid-button rounded-[13px] px-4 py-2.5 text-xs font-semibold text-slate-200",
   disabled = false,
   title,
+  pendingLabel = "Memproses...",
 }: {
   children: React.ReactNode;
   message: string;
   className?: string;
   disabled?: boolean;
   title?: string;
+  pendingLabel?: string;
 }) {
+  const { pending } = useFormStatus();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const formRef = useRef<HTMLFormElement | null>(null);
@@ -68,8 +71,9 @@ export default function ConfirmSubmitButton({
               form?.requestSubmit();
             }}
             className="rounded-[12px] border border-rose-400/20 bg-rose-400/[0.08] px-4 py-2.5 text-xs font-semibold text-rose-200 transition hover:bg-rose-400/[0.13]"
+            disabled={pending}
           >
-            Ya, lanjutkan
+            {pending ? pendingLabel : "Ya, lanjutkan"}
           </button>
         </div>
       </div>
@@ -81,14 +85,20 @@ export default function ConfirmSubmitButton({
       <button
         type="button"
         className={className}
-        disabled={disabled}
+        disabled={disabled || pending}
+        aria-busy={pending}
         title={title}
         onClick={(event) => {
           formRef.current = event.currentTarget.form;
           setOpen(true);
         }}
       >
-        {children}
+        {pending ? (
+          <span className="inline-flex items-center gap-2">
+            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-r-transparent opacity-80" aria-hidden="true" />
+            <span>{pendingLabel}</span>
+          </span>
+        ) : children}
       </button>
       {mounted && dialog ? createPortal(dialog, document.body) : null}
     </>

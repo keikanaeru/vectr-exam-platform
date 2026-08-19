@@ -7,6 +7,7 @@ export type CandidateSessionPayload = {
   assignmentId: string;
   candidateId: string;
   examId: string;
+  deviceId: string;
   exp: number;
 };
 
@@ -100,6 +101,7 @@ export function verifyCandidateSessionToken(
       !payload.assignmentId ||
       !payload.candidateId ||
       !payload.examId ||
+      !payload.deviceId ||
       !payload.exp
     ) {
       return null;

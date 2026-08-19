@@ -9,8 +9,6 @@ export async function GET() {
   await requireAdminWriteAccess();
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "VECTR Exam Platform";
-  workbook.title = "Template Import Peserta";
-
   const sheet = workbook.addWorksheet("Peserta", {
     views: [
       {

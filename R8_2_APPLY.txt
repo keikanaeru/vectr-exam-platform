@@ -1,0 +1,31 @@
+VECTR R8.2 CONCURRENCY HARDENING — APPLY ORDER
+
+IMPORTANT: migration first, source second.
+
+1) In Supabase SQL Editor, run:
+   supabase/migrations/20260817_r8_2_concurrency_hardening.sql
+
+2) Extract the R8.2 PATCH into the project root and replace files.
+
+3) Existing candidate sessions from R8.1 should login again because R8.2
+   binds a server-issued deviceId into the signed candidate session.
+
+4) Run locally:
+   npm.cmd run verify
+
+5) If PASS, test:
+   - one participant normal exam flow
+   - same credential on two devices/browsers: device #2 must be blocked
+   - Release Device Lock from Proctor Monitor, then device #2 may claim it
+   - section transition + final submit
+
+6) Git workflow recommended:
+   git checkout -b r8.2-concurrency
+   git add .
+   git commit -m "R8.2 concurrency hardening for 200 candidates"
+   git push -u origin r8.2-concurrency
+
+7) Test Vercel Preview. Then merge/push main.
+
+8) Vercel: set Function Region as close as possible to the Supabase database
+   region before the event. Do not guess the region; match Supabase project region.

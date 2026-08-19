@@ -52,7 +52,6 @@ export async function GET(
 
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "VECTR Exam Platform";
-  workbook.title = `Bank Soal - ${module.name}`;
   const sheet = workbook.addWorksheet("Bank Soal", { views: [{ state: "frozen", ySplit: 5 }] });
 
   sheet.mergeCells("A1:I1");

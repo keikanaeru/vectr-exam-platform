@@ -9,6 +9,7 @@ import {
 import {
   verifyCandidateSessionToken,
 } from "@/lib/candidate-session";
+import { getCandidateDeviceId } from "@/lib/candidate-device";
 import {
   getExamPolicy,
   getViolationAction,
@@ -48,8 +49,13 @@ async function getCandidateSession() {
 
   if (!candidateSession) {
     throw new Error(
-      "Sesi peserta tidak valid."
+      "Sesi peserta tidak valid. Silakan login ulang."
     );
+  }
+
+  const deviceCookie = await getCandidateDeviceId();
+  if (!deviceCookie || deviceCookie !== candidateSession.deviceId) {
+    throw new Error("Identitas perangkat tidak valid. Silakan login ulang dari perangkat ini.");
   }
 
   return candidateSession;
@@ -110,73 +116,44 @@ async function getActiveExamSession(examId: string) {
 
 export async function heartbeatExam(
   examId: string,
-  clientId = "",
   userAgent = ""
 ) {
-  const {
-    supabase,
-    examSession,
-    assignment,
-    exam,
-  } = await getActiveExamSession(examId);
+  const candidateSession = await getCandidateSession();
 
-  if (examSession.status !== "ACTIVE") {
+  if (candidateSession.examId !== examId) {
+    throw new Error("Ujian tidak valid.");
+  }
+
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("exam_candidate_heartbeat_r82", {
+    p_assignment_id: candidateSession.assignmentId,
+    p_candidate_id: candidateSession.candidateId,
+    p_exam_id: examId,
+    p_client_id: candidateSession.deviceId,
+    p_user_agent: userAgent.slice(0, 500),
+  });
+
+  if (error) {
+    console.error("EXAM HEARTBEAT RPC ERROR:", error);
     return { ok: false };
   }
 
-  const policy = getExamPolicy(exam.settings);
-  const safeClientId = clientId.trim().slice(0, 180);
+  const row = Array.isArray(data) ? data[0] : data;
+  return {
+    ok: Boolean(row?.ok),
+    conflict: Boolean(row?.conflict),
+  };
+}
 
-  if (policy.security.enforceSingleDevice && safeClientId) {
-    const { data: lock, error: lockReadError } = await supabase
-      .from("proctor_client_locks")
-      .select("session_id, client_id, last_seen_at")
-      .eq("session_id", examSession.id)
-      .maybeSingle();
 
-    if (!lockReadError) {
-      const nowMs = Date.now();
-      const lockFresh = lock?.last_seen_at
-        ? nowMs - new Date(String(lock.last_seen_at)).getTime() < 90000
-        : false;
-
-      if (lock && String(lock.client_id) !== safeClientId && lockFresh) {
-        return {
-          ok: false,
-          conflict: true,
-        };
-      }
-
-      const { error: lockWriteError } = await supabase
-        .from("proctor_client_locks")
-        .upsert({
-          session_id: examSession.id,
-          exam_id: examId,
-          candidate_id: assignment.candidate_id,
-          client_id: safeClientId,
-          user_agent: userAgent.slice(0, 500),
-          last_seen_at: new Date().toISOString(),
-        }, { onConflict: "session_id" });
-
-      if (lockWriteError) {
-        console.error("PROCTOR CLIENT LOCK WRITE ERROR:", lockWriteError);
-      }
-    } else if (lockReadError.code !== "42P01") {
-      console.error("PROCTOR CLIENT LOCK READ ERROR:", lockReadError);
-    }
+async function requireActiveDeviceLease(examId: string) {
+  const lease = await heartbeatExam(examId, "candidate-state-mutation");
+  if (lease.conflict) {
+    throw new Error("Credential sedang aktif di perangkat lain. Tutup perangkat lain atau minta pengawas melepas device lock.");
   }
-
-  const now = new Date().toISOString();
-  await supabase
-    .from("exam_sessions")
-    .update({
-      last_seen_at: now,
-      updated_at: now,
-    })
-    .eq("id", examSession.id)
-    .eq("status", "ACTIVE");
-
-  return { ok: true };
+  if (!lease.ok) {
+    throw new Error("Sesi perangkat tidak aktif. Muat ulang halaman atau login kembali.");
+  }
 }
 
 
@@ -326,237 +303,41 @@ export async function recordViolation(
 }
 
 
-async function validateQuestion(
-  sessionQuestionId: string
-) {
-  const candidateSession =
-    await getCandidateSession();
-
-  const supabase =
-    createAdminClient();
-
-  const {
-    data: sessionQuestion,
-    error: questionError,
-  } = await supabase
-    .from("session_questions")
-    .select(
-      "id, session_id, exam_section_id, question_snapshot"
-    )
-    .eq(
-      "id",
-      sessionQuestionId
-    )
-    .single();
-
-  if (
-    questionError ||
-    !sessionQuestion
-  ) {
-    throw new Error(
-      "Soal sesi tidak ditemukan."
-    );
-  }
-
-  const {
-    data: examSession,
-    error: sessionError,
-  } = await supabase
-    .from("exam_sessions")
-    .select(
-      "id, assignment_id, deadline_at, status"
-    )
-    .eq(
-      "id",
-      sessionQuestion.session_id
-    )
-    .eq(
-      "assignment_id",
-      candidateSession.assignmentId
-    )
-    .single();
-
-  if (
-    sessionError ||
-    !examSession
-  ) {
-    throw new Error(
-      "Sesi ujian tidak ditemukan."
-    );
-  }
-
-  if (
-    examSession.status !==
-    "ACTIVE"
-  ) {
-    throw new Error(
-      "Sesi ujian sudah tidak aktif."
-    );
-  }
-
-  if (!examSession.deadline_at) {
-    throw new Error(
-      "Deadline ujian tidak valid."
-    );
-  }
-
-  if (
-    Date.now() >=
-    new Date(
-      examSession.deadline_at
-    ).getTime()
-  ) {
-    throw new Error(
-      "Waktu ujian sudah habis."
-    );
-  }
-
-  const { data: exam, error: examError } = await supabase
-    .from("exams")
-    .select("id, hard_close_at")
-    .eq("id", candidateSession.examId)
-    .maybeSingle();
-
-  if (examError || !exam || !exam.hard_close_at) {
-    throw new Error("Jadwal ujian tidak valid.");
-  }
-
-  const hardCloseMs = new Date(String(exam.hard_close_at)).getTime();
-  if (!Number.isFinite(hardCloseMs) || Date.now() >= hardCloseMs) {
-    throw new Error("Hard Close ujian sudah tercapai.");
-  }
-
-  if (sessionQuestion.exam_section_id) {
-    const { data: sectionProgress, error: sectionError } = await supabase
-      .from("exam_section_progress")
-      .select("status, deadline_at")
-      .eq("session_id", examSession.id)
-      .eq("exam_section_id", sessionQuestion.exam_section_id)
-      .maybeSingle();
-    if (sectionError || !sectionProgress || String(sectionProgress.status) !== "ACTIVE") {
-      throw new Error("Sesi modul soal ini sudah tidak aktif.");
-    }
-    if (sectionProgress.deadline_at && Date.now() >= new Date(String(sectionProgress.deadline_at)).getTime()) {
-      throw new Error("Waktu sesi modul sudah habis.");
-    }
-  }
-
-  return {
-    supabase,
-    candidateSession,
-    sessionQuestion,
-    examSession,
-  };
-}
-
-
 // =====================================
-// AUTOSAVE ANSWER
+// AUTOSAVE ANSWER — R8.2 ATOMIC RPC
 // =====================================
 
 export async function saveAnswer(
   sessionQuestionId: string,
   selectedOptionId: string
 ) {
-  if (
-    !sessionQuestionId ||
-    !selectedOptionId
-  ) {
-    throw new Error(
-      "Jawaban tidak valid."
-    );
+  if (!sessionQuestionId || !selectedOptionId) {
+    throw new Error("Jawaban tidak valid.");
   }
 
-  const {
-    supabase,
-    sessionQuestion,
-    examSession,
-  } =
-    await validateQuestion(
-      sessionQuestionId
-    );
+  const candidateSession = await getCandidateSession();
+  const supabase = createAdminClient();
 
-  const snapshot =
-    sessionQuestion.question_snapshot as {
-      options?: Array<{
-        id?: string;
-      }>;
-    };
-
-  const options =
-    Array.isArray(
-      snapshot.options
-    )
-      ? snapshot.options
-      : [];
-
-  const optionExists =
-    options.some(
-      (option) =>
-        String(option.id) ===
-        selectedOptionId
-    );
-
-  if (!optionExists) {
-    throw new Error(
-      "Pilihan jawaban tidak valid."
-    );
-  }
-
-  const now =
-    new Date().toISOString();
-
-  const { error } =
-    await supabase
-      .from("answers")
-      .upsert(
-        {
-          session_question_id:
-            sessionQuestionId,
-
-          selected_option_id:
-            selectedOptionId,
-
-          answered_at: now,
-
-          updated_at: now,
-        },
-        {
-          onConflict:
-            "session_question_id",
-        }
-      );
+  const { error } = await supabase.rpc("exam_candidate_save_answer_r82", {
+    p_assignment_id: candidateSession.assignmentId,
+    p_candidate_id: candidateSession.candidateId,
+    p_exam_id: candidateSession.examId,
+    p_session_question_id: sessionQuestionId,
+    p_selected_option_id: selectedOptionId,
+    p_client_id: candidateSession.deviceId,
+  });
 
   if (error) {
-    console.error(
-      "SAVE ANSWER ERROR:",
-      error
-    );
-
-    throw new Error(
-      "Jawaban gagal disimpan."
-    );
+    console.error("SAVE ANSWER RPC ERROR:", error);
+    throw new Error(error.message || "Jawaban gagal disimpan.");
   }
 
-  await supabase
-    .from("exam_sessions")
-    .update({
-      last_seen_at: now,
-      updated_at: now,
-    })
-    .eq(
-      "id",
-      examSession.id
-    );
-
-  return {
-    ok: true,
-  };
+  return { ok: true };
 }
 
 
 // =====================================
-// FLAG / TANDAI SOAL
+// FLAG / TANDAI SOAL — R8.2 ATOMIC RPC
 // =====================================
 
 export async function saveFlag(
@@ -564,65 +345,27 @@ export async function saveFlag(
   flagged: boolean
 ) {
   if (!sessionQuestionId) {
-    throw new Error(
-      "Soal tidak valid."
-    );
+    throw new Error("Soal tidak valid.");
   }
 
-  const {
-    supabase,
-    examSession,
-  } =
-    await validateQuestion(
-      sessionQuestionId
-    );
+  const candidateSession = await getCandidateSession();
+  const supabase = createAdminClient();
 
-  const now =
-    new Date().toISOString();
-
-  const { error } =
-    await supabase
-      .from("answers")
-      .upsert(
-        {
-          session_question_id:
-            sessionQuestionId,
-
-          flagged,
-
-          updated_at: now,
-        },
-        {
-          onConflict:
-            "session_question_id",
-        }
-      );
+  const { error } = await supabase.rpc("exam_candidate_save_flag_r82", {
+    p_assignment_id: candidateSession.assignmentId,
+    p_candidate_id: candidateSession.candidateId,
+    p_exam_id: candidateSession.examId,
+    p_session_question_id: sessionQuestionId,
+    p_flagged: flagged,
+    p_client_id: candidateSession.deviceId,
+  });
 
   if (error) {
-    console.error(
-      "SAVE FLAG ERROR:",
-      error
-    );
-
-    throw new Error(
-      "Tanda soal gagal disimpan."
-    );
+    console.error("SAVE FLAG RPC ERROR:", error);
+    throw new Error(error.message || "Tanda soal gagal disimpan.");
   }
 
-  await supabase
-    .from("exam_sessions")
-    .update({
-      last_seen_at: now,
-      updated_at: now,
-    })
-    .eq(
-      "id",
-      examSession.id
-    );
-
-  return {
-    ok: true,
-  };
+  return { ok: true };
 }
 
 
@@ -633,6 +376,8 @@ export async function saveFlag(
 export async function submitExam(
   examId: string
 ) {
+  await requireActiveDeviceLease(examId);
+
   const candidateSession =
     await getCandidateSession();
 
@@ -695,6 +440,7 @@ export async function completeExamSection(
   sectionId: string,
   timedOut = false
 ) {
+  await requireActiveDeviceLease(examId);
   const { supabase, examSession, exam } = await getActiveExamSession(examId);
   if (examSession.status !== "ACTIVE") return { finished: true, nextSectionId: null };
 
@@ -786,6 +532,7 @@ export async function completeExamSection(
 }
 
 export async function startExamSection(examId: string, sectionId: string) {
+  await requireActiveDeviceLease(examId);
   const { supabase, examSession, exam } = await getActiveExamSession(examId);
   if (examSession.status !== "ACTIVE") throw new Error("Sesi ujian sudah tidak aktif.");
   if (!examSession.deadline_at) throw new Error("Deadline ujian tidak valid.");

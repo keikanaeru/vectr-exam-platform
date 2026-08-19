@@ -43,3 +43,9 @@ next-env.d.ts
 
 # local archives
 *.zip
+
+# repomix
+repomix-output.*playwright-report/
+test-results/
+load-tests/results/
+load-tests/.stateful-fixture.json

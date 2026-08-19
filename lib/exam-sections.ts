@@ -1,4 +1,4 @@
-import { randomInt } from "node:crypto";
+import { createHash } from "node:crypto";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -35,10 +35,22 @@ export type SectionProgressView = {
   completedAt: string | null;
 };
 
-function shuffled<T>(items: T[]) {
+function shuffled<T>(items: T[], seed: string) {
+  // Deterministic per session. Two concurrent Start/Resume requests for the
+  // same participant must generate the exact same order so a duplicate-safe
+  // bulk upsert can never mix two different random permutations.
+  const digest = createHash("sha256").update(seed).digest();
+  let state = digest.readUInt32BE(0) || 0x9e3779b9;
+  const nextUint32 = () => {
+    state ^= state << 13;
+    state ^= state >>> 17;
+    state ^= state << 5;
+    return state >>> 0;
+  };
+
   const result = [...items];
   for (let index = result.length - 1; index > 0; index -= 1) {
-    const swapIndex = randomInt(index + 1);
+    const swapIndex = nextUint32() % (index + 1);
     [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
   }
   return result;
@@ -112,13 +124,17 @@ export async function ensureExamSectionsForSession(
 
   const { data: session, error: sessionError } = await supabase
     .from("exam_sessions")
-    .select("id, started_at, deadline_at, status")
+    .select("id, started_at, deadline_at, status, snapshot_ready_at")
     .eq("id", sessionId)
     .maybeSingle();
   if (sessionError || !session) {
     throw new Error(`Sesi ujian tidak ditemukan${sessionError?.message ? `: ${sessionError.message}` : "."}`);
   }
   if (String(session.status) !== "ACTIVE") return sections;
+
+  // Once the immutable question snapshot + section progress are complete,
+  // ordinary reloads / section transitions should not rescan the live bank.
+  if (session.snapshot_ready_at) return sections;
 
   const firstSection = sections[0];
 
@@ -141,33 +157,70 @@ export async function ensureExamSectionsForSession(
 
   let nextOrder = Math.max(0, ...(currentQuestions ?? []).map((row) => Number(row.order_index) || 0)) + 1;
   const expectedBySection = new Map<string, string[]>();
+  const moduleIds = [...new Set(sections.map((section) => section.module_id))];
 
-  for (const section of sections) {
-    const { data: module, error: moduleError } = await supabase
+  // R8.2 concurrency hardening:
+  // module + question source data is static for an ACTIVE exam, so fetch it in
+  // two batched queries instead of 2 queries per section for every participant.
+  const [
+    { data: moduleRows, error: moduleError },
+    { data: questionRows, error: questionError },
+  ] = await Promise.all([
+    supabase
       .from("modules")
       .select("id, code, name, shuffle_questions, shuffle_options")
-      .eq("id", section.module_id)
-      .maybeSingle();
-    if (moduleError || !module) throw new Error(`Modul ${section.moduleName} tidak ditemukan.`);
-
-    const typedModule: ModuleRow = {
-      id: String(module.id),
-      code: String(module.code),
-      name: String(module.name),
-      shuffle_questions: Boolean(module.shuffle_questions),
-      shuffle_options: Boolean(module.shuffle_options),
-    };
-
-    const { data: questionRows, error: questionError } = await supabase
+      .in("id", moduleIds),
+    supabase
       .from("questions")
-      .select("id, code, question_text, options, correct_option_id, weight")
-      .eq("module_id", section.module_id)
+      .select("id, module_id, code, question_text, options, correct_option_id, weight, created_at")
+      .in("module_id", moduleIds)
       .eq("status", "ACTIVE")
-      .order("created_at", { ascending: true });
-    if (questionError) throw new Error(`Soal ${section.moduleName} gagal dibaca: ${questionError.message}`);
-    if (!questionRows?.length) throw new Error(`Modul ${section.moduleName} tidak memiliki soal aktif.`);
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true }),
+  ]);
 
-    const orderedQuestions = typedModule.shuffle_questions ? shuffled(questionRows) : questionRows;
+  if (moduleError) throw new Error(`Modul sesi gagal dibaca: ${moduleError.message}`);
+  if (questionError) throw new Error(`Bank soal sesi gagal dibaca: ${questionError.message}`);
+
+  const moduleMap = new Map(
+    (moduleRows ?? []).map((module) => [
+      String(module.id),
+      {
+        id: String(module.id),
+        code: String(module.code),
+        name: String(module.name),
+        shuffle_questions: Boolean(module.shuffle_questions),
+        shuffle_options: Boolean(module.shuffle_options),
+      } satisfies ModuleRow,
+    ])
+  );
+  const questionsByModule = new Map<string, typeof questionRows>();
+  for (const question of questionRows ?? []) {
+    const moduleId = String(question.module_id);
+    const rows = questionsByModule.get(moduleId) ?? [];
+    rows.push(question);
+    questionsByModule.set(moduleId, rows);
+  }
+
+  const rowsToInsert: Array<{
+    session_id: string;
+    question_id: string;
+    exam_section_id: string;
+    order_index: number;
+    option_order: string[];
+    question_snapshot: Record<string, unknown>;
+  }> = [];
+
+  for (const section of sections) {
+    const typedModule = moduleMap.get(section.module_id);
+    if (!typedModule) throw new Error(`Modul ${section.moduleName} tidak ditemukan.`);
+
+    const sourceQuestions = questionsByModule.get(section.module_id) ?? [];
+    if (!sourceQuestions.length) throw new Error(`Modul ${section.moduleName} tidak memiliki soal aktif.`);
+
+    const orderedQuestions = typedModule.shuffle_questions
+      ? shuffled(sourceQuestions, `${sessionId}:questions:${section.id}`)
+      : sourceQuestions;
     const expectedIds = orderedQuestions.map((question) => String(question.id));
     expectedBySection.set(section.id, expectedIds);
 
@@ -177,9 +230,6 @@ export async function ensureExamSectionsForSession(
         .map((row) => String(row.question_id))
     );
 
-    // Insert one row at a time. A bulk INSERT that hits a single duplicate rolls
-    // the entire statement back, which was the source of partially provisioned
-    // sessions after concurrent Start/Resume requests.
     for (const question of orderedQuestions) {
       const questionId = String(question.id);
       if (existingForSection.has(questionId)) continue;
@@ -188,11 +238,13 @@ export async function ensureExamSectionsForSession(
       const optionIds = sourceOptions
         .map((option) => String((option as { id?: unknown }).id ?? ""))
         .filter(Boolean);
-      const optionOrder = typedModule.shuffle_options ? shuffled(optionIds) : optionIds;
+      const optionOrder = typedModule.shuffle_options
+        ? shuffled(optionIds, `${sessionId}:options:${section.id}:${questionId}`)
+        : optionIds;
 
-      const { error: insertError } = await supabase.from("session_questions").insert({
+      rowsToInsert.push({
         session_id: sessionId,
-        question_id: question.id,
+        question_id: questionId,
         exam_section_id: section.id,
         order_index: nextOrder,
         option_order: optionOrder,
@@ -206,30 +258,27 @@ export async function ensureExamSectionsForSession(
           exam_section_id: section.id,
         },
       });
-
-      if (insertError) {
-        if (insertError.code !== "23505") {
-          throw new Error(`Soal ${section.moduleName} gagal dibuat untuk sesi [${insertError.code ?? "DB"}]: ${insertError.message}`);
-        }
-
-        // A concurrent request may already have inserted the same question. It
-        // is safe only when that row belongs to the same section.
-        const { data: racedQuestion, error: racedError } = await supabase
-          .from("session_questions")
-          .select("id, exam_section_id")
-          .eq("session_id", sessionId)
-          .eq("question_id", question.id)
-          .maybeSingle();
-        if (racedError || !racedQuestion) {
-          throw new Error(`Konflik provisioning soal ${section.moduleName} tidak dapat dipulihkan.`);
-        }
-        if (String(racedQuestion.exam_section_id ?? "") !== section.id) {
-          throw new Error(`Soal ${question.code ?? questionId} sudah terikat ke sesi modul lain. Hubungi pengawas.`);
-        }
-      } else {
-        nextOrder += 1;
-      }
+      nextOrder += 1;
       existingForSection.add(questionId);
+    }
+  }
+
+  // A single per-question INSERT creates a thundering herd when 100–200
+  // participants press Start together. Upsert in bounded batches instead.
+  // ignoreDuplicates turns concurrent double-starts into a safe no-op because
+  // R6 already guarantees UNIQUE(session_id, question_id).
+  for (let offset = 0; offset < rowsToInsert.length; offset += 100) {
+    const batch = rowsToInsert.slice(offset, offset + 100);
+    const { error: insertError } = await supabase
+      .from("session_questions")
+      .upsert(batch, {
+        onConflict: "session_id,question_id",
+        ignoreDuplicates: true,
+      });
+    if (insertError) {
+      throw new Error(
+        `Soal sesi gagal diprovision secara batch [${insertError.code ?? "DB"}]: ${insertError.message}`
+      );
     }
   }
 
@@ -262,17 +311,26 @@ export async function ensureExamSectionsForSession(
   if (progressError) throw new Error(`Progress sesi modul gagal dibaca: ${progressError.message}`);
 
   const progressIds = new Set((progressRows ?? []).map((row) => String(row.exam_section_id)));
-  for (const section of sections.filter((item) => !progressIds.has(item.id))) {
-    const { error: insertProgressError } = await supabase.from("exam_section_progress").insert({
+  const missingProgressRows = sections
+    .filter((item) => !progressIds.has(item.id))
+    .map((section) => ({
       session_id: sessionId,
       exam_section_id: section.id,
       status: "PENDING",
       started_at: null,
       deadline_at: null,
       completed_at: null,
-    });
-    if (insertProgressError && insertProgressError.code !== "23505") {
-      throw new Error(`Progress sesi ${section.moduleName} gagal dibuat: ${insertProgressError.message}`);
+    }));
+
+  if (missingProgressRows.length) {
+    const { error: insertProgressError } = await supabase
+      .from("exam_section_progress")
+      .upsert(missingProgressRows, {
+        onConflict: "session_id,exam_section_id",
+        ignoreDuplicates: true,
+      });
+    if (insertProgressError) {
+      throw new Error(`Progress sesi modul gagal dibuat secara batch: ${insertProgressError.message}`);
     }
   }
 
@@ -315,6 +373,14 @@ export async function ensureExamSectionsForSession(
       .eq("status", "PENDING");
     if (activateError) throw new Error(`Sesi pertama gagal diaktifkan: ${activateError.message}`);
   }
+
+  const { error: readyError } = await supabase
+    .from("exam_sessions")
+    .update({ snapshot_ready_at: new Date().toISOString() })
+    .eq("id", sessionId)
+    .eq("status", "ACTIVE")
+    .is("snapshot_ready_at", null);
+  if (readyError) throw new Error(`Sesi snapshot gagal ditandai siap: ${readyError.message}`);
 
   return sections;
 }

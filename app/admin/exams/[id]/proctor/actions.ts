@@ -11,6 +11,38 @@ function redirectMessage(examId: string, type: "error" | "success", message: str
   redirect(`/admin/exams/${examId}/proctor?${type}=${encodeURIComponent(message)}`);
 }
 
+async function finalizeSessionBatch(
+  supabase: ReturnType<typeof createAdminClient>,
+  sessionIds: string[],
+  concurrency = 8
+) {
+  let cursor = 0;
+  let success = 0;
+  let failed = 0;
+
+  const workerCount = Math.min(Math.max(1, concurrency), sessionIds.length || 1);
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (true) {
+        const index = cursor;
+        cursor += 1;
+        if (index >= sessionIds.length) return;
+
+        const sessionId = sessionIds[index];
+        try {
+          await finalizeExamSession(supabase, sessionId);
+          success += 1;
+        } catch (error) {
+          failed += 1;
+          console.error("BATCH FINALIZE SESSION ERROR:", sessionId, error);
+        }
+      }
+    })
+  );
+
+  return { success, failed };
+}
+
 async function validateSession(examId: string, sessionId: string, organizationId: string) {
   const supabase = createAdminClient();
   const { data: session, error: sessionError } = await supabase
@@ -181,17 +213,11 @@ export async function finalizeOverdueSessions(examId: string) {
   );
   if (!overdue.length) redirectMessage(examId, "success", "Tidak ada sesi ACTIVE yang sudah melewati deadline.");
 
-  let success = 0;
-  let failed = 0;
-  for (const session of overdue) {
-    try {
-      await finalizeExamSession(supabase, String(session.id));
-      success += 1;
-    } catch (error) {
-      failed += 1;
-      console.error("FINALIZE OVERDUE SESSION ERROR:", session.id, error);
-    }
-  }
+  const { success, failed } = await finalizeSessionBatch(
+    supabase,
+    overdue.map((session) => String(session.id)),
+    8
+  );
 
   revalidatePath(`/admin/exams/${examId}/proctor`);
   revalidatePath(`/admin/exams/${examId}/results`);
@@ -233,17 +259,11 @@ export async function forceSubmitAllActiveSessions(examId: string) {
   if (sessionError) redirectMessage(examId, "error", "Sesi aktif gagal dibaca.");
   if (!(sessions ?? []).length) redirectMessage(examId, "success", "Tidak ada sesi ACTIVE untuk di-submit.");
 
-  let success = 0;
-  let failed = 0;
-  for (const session of sessions ?? []) {
-    try {
-      await finalizeExamSession(supabase, String(session.id));
-      success += 1;
-    } catch (error) {
-      failed += 1;
-      console.error("BULK FORCE SUBMIT ERROR:", session.id, error);
-    }
-  }
+  const { success, failed } = await finalizeSessionBatch(
+    supabase,
+    (sessions ?? []).map((session) => String(session.id)),
+    8
+  );
 
   revalidatePath(`/admin/exams/${examId}/proctor`);
   redirectMessage(

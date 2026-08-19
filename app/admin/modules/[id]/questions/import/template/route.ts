@@ -29,8 +29,6 @@ export async function GET(
 
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "VECTR Exam Platform";
-  workbook.title = `Template Bank Soal - ${module.name}`;
-
   const sheet = workbook.addWorksheet("Soal", {
     views: [{ state: "frozen", ySplit: 1 }],
   });
