@@ -50,3 +50,6 @@ test-results/
 load-tests/results/
 load-tests/.stateful-fixture.json
 .lighthouseci/
+
+# Sentry Config File
+.env.sentry-build-plugin
