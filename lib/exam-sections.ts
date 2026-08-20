@@ -85,8 +85,8 @@ export async function getExamSections(
       module_id: String(row.module_id),
       order_index: Number(row.order_index),
       duration_minutes: Number(row.duration_minutes),
-      moduleCode: sectionModule?.code ? String(module.code) : "-",
-      moduleName: sectionModule?.name ? String(module.name) : "Modul",
+      moduleCode: sectionModule?.code ? String(sectionModule.code) : "-",
+      moduleName: sectionModule?.name ? String(sectionModule.name) : "Modul",
     };
   });
 }
@@ -263,7 +263,7 @@ export async function ensureExamSectionsForSession(
     }
   }
 
-  // A single per-question INSERT creates a thundering herd when 100–200
+  // A single per-question INSERT creates a thundering herd when 100â€“200
   // participants press Start together. Upsert in bounded batches instead.
   // ignoreDuplicates turns concurrent double-starts into a safe no-op because
   // R6 already guarantees UNIQUE(session_id, question_id).
@@ -482,4 +482,3 @@ export async function calculateSectionScores(
     };
   });
 }
-
