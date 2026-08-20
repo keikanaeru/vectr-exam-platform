@@ -93,8 +93,8 @@ export default function ExamSectionsBuilder({
   }
 
   function updateModule(key: string, moduleId: string) {
-    const module = modules.find((item) => item.id === moduleId);
-    const duration = clampMinutes(module?.defaultDuration ?? 60);
+    const selectedModule = modules.find((item) => item.id === moduleId);
+    const duration = clampMinutes(selectedModule?.defaultDuration ?? 60);
     setRows((current) => current.map((row) => row.key === key
       ? { ...row, moduleId, durationMinutes: duration, durationInput: String(duration) }
       : row));
@@ -245,3 +245,4 @@ function Summary({ label, value, accent = false }: { label: string; value: strin
     </div>
   );
 }
+

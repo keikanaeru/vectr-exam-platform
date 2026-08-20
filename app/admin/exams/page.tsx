@@ -251,9 +251,9 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
             if (!examSections.length) readinessBlockers.push("Ujian belum memiliki sesi modul.");
             if (sectionDurationTotal > Number(exam.duration_minutes)) readinessBlockers.push(`Total batas sesi ${sectionDurationTotal} menit melebihi durasi total ${exam.duration_minutes} menit.`);
             for (const section of examSections) {
-              const module = moduleMap.get(String(section.module_id));
-              if (!module || String(module.status) !== "ACTIVE") readinessBlockers.push(`Modul ${module?.name ?? section.module_id} belum ACTIVE.`);
-              if ((activeQuestionCountByModule.get(String(section.module_id)) ?? 0) < 1) readinessBlockers.push(`Modul ${module?.name ?? section.module_id} belum memiliki soal ACTIVE.`);
+              const sectionModule = moduleMap.get(String(section.module_id));
+              if (!sectionModule || String(sectionModule.status) !== "ACTIVE") readinessBlockers.push(`Modul ${sectionModule?.name ?? section.module_id} belum ACTIVE.`);
+              if ((activeQuestionCountByModule.get(String(section.module_id)) ?? 0) < 1) readinessBlockers.push(`Modul ${sectionModule?.name ?? section.module_id} belum memiliki soal ACTIVE.`);
             }
             const loginMs = new Date(String(exam.login_open_at)).getTime();
             const startMs = new Date(String(exam.starts_at)).getTime();
@@ -431,3 +431,4 @@ function Mini({ label, value, good = false, warn = false }: { label: string; val
 function Status({ status }: { status: string }) { const cls = status === "ACTIVE" ? "border-emerald-400/20 bg-emerald-400/[0.07] text-emerald-200" : status === "CLOSED" ? "border-rose-400/15 bg-rose-400/[0.05] text-rose-200" : "border-violet-400/15 bg-violet-400/[0.05] text-violet-200"; const label = status === "ACTIVE" ? "AKTIF" : status === "CLOSED" ? "LOGIN DITUTUP" : "DRAFT"; return <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${cls}`}>{label}</span>; }
 function Schedule({ label, value, danger = false }: { label: string; value: string; danger?: boolean }) { return <div className={`rounded-[15px] border p-3 ${danger ? "border-rose-400/12 bg-rose-400/[0.03]" : "border-white/[0.055] bg-black/10"}`}><p className="text-[11px] uppercase tracking-wider text-slate-700">{label}</p><p className={`mt-2 text-[11px] font-medium ${danger ? "text-rose-200" : "text-slate-300"}`}>{value}</p></div>; }
 function DownloadLink({ href, label, ready }: { href: string; label: string; ready: boolean }) { return ready ? <Link href={href} className="liquid-button flex items-center justify-center rounded-[12px] px-3 py-2.5 text-xs font-semibold text-slate-300">{label}</Link> : <span className="flex cursor-not-allowed items-center justify-center rounded-[12px] border border-white/[0.04] bg-white/[0.015] px-3 py-2.5 text-xs font-semibold text-slate-700">{label}</span>; }
+

@@ -84,10 +84,10 @@ async function validateExamSectionModules(
   if (error) throw new Error("Gagal memvalidasi sesi modul ujian.");
   const moduleMap = new Map((data ?? []).map((row) => [String(row.id), row]));
   for (const [index, section] of sections.entries()) {
-    const module = moduleMap.get(section.moduleId);
-    if (!module) redirectWithError(`Modul sesi ${index + 1} tidak ditemukan pada organisasi aktif.`);
-    if (String(module.status) === "INACTIVE") redirectWithError(`Modul ${module.name} sedang nonaktif.`);
-    if (requireActive && String(module.status) !== "ACTIVE") redirectWithError(`Modul ${module.name} belum ACTIVE. Aktifkan semua modul sebelum mengaktifkan ujian.`);
+    const sectionModule = moduleMap.get(section.moduleId);
+    if (!sectionModule) redirectWithError(`Modul sesi ${index + 1} tidak ditemukan pada organisasi aktif.`);
+    if (String(sectionModule.status) === "INACTIVE") redirectWithError(`Modul ${sectionModule.name} sedang nonaktif.`);
+    if (requireActive && String(sectionModule.status) !== "ACTIVE") redirectWithError(`Modul ${sectionModule.name} belum ACTIVE. Aktifkan semua modul sebelum mengaktifkan ujian.`);
   }
   return moduleMap;
 }
@@ -646,8 +646,8 @@ export async function activateExam(
       .eq("status", "ACTIVE");
     if (questionError) throw new Error("Gagal memeriksa soal sesi modul.");
     if (!count) {
-      const module = activeModules.get(section.moduleId);
-      redirectWithError(`Ujian belum bisa diaktifkan karena modul ${module?.name ?? section.moduleId} belum memiliki soal aktif.`);
+      const sectionModule = activeModules.get(section.moduleId);
+      redirectWithError(`Ujian belum bisa diaktifkan karena modul ${sectionModule?.name ?? section.moduleId} belum memiliki soal aktif.`);
     }
   }
 
@@ -1517,3 +1517,4 @@ export async function deleteExam(examId: string) {
   revalidatePath("/admin/exams");
   redirectWithSuccess(`Ujian draft "${exam.title}" berhasil dihapus.`);
 }
+

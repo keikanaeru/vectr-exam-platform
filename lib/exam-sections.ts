@@ -78,15 +78,15 @@ export async function getExamSections(
 
   const map = new Map((modules ?? []).map((row) => [String(row.id), row]));
   return rows.map((row) => {
-    const module = map.get(String(row.module_id));
+    const sectionModule = map.get(String(row.module_id));
     return {
       id: String(row.id),
       exam_id: String(row.exam_id),
       module_id: String(row.module_id),
       order_index: Number(row.order_index),
       duration_minutes: Number(row.duration_minutes),
-      moduleCode: module?.code ? String(module.code) : "-",
-      moduleName: module?.name ? String(module.name) : "Modul",
+      moduleCode: sectionModule?.code ? String(module.code) : "-",
+      moduleName: sectionModule?.name ? String(module.name) : "Modul",
     };
   });
 }
@@ -482,3 +482,4 @@ export async function calculateSectionScores(
     };
   });
 }
+

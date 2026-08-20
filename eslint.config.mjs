@@ -18,7 +18,12 @@ const eslintConfig = defineConfig([
       ],
     },
   },
-  globalIgnores([
+  {
+    files: ["playwright.config.js", "tests/**/*.js"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },  globalIgnores([
     ".next/**",
     "out/**",
     "build/**",
@@ -27,3 +32,4 @@ const eslintConfig = defineConfig([
 ]);
 
 export default eslintConfig;
+
