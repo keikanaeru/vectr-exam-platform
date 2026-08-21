@@ -56,3 +56,6 @@ load-tests/.stateful-fixture.json
 
 # Supabase CLI local state
 /supabase/.temp/
+
+# Local backup files
+*.bak
