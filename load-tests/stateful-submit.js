@@ -55,6 +55,12 @@ export default function () {
   const ok = response.status >= 200 && response.status < 300;
   submitFailed.add(!ok);
 
+  if (!ok) {
+    console.error(
+      `[SUBMIT_FAIL] index=${index} session=${row.sessionId} STATUS=${response.status} ERROR_CODE=${response.error_code || ""} ERROR=${response.error || ""} DURATION_MS=${response.timings.duration} BODY=${String(response.body || "").slice(0, 2000)}`
+    );
+  }
+
   check(response, {
     "finalize 2xx": (r) => r.status >= 200 && r.status < 300,
   });
