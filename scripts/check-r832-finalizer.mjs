@@ -46,7 +46,7 @@ const migrationPath = path.join(
   root,
   "supabase",
   "migrations",
-  "20260818_r8_3_2_finalize_rpc_ambiguity_repair.sql"
+  "20260818000200_r8_3_2_finalize_rpc_ambiguity_repair.sql"
 );
 
 if (!fs.existsSync(migrationPath)) {

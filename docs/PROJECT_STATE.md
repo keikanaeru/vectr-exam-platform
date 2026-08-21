@@ -9,11 +9,11 @@ The current repository contains both:
 
 The database migration set includes:
 
-- `20260813_exam_proctoring.sql`
-- `20260814_r5_database_contract.sql`
-- `20260815_r6_accessibility_branding_multisection.sql`
-- `20260817_r8_2_concurrency_hardening.sql`
-- `20260817_r8_3_admin_speed_ux.sql`
+- `20260813000000_exam_proctoring.sql`
+- `20260814000000_r5_database_contract.sql`
+- `20260815000000_r6_accessibility_branding_multisection.sql`
+- `20260817000100_r8_2_concurrency_hardening.sql`
+- `20260817000200_r8_3_admin_speed_ux.sql`
 
 ## Runtime stack
 

@@ -76,7 +76,7 @@ Device lain dengan credential yang sama tidak dapat menulis jawaban selama lease
 Jalankan file berikut di Supabase SQL Editor **sebelum deploy source R8.2**:
 
 ```text
-supabase/migrations/20260817_r8_2_concurrency_hardening.sql
+supabase/migrations/20260817000100_r8_2_concurrency_hardening.sql
 ```
 
 Migration bersifat additive: menambah marker/index/RPC dan tidak menghapus data ujian.

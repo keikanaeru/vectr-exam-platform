@@ -217,7 +217,7 @@ if (!examPolicyActionsSource.includes('runtimeLocked = String(exam.status) !== "
 }
 
 // R8.2 concurrency hardening: candidate hot paths must stay batched/atomic.
-const r82MigrationPath = path.join(root, "supabase/migrations/20260817_r8_2_concurrency_hardening.sql");
+const r82MigrationPath = path.join(root, "supabase/migrations/20260817000100_r8_2_concurrency_hardening.sql");
 if (!fs.existsSync(r82MigrationPath)) {
   failures.push("Migration R8.2 concurrency hardening belum tersedia.");
 }
@@ -277,7 +277,7 @@ if (!examGuardSource.includes("Math.random() * 10000") || !examGuardSource.inclu
 }
 
 // R8.3 admin speed/UX contract.
-const r83MigrationPath = path.join(root, "supabase/migrations/20260817_r8_3_admin_speed_ux.sql");
+const r83MigrationPath = path.join(root, "supabase/migrations/20260817000200_r8_3_admin_speed_ux.sql");
 if (!fs.existsSync(r83MigrationPath)) {
   failures.push("Migration R8.3 admin speed/UX belum tersedia.");
 }

@@ -3,7 +3,7 @@ VECTR R8.2 CONCURRENCY HARDENING — APPLY ORDER
 IMPORTANT: migration first, source second.
 
 1) In Supabase SQL Editor, run:
-   supabase/migrations/20260817_r8_2_concurrency_hardening.sql
+   supabase/migrations/20260817000100_r8_2_concurrency_hardening.sql
 
 2) Extract the R8.2 PATCH into the project root and replace files.
 

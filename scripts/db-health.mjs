@@ -139,7 +139,7 @@ console.log(`[PRE-FLIGHT] Database contract ${r7Health.version ?? "R7-SUBSCRIPTI
 
 const { data: r82Health, error: r82HealthError } = await supabase.rpc("exam_platform_r82_healthcheck");
 if (r82HealthError) {
-  fail(`RPC exam_platform_r82_healthcheck belum siap (${r82HealthError.code ?? "NO_CODE"}): ${r82HealthError.message}. Jalankan migration 20260817_r8_2_concurrency_hardening.sql.`);
+  fail(`RPC exam_platform_r82_healthcheck belum siap (${r82HealthError.code ?? "NO_CODE"}): ${r82HealthError.message}. Jalankan migration 20260817000100_r8_2_concurrency_hardening.sql.`);
 }
 if (!r82Health || r82Health.ok !== true) {
   const missing = Array.isArray(r82Health?.missing) ? r82Health.missing : [];
@@ -150,7 +150,7 @@ console.log(`[PRE-FLIGHT] Database contract ${r82Health.version ?? "R8.2-CONCURR
 
 const { data: r83Health, error: r83HealthError } = await supabase.rpc("exam_platform_r83_healthcheck");
 if (r83HealthError) {
-  fail(`RPC exam_platform_r83_healthcheck belum siap (${r83HealthError.code ?? "NO_CODE"}): ${r83HealthError.message}. Jalankan migration 20260817_r8_3_admin_speed_ux.sql.`);
+  fail(`RPC exam_platform_r83_healthcheck belum siap (${r83HealthError.code ?? "NO_CODE"}): ${r83HealthError.message}. Jalankan migration 20260817000200_r8_3_admin_speed_ux.sql.`);
 }
 if (!r83Health || r83Health.ok !== true) {
   const missing = Array.isArray(r83Health?.missing) ? r83Health.missing : [];
