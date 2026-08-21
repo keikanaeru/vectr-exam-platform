@@ -287,11 +287,270 @@ function Smoke-Production {
 }
 
 
+
+function Run-ProductionSafeE2E {
+    param([string]$BaseUrl)
+
+    Step "PRODUCTION PLAYWRIGHT SAFE E2E"
+
+    if (-not (Test-Path ".env.e2e.local")) {
+        throw ".env.e2e.local tidak ditemukan."
+    }
+
+    $oldBase = $env:E2E_BASE_URL
+    $oldNoServer = $env:E2E_NO_WEBSERVER
+
+    try {
+        $env:E2E_BASE_URL = $BaseUrl
+        $env:E2E_NO_WEBSERVER = "1"
+
+        Write-Host "Target         : $BaseUrl"
+        Write-Host "Local server   : DISABLED"
+        Write-Host "Mutation tests : DISABLED"
+
+        $result = Capture-Native "npm.cmd" @(
+            "run",
+            "test:e2e:safe",
+            "--",
+            "--workers=1",
+            "--reporter=list"
+        )
+
+        $result.Output | ForEach-Object {
+            Write-Host $_
+        }
+
+        $text = $result.Output -join "`n"
+
+        if (
+            $result.ExitCode -ne 0 -and
+            $text -match "Executable doesn't exist"
+        ) {
+            Write-Host ""
+            Write-Host "Chromium Playwright belum tersedia."
+            Write-Host "Installing Chromium..."
+
+            Run-Native "npx.cmd" @(
+                "playwright",
+                "install",
+                "chromium"
+            )
+
+            $result = Capture-Native "npm.cmd" @(
+                "run",
+                "test:e2e:safe",
+                "--",
+                "--workers=1",
+                "--reporter=list"
+            )
+
+            $result.Output | ForEach-Object {
+                Write-Host $_
+            }
+
+            $text = $result.Output -join "`n"
+        }
+
+        if ($result.ExitCode -ne 0) {
+            throw "Production Playwright safe E2E FAILED."
+        }
+
+        $passed = 0
+
+        foreach (
+            $match in [regex]::Matches(
+                $text,
+                '(?m)(\d+)\s+passed\b'
+            )
+        ) {
+            $value = [int]$match.Groups[1].Value
+
+            if ($value -gt $passed) {
+                $passed = $value
+            }
+        }
+
+        if ($passed -lt 2) {
+            throw @"
+Playwright exit 0 tetapi safe suite belum terbukti penuh.
+Minimal wajib: admin login + candidate login = 2 passed.
+Actual passed: $passed
+"@
+        }
+
+        Write-Host ""
+        Write-Host "Production safe E2E: PASS ($passed passed)"
+    }
+    finally {
+        if ($null -eq $oldBase) {
+            Remove-Item Env:E2E_BASE_URL `
+                -ErrorAction SilentlyContinue
+        }
+        else {
+            $env:E2E_BASE_URL = $oldBase
+        }
+
+        if ($null -eq $oldNoServer) {
+            Remove-Item Env:E2E_NO_WEBSERVER `
+                -ErrorAction SilentlyContinue
+        }
+        else {
+            $env:E2E_NO_WEBSERVER = $oldNoServer
+        }
+    }
+}
+
+
+function Wait-GitHubQuality {
+    param(
+        [string]$Repository,
+        [string]$Sha,
+        [int]$TimeoutSeconds
+    )
+
+    Step "WAIT FOR GITHUB ACTIONS + LIGHTHOUSE"
+
+    $headers = @{
+        "User-Agent" = "VECTR-Release-Runner"
+        "Accept" = "application/vnd.github+json"
+        "X-GitHub-Api-Version" = "2022-11-28"
+    }
+
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    $run = $null
+    $lastStatus = ""
+
+    while ((Get-Date) -lt $deadline) {
+        $uri = (
+            "https://api.github.com/repos/" +
+            "$Repository/actions/runs" +
+            "?head_sha=$Sha&event=push&per_page=20"
+        )
+
+        try {
+            $response = Invoke-RestMethod `
+                -Uri $uri `
+                -Headers $headers `
+                -Method Get `
+                -TimeoutSec 30
+        }
+        catch {
+            Write-Host "GitHub API belum siap, retry..."
+            Start-Sleep -Seconds 20
+            continue
+        }
+
+        $run = @(
+            $response.workflow_runs |
+            Where-Object {
+                $_.name -eq "VECTR Quality Gate" -and
+                $_.head_sha -eq $Sha
+            }
+        ) | Select-Object -First 1
+
+        if ($null -eq $run) {
+            if ($lastStatus -ne "waiting") {
+                Write-Host "Quality workflow belum muncul..."
+                $lastStatus = "waiting"
+            }
+
+            Start-Sleep -Seconds 20
+            continue
+        }
+
+        $state = "$($run.status)/$($run.conclusion)"
+
+        if ($state -ne $lastStatus) {
+            Write-Host "Workflow  : $($run.status)"
+            Write-Host "Conclusion: $($run.conclusion)"
+            Write-Host "Run       : $($run.html_url)"
+
+            $lastStatus = $state
+        }
+
+        if ($run.status -eq "completed") {
+            break
+        }
+
+        Start-Sleep -Seconds 20
+    }
+
+    if ($null -eq $run) {
+        throw "VECTR Quality Gate tidak ditemukan untuk commit $Sha."
+    }
+
+    if ($run.status -ne "completed") {
+        throw "Timeout menunggu GitHub Actions."
+    }
+
+    $jobsUri = (
+        "https://api.github.com/repos/" +
+        "$Repository/actions/runs/$($run.id)/jobs?per_page=100"
+    )
+
+    $jobsResponse = Invoke-RestMethod `
+        -Uri $jobsUri `
+        -Headers $headers `
+        -Method Get `
+        -TimeoutSec 30
+
+    $allJobsPassed = $true
+    $lighthouseFound = $false
+    $lighthousePassed = $false
+
+    foreach ($job in $jobsResponse.jobs) {
+        Write-Host ""
+        Write-Host "JOB: $($job.name) [$($job.conclusion)]"
+
+        if ($job.conclusion -ne "success") {
+            $allJobsPassed = $false
+        }
+
+        foreach ($step in $job.steps) {
+            $label = switch ($step.conclusion) {
+                "success" { "[PASS]" }
+                "skipped" { "[SKIP]" }
+                default   { "[FAIL]" }
+            }
+
+            Write-Host "$label $($step.name)"
+
+            if ($step.name -eq "Lighthouse CI") {
+                $lighthouseFound = $true
+
+                if ($step.conclusion -eq "success") {
+                    $lighthousePassed = $true
+                }
+            }
+        }
+    }
+
+    if ($run.conclusion -ne "success") {
+        throw "GitHub VECTR Quality Gate FAILED."
+    }
+
+    if (-not $allJobsPassed) {
+        throw "GitHub Actions memiliki job yang gagal."
+    }
+
+    if (-not $lighthouseFound) {
+        throw "Lighthouse CI step tidak ditemukan."
+    }
+
+    if (-not $lighthousePassed) {
+        throw "Lighthouse CI FAILED."
+    }
+
+    Write-Host ""
+    Write-Host "GitHub Actions : PASS"
+    Write-Host "Lighthouse CI  : PASS"
+}
+
 # ============================================================
 # PRE-FLIGHT
 # ============================================================
 
-Step "VECTR RELEASE V2 PRE-FLIGHT"
+Step "VECTR RELEASE V3 PRE-FLIGHT"
 
 if (-not (Test-Path "package.json")) {
     throw "Jalankan RELEASE_VECTR.ps1 dari root project."
@@ -549,14 +808,26 @@ if ($status.Count -eq 0) {
 
     Smoke-Production $prod
 
+    Run-ProductionSafeE2E $prod
+
+    $currentCommit = (git rev-parse HEAD).Trim()
+
+    Wait-GitHubQuality `
+        $repoFull `
+        $currentCommit `
+        $DeployTimeoutSeconds
+
     Write-Host ""
     Write-Host "============================================================"
     Write-Host "VECTR RELEASE CHECK PASS"
     Write-Host "============================================================"
-    Write-Host "Git       : NO CHANGES"
-    Write-Host "Database  : UP TO DATE"
-    Write-Host "Quality   : PASS"
-    Write-Host "Smoke     : PASS"
+    Write-Host "Git        : NO CHANGES"
+    Write-Host "Database   : UP TO DATE"
+    Write-Host "Quality    : PASS"
+    Write-Host "Smoke      : PASS"
+    Write-Host "Playwright : PASS"
+    Write-Host "CI         : PASS"
+    Write-Host "Lighthouse : PASS"
     Write-Host "============================================================"
 
     exit 0
@@ -681,6 +952,23 @@ Smoke-Production $prodUrl
 
 
 # ============================================================
+# PRODUCTION SAFE E2E
+# ============================================================
+
+Run-ProductionSafeE2E $prodUrl
+
+
+# ============================================================
+# GITHUB ACTIONS + LIGHTHOUSE
+# ============================================================
+
+Wait-GitHubQuality `
+    $repoFull `
+    $commitFull `
+    $DeployTimeoutSeconds
+
+
+# ============================================================
 # FINAL STATE
 # ============================================================
 
@@ -705,11 +993,14 @@ Write-Host ""
 Write-Host "============================================================"
 Write-Host "VECTR PRODUCTION RELEASE PASS"
 Write-Host "============================================================"
-Write-Host "Commit    : $commitShort"
-Write-Host "Git       : PUSHED"
-Write-Host "Database  : UP TO DATE"
-Write-Host "Quality   : PASS"
-Write-Host "Vercel    : READY"
-Write-Host "Production: $prodUrl"
-Write-Host "Smoke     : PASS"
+Write-Host "Commit     : $commitShort"
+Write-Host "Git        : PUSHED"
+Write-Host "Database   : UP TO DATE"
+Write-Host "Quality    : PASS"
+Write-Host "Vercel     : READY"
+Write-Host "Production : $prodUrl"
+Write-Host "Smoke      : PASS"
+Write-Host "Playwright : PASS"
+Write-Host "CI         : PASS"
+Write-Host "Lighthouse : PASS"
 Write-Host "============================================================"
