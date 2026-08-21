@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 
 import { createClient } from "@/lib/supabase/server";
@@ -52,7 +53,7 @@ type AdminOrganizationRpcRow = {
 };
 
 
-export async function getAdminContext():
+async function getAdminContextUncached():
   Promise<AdminContext | null> {
 
   const supabase =
@@ -266,3 +267,5 @@ export async function getAdminContext():
       null,
   };
 }
+
+export const getAdminContext = cache(getAdminContextUncached);

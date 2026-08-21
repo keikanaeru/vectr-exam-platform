@@ -75,85 +75,192 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
   const exams = examsResult.data ?? [];
   const examIds = exams.map((exam) => String(exam.id));
 
-  let assignments: AssignmentRow[] = [];
-  if (examIds.length) {
-    const { data, error } = await supabase
-      .from("exam_assignments")
-      .select("exam_id, candidate_id, access_code_hash, access_code_ciphertext, access_code_generated_at, active")
-      .in("exam_id", examIds);
-    if (error) throw new Error("Gagal membaca assignment peserta ujian.");
-    assignments = (data ?? []).map((row) => ({
-      exam_id: String(row.exam_id),
-      candidate_id: String(row.candidate_id),
-      access_code_hash: row.access_code_hash ? String(row.access_code_hash) : null,
-      access_code_ciphertext: row.access_code_ciphertext ? String(row.access_code_ciphertext) : null,
-      access_code_generated_at: row.access_code_generated_at ? String(row.access_code_generated_at) : null,
-      active: Boolean(row.active),
-    }));
+  const moduleIds = modules.map(
+    (module) => String(module.id)
+  );
+
+  const [
+    assignmentsResult,
+    scheduledEmailResult,
+    sectionResult,
+    activeQuestionResult,
+  ] = await Promise.all([
+    examIds.length
+      ? supabase
+          .from("exam_assignments")
+          .select(
+            "exam_id, candidate_id, access_code_hash, access_code_ciphertext, access_code_generated_at, active"
+          )
+          .in("exam_id", examIds)
+          .eq("active", true)
+      : Promise.resolve({ data: [], error: null }),
+
+    examIds.length
+      ? supabase
+          .from("exam_email_deliveries")
+          .select("exam_id")
+          .in("exam_id", examIds)
+          .eq("status", "SCHEDULED")
+      : Promise.resolve({ data: [], error: null }),
+
+    examIds.length
+      ? supabase
+          .from("exam_sections")
+          .select(
+            "id, exam_id, module_id, order_index, duration_minutes"
+          )
+          .in("exam_id", examIds)
+          .order("order_index", { ascending: true })
+      : Promise.resolve({ data: [], error: null }),
+
+    moduleIds.length
+      ? supabase
+          .from("questions")
+          .select("module_id")
+          .in("module_id", moduleIds)
+          .eq("status", "ACTIVE")
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  if (assignmentsResult.error) {
+    throw new Error(
+      "Gagal membaca assignment peserta ujian."
+    );
   }
 
-  const scheduledEmailCountByExam = new Map<string, number>();
-  if (examIds.length) {
-    const { data: scheduledEmailRows, error: scheduledEmailReadError } = await supabase
-      .from("exam_email_deliveries")
-      .select("exam_id")
-      .in("exam_id", examIds)
-      .eq("status", "SCHEDULED");
-    if (scheduledEmailReadError) throw new Error("Gagal membaca status email peserta terjadwal.");
-    for (const row of scheduledEmailRows ?? []) {
-      const key = String(row.exam_id);
-      scheduledEmailCountByExam.set(key, (scheduledEmailCountByExam.get(key) ?? 0) + 1);
-    }
+  if (scheduledEmailResult.error) {
+    throw new Error(
+      "Gagal membaca status email peserta terjadwal."
+    );
   }
 
-  const { data: sectionRows, error: sectionError } = examIds.length
-    ? await supabase
-        .from("exam_sections")
-        .select("id, exam_id, module_id, order_index, duration_minutes")
-        .in("exam_id", examIds)
-        .order("order_index", { ascending: true })
-    : { data: [], error: null };
-  if (sectionError) throw new Error("Gagal membaca sesi modul ujian.");
+  if (sectionResult.error) {
+    throw new Error(
+      "Gagal membaca sesi modul ujian."
+    );
+  }
 
-  const sectionsByExam = new Map<string, Array<{ id: string; module_id: string; order_index: number; duration_minutes: number }>>();
-  for (const row of sectionRows ?? []) {
+  if (activeQuestionResult.error) {
+    throw new Error(
+      "Gagal membaca kesiapan soal ujian."
+    );
+  }
+
+  const assignments: AssignmentRow[] = (
+    assignmentsResult.data ?? []
+  ).map((row) => ({
+    exam_id: String(row.exam_id),
+    candidate_id: String(row.candidate_id),
+    access_code_hash: row.access_code_hash
+      ? String(row.access_code_hash)
+      : null,
+    access_code_ciphertext: row.access_code_ciphertext
+      ? String(row.access_code_ciphertext)
+      : null,
+    access_code_generated_at: row.access_code_generated_at
+      ? String(row.access_code_generated_at)
+      : null,
+    active: Boolean(row.active),
+  }));
+
+  const assignmentsByExam =
+    new Map<string, AssignmentRow[]>();
+
+  for (const assignment of assignments) {
+    const current =
+      assignmentsByExam.get(assignment.exam_id) ?? [];
+
+    current.push(assignment);
+    assignmentsByExam.set(
+      assignment.exam_id,
+      current
+    );
+  }
+
+  const scheduledEmailCountByExam =
+    new Map<string, number>();
+
+  for (const row of scheduledEmailResult.data ?? []) {
+    const key = String(row.exam_id);
+
+    scheduledEmailCountByExam.set(
+      key,
+      (scheduledEmailCountByExam.get(key) ?? 0) + 1
+    );
+  }
+
+  const sectionsByExam = new Map<
+    string,
+    Array<{
+      id: string;
+      module_id: string;
+      order_index: number;
+      duration_minutes: number;
+    }>
+  >();
+
+  for (const row of sectionResult.data ?? []) {
     const key = String(row.exam_id);
     const current = sectionsByExam.get(key) ?? [];
-    current.push({ id: String(row.id), module_id: String(row.module_id), order_index: Number(row.order_index), duration_minutes: Number(row.duration_minutes) });
+
+    current.push({
+      id: String(row.id),
+      module_id: String(row.module_id),
+      order_index: Number(row.order_index),
+      duration_minutes: Number(row.duration_minutes),
+    });
+
     sectionsByExam.set(key, current);
   }
 
-  const activeQuestionCountByModule = new Map<string, number>();
-  const moduleIds = modules.map((module) => String(module.id));
-  if (moduleIds.length) {
-    const { data: activeQuestionRows, error: activeQuestionError } = await supabase
-      .from("questions")
-      .select("module_id")
-      .in("module_id", moduleIds)
-      .eq("status", "ACTIVE");
-    if (activeQuestionError) throw new Error("Gagal membaca kesiapan soal ujian.");
-    for (const row of activeQuestionRows ?? []) {
-      const key = String(row.module_id);
-      activeQuestionCountByModule.set(key, (activeQuestionCountByModule.get(key) ?? 0) + 1);
-    }
+  const activeQuestionCountByModule =
+    new Map<string, number>();
+
+  for (const row of activeQuestionResult.data ?? []) {
+    const key = String(row.module_id);
+
+    activeQuestionCountByModule.set(
+      key,
+      (activeQuestionCountByModule.get(key) ?? 0) + 1
+    );
   }
 
   const moduleMap = new Map(modules.map((module) => [String(module.id), module]));
   const batchMap = new Map(batches.map((batch) => [String(batch.id), batch]));
   const selectableModules = modules.filter((module) => module.status !== "INACTIVE");
-  const activeBatches = batches.filter((batch) => batch.status === "ACTIVE");
+  const activeBatches = batches.filter(
+    (batch) => batch.status === "ACTIVE"
+  );
 
-  function batchCount(batchId: string) {
-    return candidates.filter((candidate) => String(candidate.batch_id) === batchId && candidate.active).length;
+  const activeCandidateIdsByBatch =
+    new Map<string, Set<string>>();
+
+  for (const candidate of candidates) {
+    if (!candidate.active) continue;
+
+    const key = String(candidate.batch_id);
+    const current =
+      activeCandidateIdsByBatch.get(key) ??
+      new Set<string>();
+
+    current.add(String(candidate.id));
+    activeCandidateIdsByBatch.set(key, current);
   }
 
-  function credentialStats(examId: string, batchId: string) {
-    const rows = assignments.filter((row) => row.exam_id === examId && row.active);
-    const batchCandidateIds = new Set(
-      candidates
-        .filter((candidate) => String(candidate.batch_id) === batchId && candidate.active)
-        .map((candidate) => String(candidate.id))
-    );
+  function batchCount(batchId: string) {
+    return activeCandidateIdsByBatch.get(batchId)?.size ?? 0;
+  }
+
+  function credentialStats(
+    examId: string,
+    batchId: string
+  ) {
+    const rows =
+      assignmentsByExam.get(examId) ?? [];
+
+    const batchCandidateIds =
+      activeCandidateIdsByBatch.get(batchId) ??
+      new Set<string>();
     const assignmentCandidateIds = new Set(rows.map((row) => row.candidate_id));
     const missing = [...batchCandidateIds].filter((candidateId) => !assignmentCandidateIds.has(candidateId)).length;
     const stale = [...assignmentCandidateIds].filter((candidateId) => !batchCandidateIds.has(candidateId)).length;

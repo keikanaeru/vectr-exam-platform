@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { getAdminContext } from "@/lib/admin-context";
-import { createAdminClient } from "@/lib/supabase/admin";
 import VectrBrand from "@/app/ui/VectrBrand";
 import AdminNav from "./AdminNav";
 import OrganizationSwitcher from "./OrganizationSwitcher";
@@ -10,7 +9,8 @@ import AdminAccountMenu from "./AdminAccountMenu";
 import { setActiveOrganization } from "./organization-actions";
 import AdminSubscriptionGate from "./AdminSubscriptionGate";
 import AdminActionScrollMemory from "./ui/AdminActionScrollMemory";
-import { getOrganizationSubscriptionState } from "@/lib/organization-subscription";
+import { getCachedOrganizationSubscriptionState } from "@/lib/organization-subscription";
+import { getCachedAdminDatabaseHealth } from "@/lib/admin-database-health";
 
 
 export const dynamic =
@@ -83,21 +83,14 @@ export default async function AdminLayout({
   const isPlatformOwner =
     context.profile.isPlatformOwner;
 
-  const subscriptionState = await getOrganizationSubscriptionState(
-    createAdminClient(),
-    organization.organizationId
-  );
+  const [subscriptionState, databaseHealth] = await Promise.all([
+    getCachedOrganizationSubscriptionState(
+      organization.organizationId
+    ),
+    getCachedAdminDatabaseHealth(),
+  ]);
 
 
-  // Database contract check dipanggil dari layout agar mismatch schema
-  // terlihat sebelum admin menekan mutation satu per satu.
-  const healthResult = await createAdminClient().rpc("exam_platform_healthcheck");
-  const databaseHealth =
-    !healthResult.error &&
-    healthResult.data &&
-    typeof healthResult.data === "object"
-      ? (healthResult.data as { version?: string; ok?: boolean; missing?: unknown })
-      : null;
   const databaseMissing = Array.isArray(databaseHealth?.missing)
     ? databaseHealth.missing.map(String)
     : [];

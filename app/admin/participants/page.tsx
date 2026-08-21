@@ -82,6 +82,18 @@ export default async function ParticipantsPage({
     return haystack.includes(query);
   });
 
+  const filteredCandidatesByBatch = new Map<
+    string,
+    (typeof filteredCandidates)[number][]
+  >();
+
+  for (const candidate of filteredCandidates) {
+    const key = String(candidate.batch_id ?? "");
+    const current = filteredCandidatesByBatch.get(key) ?? [];
+    current.push(candidate);
+    filteredCandidatesByBatch.set(key, current);
+  }
+
   const hasFilters = Boolean(query || batchFilter || statusFilter);
 
   const batchOptions = batches.map((batch) => ({
@@ -189,7 +201,8 @@ export default async function ParticipantsPage({
             ) : batches.length ? (
               batches.map((batch) => {
                 if (batchFilter && String(batch.id) !== batchFilter) return null;
-                const batchCandidates = filteredCandidates.filter((candidate) => candidate.batch_id === batch.id);
+                const batchCandidates =
+                  filteredCandidatesByBatch.get(String(batch.id)) ?? [];
                 if (hasFilters && batchCandidates.length === 0) return null;
                 const activeCount = batchCandidates.filter((candidate) => candidate.active).length;
                 const addCandidate = createCandidate.bind(null, batch.id);

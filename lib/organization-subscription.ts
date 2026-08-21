@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -126,6 +127,14 @@ export async function getOrganizationSubscriptionState(
   return { ...state, organizationId };
 }
 
+export const getCachedOrganizationSubscriptionState = cache(
+  async (organizationId: string) =>
+    getOrganizationSubscriptionState(
+      createAdminClient(),
+      organizationId
+    )
+);
+
 export async function getOrganizationSubscriptionStates(
   supabase: ReturnType<typeof createAdminClient>,
   organizationIds: string[],
@@ -208,10 +217,7 @@ function subscriptionWriteBlockedMessage(state: OrganizationSubscriptionState) {
 
 export async function requireAdminReadAccess() {
   const adminContext = await requireAdminOrganization();
-  const subscription = await getOrganizationSubscriptionState(
-    createAdminClient(),
-    adminContext.organizationId
-  );
+  const subscription = await getCachedOrganizationSubscriptionState(adminContext.organizationId);
 
   if (
     !adminContext.context.profile.isPlatformOwner &&
@@ -225,10 +231,7 @@ export async function requireAdminReadAccess() {
 
 export async function requireAdminWriteAccess() {
   const adminContext = await requireAdminOrganization();
-  const subscription = await getOrganizationSubscriptionState(
-    createAdminClient(),
-    adminContext.organizationId
-  );
+  const subscription = await getCachedOrganizationSubscriptionState(adminContext.organizationId);
 
   if (!adminContext.context.profile.isPlatformOwner && !subscription.canWrite) {
     redirect(`/admin?error=${encodeURIComponent(subscriptionWriteBlockedMessage(subscription))}`);
@@ -239,10 +242,7 @@ export async function requireAdminWriteAccess() {
 
 export async function requireAdminExportAccess() {
   const adminContext = await requireAdminOrganization();
-  const subscription = await getOrganizationSubscriptionState(
-    createAdminClient(),
-    adminContext.organizationId
-  );
+  const subscription = await getCachedOrganizationSubscriptionState(adminContext.organizationId);
 
   if (!adminContext.context.profile.isPlatformOwner && !subscription.canExport) {
     redirect(`/admin?error=${encodeURIComponent(subscriptionWriteBlockedMessage(subscription))}`);

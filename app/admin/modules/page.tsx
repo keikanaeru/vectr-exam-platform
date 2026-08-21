@@ -42,13 +42,39 @@ export default async function ModulesPage({
   const modules = moduleResult.data ?? [];
   const moduleIds = modules.map((module) => String(module.id));
   const questionResult = moduleIds.length
-    ? await supabase.from("questions").select("id, module_id, status").in("module_id", moduleIds)
+    ? await supabase.from("questions").select("module_id, status").in("module_id", moduleIds)
     : { data: [], error: null };
 
   if (questionResult.error) throw new Error("Gagal membaca ringkasan bank soal.");
   const questions = questionResult.data ?? [];
-  const activeModules = modules.filter((module) => module.status === "ACTIVE").length;
-  const totalQuestions = questions.filter((question) => modules.some((module) => module.id === question.module_id)).length;
+
+  const questionStatsByModule = new Map<
+    string,
+    { total: number; active: number }
+  >();
+
+  for (const question of questions) {
+    const key = String(question.module_id);
+    const current =
+      questionStatsByModule.get(key) ?? {
+        total: 0,
+        active: 0,
+      };
+
+    current.total += 1;
+
+    if (question.status === "ACTIVE") {
+      current.active += 1;
+    }
+
+    questionStatsByModule.set(key, current);
+  }
+
+  const activeModules = modules.filter(
+    (module) => module.status === "ACTIVE"
+  ).length;
+
+  const totalQuestions = questions.length;
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-10 sm:px-8">
@@ -116,8 +142,11 @@ export default async function ModulesPage({
         <div className="space-y-5">
           {modules.length ? (
             modules.map((module) => {
-              const moduleQuestions = questions.filter((question) => question.module_id === module.id);
-              const activeQuestions = moduleQuestions.filter((question) => question.status === "ACTIVE").length;
+              const questionStats =
+                questionStatsByModule.get(String(module.id)) ?? {
+                  total: 0,
+                  active: 0,
+                };
               const editModule = updateModule.bind(null, module.id);
               const toggleModule = toggleModuleStatus.bind(null, module.id);
               const removeModule = deleteModule.bind(null, module.id);
@@ -135,8 +164,8 @@ export default async function ModulesPage({
                         {module.description ? <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">{module.description}</p> : null}
                         <div className="mt-4 flex flex-wrap gap-4 text-xs text-slate-600">
                           <span>{module.default_duration_minutes} menit</span>
-                          <span>{moduleQuestions.length} soal</span>
-                          <span className="text-emerald-300/60">{activeQuestions} aktif</span>
+                          <span>{questionStats.total} soal</span>
+                          <span className="text-emerald-300/60">{questionStats.active} aktif</span>
                         </div>
                       </div>
 
