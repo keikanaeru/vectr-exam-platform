@@ -3,7 +3,10 @@ import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 
 function loadEnv() {
-  const file = path.resolve(process.cwd(), ".env.local");
+  const configuredEnv =
+  process.env.VECTR_STATEFUL_ENV_FILE?.trim() ||
+  ".env.stateful.local";
+const file = path.resolve(process.cwd(), configuredEnv);
   if (!fs.existsSync(file)) return;
   for (const raw of fs.readFileSync(file, "utf8").split(/\r?\n/u)) {
     const line = raw.trim();
@@ -34,6 +37,36 @@ if (!rows.length) process.exit(0);
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
 const secret = process.env.SUPABASE_SECRET_KEY?.trim();
+
+const STATEFUL_PRODUCTION_REF = "ihuxmsugczgbkoscnwkg";
+
+function assertSafeStatefulTarget(targetUrl) {
+  if (!targetUrl) return;
+
+  let projectRef = "";
+
+  try {
+    const parsed = new URL(targetUrl);
+    projectRef = parsed.hostname.split(".")[0];
+  } catch {
+    throw new Error("NEXT_PUBLIC_SUPABASE_URL tidak valid.");
+  }
+
+  if (
+    projectRef === STATEFUL_PRODUCTION_REF ||
+    targetUrl.includes(STATEFUL_PRODUCTION_REF)
+  ) {
+    throw new Error(
+      "STATEFUL LOAD BLOCKED: target adalah VECTR PRODUCTION Supabase."
+    );
+  }
+
+  console.log(
+    `[STATEFUL-SAFETY] dedicated non-production target: ${projectRef}`
+  );
+}
+
+assertSafeStatefulTarget(url);
 if (!url || !secret) throw new Error("Supabase env belum lengkap.");
 
 const supabase = createClient(url, secret, {

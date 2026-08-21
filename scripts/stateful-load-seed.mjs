@@ -4,8 +4,11 @@ import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
 function loadEnv() {
-  const file = path.resolve(process.cwd(), ".env.local");
-  if (!fs.existsSync(file)) throw new Error(".env.local tidak ditemukan.");
+  const configuredEnv =
+  process.env.VECTR_STATEFUL_ENV_FILE?.trim() ||
+  ".env.stateful.local";
+const file = path.resolve(process.cwd(), configuredEnv);
+  if (!fs.existsSync(file)) throw new Error(`${configuredEnv} tidak ditemukan.`);
   for (const raw of fs.readFileSync(file, "utf8").split(/\r?\n/u)) {
     const line = raw.trim();
     if (!line || line.startsWith("#")) continue;
@@ -37,6 +40,36 @@ loadEnv();
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
 const secret = process.env.SUPABASE_SECRET_KEY?.trim();
+
+const STATEFUL_PRODUCTION_REF = "ihuxmsugczgbkoscnwkg";
+
+function assertSafeStatefulTarget(targetUrl) {
+  if (!targetUrl) return;
+
+  let projectRef = "";
+
+  try {
+    const parsed = new URL(targetUrl);
+    projectRef = parsed.hostname.split(".")[0];
+  } catch {
+    throw new Error("NEXT_PUBLIC_SUPABASE_URL tidak valid.");
+  }
+
+  if (
+    projectRef === STATEFUL_PRODUCTION_REF ||
+    targetUrl.includes(STATEFUL_PRODUCTION_REF)
+  ) {
+    throw new Error(
+      "STATEFUL LOAD BLOCKED: target adalah VECTR PRODUCTION Supabase."
+    );
+  }
+
+  console.log(
+    `[STATEFUL-SAFETY] dedicated non-production target: ${projectRef}`
+  );
+}
+
+assertSafeStatefulTarget(url);
 const count = Math.max(1, Math.min(200, Number(process.argv[2] || 200)));
 
 if (!url || !secret) throw new Error("Supabase env belum lengkap.");
@@ -229,5 +262,5 @@ fs.writeFileSync(
   "utf8"
 );
 
-console.log(`[STATEFUL-SEED] PASS — ${fixture.length} active sessions ready.`);
+console.log(`[STATEFUL-SEED] PASS â€” ${fixture.length} active sessions ready.`);
 console.log(`[STATEFUL-SEED] fixture: ${fixturePath}`);

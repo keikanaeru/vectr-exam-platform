@@ -5,9 +5,9 @@ Write-Host "========================================="
 Write-Host "VECTR STATEFUL K6 - 20 > 50 > 100 > 200"
 Write-Host "========================================="
 
-# Parse .env.local
-$envFile = Join-Path (Get-Location) ".env.local"
-if (!(Test-Path $envFile)) { throw ".env.local tidak ditemukan." }
+# Parse .env.stateful.local
+$envFile = Join-Path (Get-Location) ".env.stateful.local"
+if (!(Test-Path $envFile)) { throw ".env.stateful.local tidak ditemukan." }
 
 Get-Content $envFile | ForEach-Object {
   $line = $_.Trim()
@@ -22,6 +22,26 @@ Get-Content $envFile | ForEach-Object {
 if (!$env:NEXT_PUBLIC_SUPABASE_URL -or !$env:SUPABASE_SECRET_KEY) {
   throw "Supabase env belum lengkap."
 }
+
+# VECTR STATEFUL SAFETY GUARD
+try {
+  $targetUri = [Uri]$env:NEXT_PUBLIC_SUPABASE_URL
+  $targetRef = $targetUri.Host.Split(".")[0]
+} catch {
+  throw "NEXT_PUBLIC_SUPABASE_URL tidak valid."
+}
+
+if (
+  $targetRef -eq "ihuxmsugczgbkoscnwkg" -or
+  $env:NEXT_PUBLIC_SUPABASE_URL -match "ihuxmsugczgbkoscnwkg"
+) {
+  throw "STATEFUL LOAD BLOCKED: target adalah VECTR PRODUCTION Supabase."
+}
+
+$env:VECTR_STATEFUL_ENV_FILE = ".env.stateful.local"
+
+Write-Host "[SAFETY] Dedicated stateful target: $targetRef"
+Write-Host "[SAFETY] VECTR production target: BLOCKED"
 
 $env:SUPABASE_URL = $env:NEXT_PUBLIC_SUPABASE_URL
 
