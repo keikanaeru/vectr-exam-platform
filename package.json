@@ -17,7 +17,10 @@
     "test:e2e:headed": "playwright test --headed",
     "audit:r832-finalizer": "node scripts/check-r832-finalizer.mjs",
     "test:golden": "playwright test tests/golden-path.spec.js --headed --workers=1",
-    "test:golden:full": "playwright test tests/golden-full.spec.js --headed --workers=1"
+    "test:golden:full": "playwright test tests/golden-full.spec.js --headed --workers=1",
+    "spellcheck": "cspell app/**/*.{ts,tsx} lib/**/*.{ts,tsx} scripts/**/*.{js,mjs,ts} --no-progress",
+    "deadcode": "knip",
+    "format:check": "prettier --check cspell.json knip.json package.json"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.70.0",
@@ -31,17 +34,22 @@
     "pdf-lib": "^1.17.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "resend": "^6.18.1"
+    "resend": "^6.18.1",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@cspell/dict-id-id": "^1.0.7",
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cspell": "^10.0.1",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
+    "knip": "^6.32.2",
+    "prettier": "3.9.6",
     "repomix": "^1.18.0",
     "tailwindcss": "^4",
     "typescript": "^5"

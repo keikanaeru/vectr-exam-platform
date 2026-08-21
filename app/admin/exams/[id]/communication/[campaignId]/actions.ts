@@ -321,7 +321,7 @@ export async function generateCampaignDeliveries(examId: string, campaignId: str
     });
 
     // kode_akses sengaja TIDAK didekripsi ke snapshot database. Placeholder
-    // dipertahankan dan hanya dirender in-memory tepat sebelum request ke Resend.
+    // dipertahankan dan hanya ditampilkan in-memory tepat sebelum request ke Resend.
     return {
       campaign_id: campaign.id,
       organization_id: organizationId,

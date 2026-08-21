@@ -951,7 +951,7 @@ ${organization.name}`;
                   label="Link peserta"
                 />
 
-                <Variable code="{{kode_akses}}" label="Kode akses pribadi (dirender saat kirim)" />
+                <Variable code="{{kode_akses}}" label="Kode akses pribadi (ditampilkan saat kirim)" />
                 <Variable code="{{waktu_login}}" label="Waktu login dibuka" />
                 <Variable code="{{hard_close}}" label="Hard Close" />
                 <Variable code="{{nama_organisasi}}" label="Nama organisasi" />

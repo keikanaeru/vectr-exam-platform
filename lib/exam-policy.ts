@@ -56,7 +56,7 @@ export type ExamPolicy = {
   };
 };
 
-export const DEFAULT_EXAM_POLICY: ExamPolicy = {
+const DEFAULT_EXAM_POLICY: ExamPolicy = {
   version: 1,
   security: {
     enableProctoring: true,

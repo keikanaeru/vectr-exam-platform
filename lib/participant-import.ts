@@ -212,7 +212,7 @@ function parseRows(rows: string[][]): ParsedParticipant[] {
 
   if (participants.length === 0) {
     throw new Error(
-      "File terbaca, tetapi tidak ada baris peserta yang dapat diimport."
+      "File terbaca, tetapi tidak ada baris peserta yang dapat diimpor."
     );
   }
 

@@ -45,4 +45,4 @@ function requiredEnv(...keys) {
 
 loadE2EEnv();
 
-module.exports = { loadE2EEnv, requiredEnv };
+module.exports = { requiredEnv };

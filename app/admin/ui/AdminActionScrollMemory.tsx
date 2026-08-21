@@ -27,7 +27,7 @@ export default function AdminActionScrollMemory() {
           return;
         }
 
-        // Tunggu hasil server action selesai dirender agar posisi scroll tidak
+        // Tunggu hasil server action selesai ditampilkan agar posisi scroll tidak
         // kalah oleh layout/reflow halaman baru.
         window.requestAnimationFrame(() => {
           window.requestAnimationFrame(() => {

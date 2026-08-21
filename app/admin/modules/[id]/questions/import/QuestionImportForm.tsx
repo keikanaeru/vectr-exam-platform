@@ -77,7 +77,7 @@ export default function QuestionImportForm({ moduleId }: { moduleId: string }) {
           </div>
 
           <button type="submit" disabled={pending || !fileName} className="liquid-button-primary mt-5 w-full rounded-[14px] px-4 py-3 text-sm font-semibold disabled:opacity-40">
-            {pending ? "Memvalidasi & Mengimport..." : "Validasi & Import Soal"}
+            {pending ? "Memvalidasi & Mengimpor..." : "Validasi & Import Soal"}
           </button>
         </div>
       </form>

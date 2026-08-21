@@ -133,7 +133,7 @@ export async function ensureExamSectionsForSession(
   if (String(session.status) !== "ACTIVE") return sections;
 
   // Once the immutable question snapshot + section progress are complete,
-  // ordinary reloads / section transitions should not rescan the live bank.
+  // ordinary reloads / section transitions should not scan the live bank again.
   if (session.snapshot_ready_at) return sections;
 
   const firstSection = sections[0];
@@ -277,7 +277,7 @@ export async function ensureExamSectionsForSession(
       });
     if (insertError) {
       throw new Error(
-        `Soal sesi gagal diprovision secara batch [${insertError.code ?? "DB"}]: ${insertError.message}`
+        `Soal sesi gagal disiapkan secara batch [${insertError.code ?? "DB"}]: ${insertError.message}`
       );
     }
   }
@@ -300,7 +300,7 @@ export async function ensureExamSectionsForSession(
     const expected = expectedBySection.get(section.id) ?? [];
     const missingCount = expected.filter((questionId) => !actual.has(questionId)).length;
     if (missingCount > 0) {
-      throw new Error(`Sesi ${section.moduleName} belum lengkap: ${missingCount} soal gagal diprovision. Coba lagi atau hubungi pengawas.`);
+      throw new Error(`Sesi ${section.moduleName} belum lengkap: ${missingCount} soal gagal disiapkan. Coba lagi atau hubungi pengawas.`);
     }
   }
 

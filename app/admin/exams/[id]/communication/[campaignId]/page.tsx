@@ -1497,7 +1497,7 @@ export default async function CampaignPreviewPage({
 
 
                   <p className="mt-1 text-xs text-slate-500">
-                    Konten setelah variabel dirender.
+                    Konten setelah variabel ditampilkan.
                   </p>
 
                 </div>

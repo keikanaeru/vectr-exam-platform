@@ -180,7 +180,7 @@ export default async function ParticipantImportPage() {
 
               <div className="mt-3 space-y-2 text-[11px] leading-5 text-slate-500">
 
-                <p>✓ Data baru tetap diimport</p>
+                <p>✓ Data baru tetap diimpor</p>
 
                 <p>✓ Kode yang sudah ada dilewati</p>
 

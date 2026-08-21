@@ -24,7 +24,7 @@ const banned = [
   ["start_or_resume_exam_session", "Runtime masih mereferensikan RPC start legacy."],
   ["submit_and_score_exam_session", "Runtime masih mereferensikan RPC submit legacy."],
   ["Database Compatibility · R6", "Label development R6 masih terlihat di UI."],
-  ["Credential Sudah Ready", "Status credential masih dirender sebagai label tombol."],
+  ["Credential Sudah Ready", "Status credential masih ditampilkan sebagai label tombol."],
   ["export async function setExamAccessCode", "Compatibility action setExamAccessCode lama masih tersisa."],
   ["Kode akses ujian belum tersedia sebagai variabel", "Communication masih menganggap credential tidak dapat dikirim."],
 ];
@@ -79,7 +79,7 @@ for (const file of files.filter((item) => item.endsWith(".tsx"))) {
   const match = masked.match(/\{\{\s*[A-Za-z_$][A-Za-z0-9_$]*\s*\}\}/);
   if (match) {
     const line = masked.slice(0, match.index).split("\n").length;
-    failures.push(`Raw mustache placeholder dirender sebagai JSX object: ${path.relative(root, file)}:${line}. Gunakan string seperti {"{{nama_variabel}}"}.`);
+    failures.push(`Raw mustache placeholder ditampilkan sebagai JSX object: ${path.relative(root, file)}:${line}. Gunakan string seperti {"{{nama_variabel}}"}.`);
   }
 }
 

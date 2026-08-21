@@ -208,7 +208,7 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
         <form action={createExam} className="liquid-card h-fit p-6">
           <p className="text-[11px] uppercase tracking-[0.16em] text-violet-300/60">New Exam</p>
           <h2 className="mt-2 text-xl font-semibold text-white">Buat Ujian</h2>
-          <p className="mt-2 text-xs leading-5 text-slate-600">Assignment awal dibuat dari peserta aktif pada batch. Peserta yang diimport sesudahnya bisa disinkronkan otomatis.</p>
+          <p className="mt-2 text-xs leading-5 text-slate-600">Assignment awal dibuat dari peserta aktif pada batch. Peserta yang diimpor sesudahnya bisa disinkronkan otomatis.</p>
 
           <label className="mt-5 block"><span className="mb-2 block text-xs text-slate-400">Judul Ujian</span><input name="title" required placeholder="Brevet 2027 - Try Out 1" className="field" /></label>
 

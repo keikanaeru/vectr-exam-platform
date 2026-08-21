@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
 
-export type AdminOrganization = {
+type AdminOrganization = {
   organizationId: string;
   code: string;
   name: string;

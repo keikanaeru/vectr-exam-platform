@@ -11,7 +11,7 @@ type ResultDbRow = { session_id: string; raw_score: number | null; max_score: nu
 type SessionQuestionDbRow = { id: string; session_id: string; exam_section_id: string | null; question_snapshot: unknown };
 type AnswerDbRow = { session_question_id: string; selected_option_id: string | null };
 
-export type ResultExportRow = {
+type ResultExportRow = {
   code: string;
   name: string;
   identifier: string;

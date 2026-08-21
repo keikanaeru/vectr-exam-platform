@@ -319,5 +319,5 @@ export async function setAssignmentExtraTime(examId: string, assignmentId: strin
   if (error) redirectMessage(examId, "error", "Extra time peserta gagal disimpan.");
 
   revalidatePath(`/admin/exams/${examId}/proctor`);
-  redirectMessage(examId, "success", `Extra time assignment diset ${minutes} menit.`);
+  redirectMessage(examId, "success", `Extra time assignment diatur ${minutes} menit.`);
 }

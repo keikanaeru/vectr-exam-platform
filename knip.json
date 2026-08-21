@@ -1,0 +1,11 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "lighthouserc.cjs",
+    "load-tests/*.js",
+    "scripts/check-r831.mjs",
+    "scripts/stateful-load-cleanup.mjs",
+    "scripts/stateful-load-seed.mjs"
+  ],
+  "ignoreDependencies": ["k6"]
+}

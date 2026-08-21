@@ -8,7 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { databaseErrorMessage } from "@/lib/db-error";
 import { activeExamModuleLockMessage, getActiveExamUsingModule } from "@/lib/module-exam-lock";
 
-export type QuestionImportDetail = {
+type QuestionImportDetail = {
   sourceRow: number;
   code: string;
   questionText: string;

@@ -584,7 +584,7 @@ export default async function CandidateExamPage({
                       </span>{" "}
                       ditekan. Setelah sesi dimulai,
                       waktu tetap berjalan meskipun
-                      halaman ditutup atau direfresh.
+                      halaman ditutup atau dimuat ulang.
                     </p>
 
                   </div>

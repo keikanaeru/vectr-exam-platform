@@ -1480,7 +1480,7 @@ export async function deleteExam(examId: string) {
     .eq("organization_id", organizationId)
     .maybeSingle();
   if (error || !exam) redirectWithError("Ujian tidak ditemukan.");
-  if (exam.status !== "DRAFT") redirectWithError("Hanya ujian DRAFT yang dapat dihapus. Ujian berhistori sebaiknya ditutup, bukan dihapus.");
+  if (exam.status !== "DRAFT") redirectWithError("Hanya ujian DRAFT yang dapat dihapus. Ujian yang sudah memiliki riwayat sebaiknya ditutup, bukan dihapus.");
 
   const { data: assignmentRows, error: assignmentReadError } = await supabase
     .from("exam_assignments")

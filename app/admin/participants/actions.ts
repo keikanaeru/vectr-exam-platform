@@ -246,32 +246,6 @@ export async function updateBatch(batchId: string, formData: FormData) {
   redirectWithSuccess(`Batch ${name} berhasil diperbarui.`);
 }
 
-export async function toggleBatchStatus(batchId: string) {
-  const { organizationId } = await requireAdminWriteAccess();
-  const supabase = createAdminClient();
-
-  const { data: batch, error } = await supabase
-    .from("batches")
-    .select("id, name, status")
-    .eq("id", batchId)
-    .eq("organization_id", organizationId)
-    .maybeSingle();
-
-  if (error || !batch) redirectWithError("Batch tidak ditemukan.");
-
-  const nextStatus = batch.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-  const { error: updateError } = await supabase
-    .from("batches")
-    .update({ status: nextStatus })
-    .eq("id", batchId)
-    .eq("organization_id", organizationId);
-
-  if (updateError) redirectWithError(databaseErrorMessage("BATCH_STATUS_UPDATE", "Status batch gagal diubah.", updateError));
-
-  refreshParticipants();
-  redirectWithSuccess(`Batch ${batch.name} sekarang ${nextStatus}.`);
-}
-
 export async function deleteBatch(batchId: string) {
   const { organizationId } = await requireAdminWriteAccess();
   const supabase = createAdminClient();
@@ -443,55 +417,6 @@ export async function updateCandidate(candidateId: string, formData: FormData) {
 
   refreshParticipants();
   redirectWithSuccess(`${displayName} berhasil diperbarui.`);
-}
-
-export async function updateCandidateEmail(candidateId: string, formData: FormData) {
-  return updateCandidateEmailOnly(candidateId, formData);
-}
-
-async function updateCandidateEmailOnly(candidateId: string, formData: FormData) {
-  const { organizationId } = await requireAdminWriteAccess();
-  const supabase = createAdminClient();
-
-  await ensureCandidateHasNoScheduledEmail(supabase, organizationId, candidateId);
-  const emailRaw = String(formData.get("email") || "");
-  const email = emailRaw.trim() ? normalizeEmail(emailRaw) : null;
-
-  if (email && !isValidEmail(email)) redirectWithError("Format email peserta tidak valid.");
-
-  if (email) {
-    const { data: duplicate } = await supabase
-      .from("candidates")
-      .select("id, display_name, candidate_code")
-      .eq("organization_id", organizationId)
-      .eq("email", email)
-      .neq("id", candidateId)
-      .maybeSingle();
-
-    if (duplicate) {
-      redirectWithError(`Email sudah digunakan oleh ${duplicate.display_name} (${duplicate.candidate_code}).`);
-    }
-  }
-
-  const { data: candidate } = await supabase
-    .from("candidates")
-    .select("id, display_name")
-    .eq("id", candidateId)
-    .eq("organization_id", organizationId)
-    .maybeSingle();
-
-  if (!candidate) redirectWithError("Peserta tidak ditemukan.");
-
-  const { error } = await supabase
-    .from("candidates")
-    .update({ email })
-    .eq("id", candidateId)
-    .eq("organization_id", organizationId);
-
-  if (error) redirectWithError(databaseErrorMessage("CANDIDATE_EMAIL_UPDATE", "Email peserta gagal diperbarui.", error));
-
-  refreshParticipants();
-  redirectWithSuccess(`Email ${candidate.display_name} berhasil diperbarui.`);
 }
 
 export async function toggleCandidateActive(candidateId: string) {

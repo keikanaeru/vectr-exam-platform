@@ -1,6 +1,6 @@
 import "server-only";
 
-export const EXAM_EMAIL_VARIABLES = [
+const EXAM_EMAIL_VARIABLES = [
   "nama_peserta",
   "kode_peserta",
   "nama_ujian",
@@ -13,13 +13,13 @@ export const EXAM_EMAIL_VARIABLES = [
   "kode_akses",
 ] as const;
 
-export type ExamEmailVariable = (typeof EXAM_EMAIL_VARIABLES)[number];
-export type ExamEmailVariables = Record<ExamEmailVariable, string>;
+type ExamEmailVariable = (typeof EXAM_EMAIL_VARIABLES)[number];
+type ExamEmailVariables = Record<ExamEmailVariable, string>;
 
 const allowedVariables = new Set<string>(EXAM_EMAIL_VARIABLES);
 const variablePattern = /{{\s*([a-zA-Z0-9_]+)\s*}}/g;
 
-export function getUnknownExamEmailVariables(...templates: string[]) {
+function getUnknownExamEmailVariables(...templates: string[]) {
   const unknown = new Set<string>();
 
   for (const template of templates) {

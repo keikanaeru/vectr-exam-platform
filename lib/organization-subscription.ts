@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdminOrganization } from "@/lib/require-admin-organization";
 
-export type SubscriptionAccessMode =
+type SubscriptionAccessMode =
   | "FULL"
   | "EXPORT_ONLY"
   | "SUSPENDED"
@@ -191,7 +191,7 @@ export function ensureScheduleWithinSubscription(
   );
 }
 
-export function subscriptionWriteBlockedMessage(state: OrganizationSubscriptionState) {
+function subscriptionWriteBlockedMessage(state: OrganizationSubscriptionState) {
   if (state.mode === "EXPORT_ONLY") {
     return "Masa aktif langganan sudah berakhir. Workspace sekarang hanya-baca; data tetap dapat dilihat dan diekspor sampai masa retensi berakhir.";
   }
