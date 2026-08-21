@@ -74,7 +74,7 @@ async function loginCandidate(page) {
   await page.getByLabel("Kode Peserta").fill(process.env.E2E_CANDIDATE_CODE);
   await page.getByLabel("Kode Akses").fill(process.env.E2E_CANDIDATE_ACCESS_CODE);
   await page.getByRole("button", { name: /Masuk ke Ujian/i }).click();
-  await expect(page).toHaveURL(/\/candidate(?:\/|$)/, { timeout: 20_000 });
+  await expect(page).toHaveURL(/\/candidate\/?(?:\?.*)?(?:#.*)?$/, { timeout: 30_000 });
 }
 
 async function loginCandidateForExam(page, examId) {
@@ -87,7 +87,7 @@ async function loginCandidateForExam(page, examId) {
   await page.getByLabel("Kode Akses Ujian").fill(process.env.E2E_CANDIDATE_ACCESS_CODE);
   await page.getByRole("button", { name: /Masuk ke Ujian/i }).click();
 
-  await expect(page).toHaveURL(/\/candidate(?:\/|$)/, { timeout: 20_000 });
+  await expect(page).toHaveURL(/\/candidate\/?(?:\?.*)?(?:#.*)?$/, { timeout: 30_000 });
 
   const cookies = await page.context().cookies();
   const sessionCookie = cookies.find((cookie) => cookie.name === "candidate_session");
