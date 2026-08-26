@@ -104,16 +104,45 @@ export async function loadExamResultExportData(
     ? await supabase.from("session_questions").select("id, session_id, exam_section_id, question_snapshot").in("session_id", sessionIds)
     : { data: [], error: null };
   if (questionError) throw new Error(`Soal sesi gagal dibaca: ${questionError.message}`);
-  const sessionQuestionIds = (sessionQuestions ?? []).map((row) => String(row.id));
-  const { data: answers, error: answerError } = sessionQuestionIds.length
-    ? await supabase.from("answers").select("session_question_id, selected_option_id").in("session_question_id", sessionQuestionIds)
-    : { data: [], error: null };
-  if (answerError) throw new Error(`Jawaban gagal dibaca: ${answerError.message}`);
+  const sessionQuestionIds = (sessionQuestions ?? []).map(
+    (row) => String(row.id)
+  );
+
+  const answerRows: AnswerDbRow[] = [];
+  const answerChunkSize = 100;
+
+  for (
+    let index = 0;
+    index < sessionQuestionIds.length;
+    index += answerChunkSize
+  ) {
+    const chunk = sessionQuestionIds.slice(
+      index,
+      index + answerChunkSize
+    );
+
+    const { data, error } = await supabase
+      .from("answers")
+      .select("session_question_id, selected_option_id")
+      .in("session_question_id", chunk);
+
+    if (error) {
+      throw new Error(
+        `Jawaban gagal dibaca pada batch ${
+          Math.floor(index / answerChunkSize) + 1
+        }: ${error.message}`
+      );
+    }
+
+    answerRows.push(
+      ...((data ?? []) as AnswerDbRow[])
+    );
+  }
 
   const candidateRows = (candidates ?? []) as CandidateDbRow[];
   const resultRows = (results ?? []) as ResultDbRow[];
   const questionRows = (sessionQuestions ?? []) as SessionQuestionDbRow[];
-  const answerRows = (answers ?? []) as AnswerDbRow[];
+
   const candidateMap = new Map(candidateRows.map((row) => [String(row.id), row]));
   const resultMap = new Map(resultRows.map((row) => [String(row.session_id), row]));
   const answerMap = new Map(answerRows.map((row) => [String(row.session_question_id), row.selected_option_id == null ? null : String(row.selected_option_id)]));
