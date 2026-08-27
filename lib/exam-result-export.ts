@@ -113,20 +113,41 @@ export async function loadExamResultExportData(
   markResultExportPerf("before_session_questions");
 
   const sessionQuestionRows: SessionQuestionDbRow[] = [];
-  const sessionQuestionSessionChunkSize = 100;
+  const sessionQuestionSessionChunkSize = 5;
   const sessionQuestionPageSize = 1000;
+  const sessionQuestionConcurrency = 4;
 
   if (sessionIds.length && sections.length) {
+    const sessionQuestionBatches: Array<{
+      batchNumber: number;
+      ids: string[];
+    }> = [];
+
     for (
       let sessionIndex = 0;
       sessionIndex < sessionIds.length;
       sessionIndex += sessionQuestionSessionChunkSize
     ) {
-      const sessionChunk = sessionIds.slice(
-        sessionIndex,
-        sessionIndex + sessionQuestionSessionChunkSize
-      );
+      sessionQuestionBatches.push({
+        batchNumber:
+          Math.floor(
+            sessionIndex / sessionQuestionSessionChunkSize
+          ) + 1,
+        ids: sessionIds.slice(
+          sessionIndex,
+          sessionIndex + sessionQuestionSessionChunkSize
+        ),
+      });
+    }
 
+    const loadSessionQuestionBatch = async ({
+      batchNumber,
+      ids,
+    }: {
+      batchNumber: number;
+      ids: string[];
+    }) => {
+      const rows: SessionQuestionDbRow[] = [];
       let rangeStart = 0;
 
       while (true) {
@@ -135,7 +156,7 @@ export async function loadExamResultExportData(
           .select(
             "id, session_id, question_id, exam_section_id, question_snapshot"
           )
-          .in("session_id", sessionChunk)
+          .in("session_id", ids)
           .order("id", { ascending: true })
           .range(
             rangeStart,
@@ -144,23 +165,42 @@ export async function loadExamResultExportData(
 
         if (error) {
           throw new Error(
-            `Soal sesi gagal dibaca pada batch sesi ${
-              Math.floor(sessionIndex / sessionQuestionSessionChunkSize) + 1
-            }, halaman ${
-              Math.floor(rangeStart / sessionQuestionPageSize) + 1
-            }: ${error.message}`
+            `Soal sesi gagal dibaca (batch ${batchNumber}): ${error.message}`
           );
         }
 
-        const page = (data ?? []) as SessionQuestionDbRow[];
+        const page =
+          (data ?? []) as SessionQuestionDbRow[];
 
-        sessionQuestionRows.push(...page);
+        rows.push(...page);
 
         if (page.length < sessionQuestionPageSize) {
           break;
         }
 
         rangeStart += sessionQuestionPageSize;
+      }
+
+      return rows;
+    };
+
+    for (
+      let index = 0;
+      index < sessionQuestionBatches.length;
+      index += sessionQuestionConcurrency
+    ) {
+      const batchWindow =
+        sessionQuestionBatches.slice(
+          index,
+          index + sessionQuestionConcurrency
+        );
+
+      const batchResults = await Promise.all(
+        batchWindow.map(loadSessionQuestionBatch)
+      );
+
+      for (const rows of batchResults) {
+        sessionQuestionRows.push(...rows);
       }
     }
   }
@@ -175,7 +215,7 @@ export async function loadExamResultExportData(
 
   const answerRows: AnswerDbRow[] = [];
   const answerChunkSize = 100;
-  const answerConcurrency = 6;
+  const answerConcurrency = 10;
 
   const answerBatches: Array<{
     batchNumber: number;
