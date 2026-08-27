@@ -278,11 +278,34 @@ export async function loadExamResultExportData(
 
   const resolvedSectionByQuestion = new Map<string, string>();
 
+  const resolutionDiagnostic = {
+    total: questionRows.length,
+    directSection: 0,
+    snapshotSection: 0,
+    snapshotModule: 0,
+    sourceQuestionModule: 0,
+    legacyCode: 0,
+    legacyText: 0,
+    unresolved: 0,
+    hasQuestionId: 0,
+    hasSnapshotSection: 0,
+    hasSnapshotModule: 0,
+    hasSnapshotCode: 0,
+    hasSnapshotQuestionText: 0,
+  };
+
+  const unresolvedSnapshotShapes = new Map<string, number>();
+
   for (const question of questionRows) {
     const directSectionId =
       question.exam_section_id == null ? "" : String(question.exam_section_id);
 
+    if (question.question_id) {
+      resolutionDiagnostic.hasQuestionId += 1;
+    }
+
     if (validSectionIds.has(directSectionId)) {
+      resolutionDiagnostic.directSection += 1;
       resolvedSectionByQuestion.set(String(question.id), directSectionId);
       continue;
     }
@@ -297,7 +320,27 @@ export async function loadExamResultExportData(
     const snapshotSectionId =
       snapshot.exam_section_id == null ? "" : String(snapshot.exam_section_id);
 
+    if (snapshotSectionId) {
+      resolutionDiagnostic.hasSnapshotSection += 1;
+    }
+
+    if (snapshot.module_id != null && String(snapshot.module_id)) {
+      resolutionDiagnostic.hasSnapshotModule += 1;
+    }
+
+    if (snapshot.code != null && String(snapshot.code).trim()) {
+      resolutionDiagnostic.hasSnapshotCode += 1;
+    }
+
+    if (
+      snapshot.question_text != null &&
+      String(snapshot.question_text).trim()
+    ) {
+      resolutionDiagnostic.hasSnapshotQuestionText += 1;
+    }
+
     if (validSectionIds.has(snapshotSectionId)) {
+      resolutionDiagnostic.snapshotSection += 1;
       resolvedSectionByQuestion.set(String(question.id), snapshotSectionId);
       continue;
     }
@@ -309,6 +352,7 @@ export async function loadExamResultExportData(
       : null;
 
     if (snapshotResolved) {
+      resolutionDiagnostic.snapshotModule += 1;
       resolvedSectionByQuestion.set(String(question.id), snapshotResolved);
       continue;
     }
@@ -321,6 +365,7 @@ export async function loadExamResultExportData(
       : null;
 
     if (sourceResolved) {
+      resolutionDiagnostic.sourceQuestionModule += 1;
       resolvedSectionByQuestion.set(String(question.id), sourceResolved);
       continue;
     }
@@ -364,6 +409,7 @@ export async function loadExamResultExportData(
       );
 
       if (codeResolved) {
+        resolutionDiagnostic.legacyCode += 1;
         resolvedSectionByQuestion.set(String(question.id), codeResolved);
         continue;
       }
@@ -375,10 +421,43 @@ export async function loadExamResultExportData(
       );
 
       if (textResolved) {
+        resolutionDiagnostic.legacyText += 1;
         resolvedSectionByQuestion.set(String(question.id), textResolved);
+        continue;
       }
     }
+
+    resolutionDiagnostic.unresolved += 1;
+
+    const snapshotObject =
+      question.question_snapshot &&
+      typeof question.question_snapshot === "object"
+        ? question.question_snapshot
+        : {};
+
+    const shape = Object.keys(snapshotObject)
+      .sort()
+      .join(",");
+
+    const shapeKey = shape || "(no snapshot keys)";
+
+    unresolvedSnapshotShapes.set(
+      shapeKey,
+      (unresolvedSnapshotShapes.get(shapeKey) ?? 0) + 1
+    );
   }
+
+  console.info(
+    "[RESULT EXPORT RESOLUTION]",
+    JSON.stringify({
+      examId,
+      ...resolutionDiagnostic,
+      unresolvedSnapshotShapes: [...unresolvedSnapshotShapes.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([keys, count]) => ({ keys, count })),
+    })
+  );
 
   const rows: ResultExportRow[] = assignmentRows.map((assignment): ResultExportRow => {
     const candidate = candidateMap.get(String(assignment.candidate_id));
