@@ -100,10 +100,61 @@ export async function loadExamResultExportData(
     : { data: [], error: null };
   if (resultError) throw new Error(`Hasil gagal dibaca: ${resultError.message}`);
 
-  const { data: sessionQuestions, error: questionError } = sessionIds.length && sections.length
-    ? await supabase.from("session_questions").select("id, session_id, question_id, exam_section_id, question_snapshot").in("session_id", sessionIds)
-    : { data: [], error: null };
-  if (questionError) throw new Error(`Soal sesi gagal dibaca: ${questionError.message}`);
+  const sessionQuestionRows: SessionQuestionDbRow[] = [];
+  const sessionQuestionSessionChunkSize = 100;
+  const sessionQuestionPageSize = 1000;
+
+  if (sessionIds.length && sections.length) {
+    for (
+      let sessionIndex = 0;
+      sessionIndex < sessionIds.length;
+      sessionIndex += sessionQuestionSessionChunkSize
+    ) {
+      const sessionChunk = sessionIds.slice(
+        sessionIndex,
+        sessionIndex + sessionQuestionSessionChunkSize
+      );
+
+      let rangeStart = 0;
+
+      while (true) {
+        const { data, error } = await supabase
+          .from("session_questions")
+          .select(
+            "id, session_id, question_id, exam_section_id, question_snapshot"
+          )
+          .in("session_id", sessionChunk)
+          .order("id", { ascending: true })
+          .range(
+            rangeStart,
+            rangeStart + sessionQuestionPageSize - 1
+          );
+
+        if (error) {
+          throw new Error(
+            `Soal sesi gagal dibaca pada batch sesi ${
+              Math.floor(sessionIndex / sessionQuestionSessionChunkSize) + 1
+            }, halaman ${
+              Math.floor(rangeStart / sessionQuestionPageSize) + 1
+            }: ${error.message}`
+          );
+        }
+
+        const page = (data ?? []) as SessionQuestionDbRow[];
+
+        sessionQuestionRows.push(...page);
+
+        if (page.length < sessionQuestionPageSize) {
+          break;
+        }
+
+        rangeStart += sessionQuestionPageSize;
+      }
+    }
+  }
+
+  const sessionQuestions = sessionQuestionRows;
+
   const sessionQuestionIds = (sessionQuestions ?? []).map(
     (row) => String(row.id)
   );
