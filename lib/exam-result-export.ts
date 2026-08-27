@@ -216,90 +216,6 @@ export async function loadExamResultExportData(
     }
   }
 
-  const normalizeLegacyQuestionKey = (value: unknown) =>
-    String(value ?? "")
-      .trim()
-      .toLocaleLowerCase("id-ID")
-      .replace(/\s+/g, " ");
-
-  type LegacyQuestionCandidate = {
-    moduleId: string;
-    codeKey: string;
-    textKey: string;
-  };
-
-  const legacyQuestionsByCode = new Map<string, LegacyQuestionCandidate[]>();
-  const legacyQuestionsByText = new Map<string, LegacyQuestionCandidate[]>();
-
-  const examModuleIds = [
-    ...new Set(
-      sections
-        .map((section) => String(section.module_id ?? ""))
-        .filter(Boolean)
-    ),
-  ];
-
-  const questionBankPageSize = 1000;
-  const questionBankModuleChunkSize = 20;
-
-  for (
-    let moduleIndex = 0;
-    moduleIndex < examModuleIds.length;
-    moduleIndex += questionBankModuleChunkSize
-  ) {
-    const moduleChunk = examModuleIds.slice(
-      moduleIndex,
-      moduleIndex + questionBankModuleChunkSize
-    );
-
-    let rangeStart = 0;
-
-    while (true) {
-      const { data, error } = await supabase
-        .from("questions")
-        .select("id, module_id, code, question_text")
-        .in("module_id", moduleChunk)
-        .order("id", { ascending: true })
-        .range(rangeStart, rangeStart + questionBankPageSize - 1);
-
-      if (error) {
-        throw new Error(
-          `Bank soal legacy gagal dibaca pada batch modul ${
-            Math.floor(moduleIndex / questionBankModuleChunkSize) + 1
-          }: ${error.message}`
-        );
-      }
-
-      const page = data ?? [];
-
-      for (const row of page) {
-        const candidate: LegacyQuestionCandidate = {
-          moduleId: String(row.module_id ?? ""),
-          codeKey: normalizeLegacyQuestionKey(row.code),
-          textKey: normalizeLegacyQuestionKey(row.question_text),
-        };
-
-        if (!candidate.moduleId) continue;
-
-        if (candidate.codeKey) {
-          const current = legacyQuestionsByCode.get(candidate.codeKey) ?? [];
-          current.push(candidate);
-          legacyQuestionsByCode.set(candidate.codeKey, current);
-        }
-
-        if (candidate.textKey) {
-          const current = legacyQuestionsByText.get(candidate.textKey) ?? [];
-          current.push(candidate);
-          legacyQuestionsByText.set(candidate.textKey, current);
-        }
-      }
-
-      if (page.length < questionBankPageSize) break;
-
-      rangeStart += questionBankPageSize;
-    }
-  }
-
   const candidateRows = (candidates ?? []) as CandidateDbRow[];
   const resultRows = (results ?? []) as ResultDbRow[];
   const questionRows = (sessionQuestions ?? []) as SessionQuestionDbRow[];
@@ -329,34 +245,11 @@ export async function loadExamResultExportData(
 
   const resolvedSectionByQuestion = new Map<string, string>();
 
-  const resolutionDiagnostic = {
-    total: questionRows.length,
-    directSection: 0,
-    snapshotSection: 0,
-    snapshotModule: 0,
-    sourceQuestionModule: 0,
-    legacyCode: 0,
-    legacyText: 0,
-    unresolved: 0,
-    hasQuestionId: 0,
-    hasSnapshotSection: 0,
-    hasSnapshotModule: 0,
-    hasSnapshotCode: 0,
-    hasSnapshotQuestionText: 0,
-  };
-
-  const unresolvedSnapshotShapes = new Map<string, number>();
-
   for (const question of questionRows) {
     const directSectionId =
       question.exam_section_id == null ? "" : String(question.exam_section_id);
 
-    if (question.question_id) {
-      resolutionDiagnostic.hasQuestionId += 1;
-    }
-
     if (validSectionIds.has(directSectionId)) {
-      resolutionDiagnostic.directSection += 1;
       resolvedSectionByQuestion.set(String(question.id), directSectionId);
       continue;
     }
@@ -364,34 +257,12 @@ export async function loadExamResultExportData(
     const snapshot = (question.question_snapshot ?? {}) as {
       exam_section_id?: unknown;
       module_id?: unknown;
-      code?: unknown;
-      question_text?: unknown;
     };
 
     const snapshotSectionId =
       snapshot.exam_section_id == null ? "" : String(snapshot.exam_section_id);
 
-    if (snapshotSectionId) {
-      resolutionDiagnostic.hasSnapshotSection += 1;
-    }
-
-    if (snapshot.module_id != null && String(snapshot.module_id)) {
-      resolutionDiagnostic.hasSnapshotModule += 1;
-    }
-
-    if (snapshot.code != null && String(snapshot.code).trim()) {
-      resolutionDiagnostic.hasSnapshotCode += 1;
-    }
-
-    if (
-      snapshot.question_text != null &&
-      String(snapshot.question_text).trim()
-    ) {
-      resolutionDiagnostic.hasSnapshotQuestionText += 1;
-    }
-
     if (validSectionIds.has(snapshotSectionId)) {
-      resolutionDiagnostic.snapshotSection += 1;
       resolvedSectionByQuestion.set(String(question.id), snapshotSectionId);
       continue;
     }
@@ -403,7 +274,6 @@ export async function loadExamResultExportData(
       : null;
 
     if (snapshotResolved) {
-      resolutionDiagnostic.snapshotModule += 1;
       resolvedSectionByQuestion.set(String(question.id), snapshotResolved);
       continue;
     }
@@ -416,99 +286,9 @@ export async function loadExamResultExportData(
       : null;
 
     if (sourceResolved) {
-      resolutionDiagnostic.sourceQuestionModule += 1;
       resolvedSectionByQuestion.set(String(question.id), sourceResolved);
-      continue;
     }
-
-    const snapshotCodeKey = normalizeLegacyQuestionKey(snapshot.code);
-    const snapshotTextKey = normalizeLegacyQuestionKey(snapshot.question_text);
-
-    const resolveLegacyCandidates = (
-      candidates: LegacyQuestionCandidate[]
-    ): string | null => {
-      if (!candidates.length) return null;
-
-      let narrowed = candidates;
-
-      if (snapshotTextKey) {
-        const textMatches = candidates.filter(
-          (candidate) => candidate.textKey === snapshotTextKey
-        );
-
-        if (textMatches.length) {
-          narrowed = textMatches;
-        }
-      }
-
-      const moduleIds = [
-        ...new Set(
-          narrowed
-            .map((candidate) => candidate.moduleId)
-            .filter(Boolean)
-        ),
-      ];
-
-      if (moduleIds.length !== 1) return null;
-
-      return uniqueSectionByModule.get(moduleIds[0]) ?? null;
-    };
-
-    if (snapshotCodeKey) {
-      const codeResolved = resolveLegacyCandidates(
-        legacyQuestionsByCode.get(snapshotCodeKey) ?? []
-      );
-
-      if (codeResolved) {
-        resolutionDiagnostic.legacyCode += 1;
-        resolvedSectionByQuestion.set(String(question.id), codeResolved);
-        continue;
-      }
-    }
-
-    if (snapshotTextKey) {
-      const textResolved = resolveLegacyCandidates(
-        legacyQuestionsByText.get(snapshotTextKey) ?? []
-      );
-
-      if (textResolved) {
-        resolutionDiagnostic.legacyText += 1;
-        resolvedSectionByQuestion.set(String(question.id), textResolved);
-        continue;
-      }
-    }
-
-    resolutionDiagnostic.unresolved += 1;
-
-    const snapshotObject =
-      question.question_snapshot &&
-      typeof question.question_snapshot === "object"
-        ? question.question_snapshot
-        : {};
-
-    const shape = Object.keys(snapshotObject)
-      .sort()
-      .join(",");
-
-    const shapeKey = shape || "(no snapshot keys)";
-
-    unresolvedSnapshotShapes.set(
-      shapeKey,
-      (unresolvedSnapshotShapes.get(shapeKey) ?? 0) + 1
-    );
   }
-
-  console.info(
-    "[RESULT EXPORT RESOLUTION]",
-    JSON.stringify({
-      examId,
-      ...resolutionDiagnostic,
-      unresolvedSnapshotShapes: [...unresolvedSnapshotShapes.entries()]
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10)
-        .map(([keys, count]) => ({ keys, count })),
-    })
-  );
 
   const rows: ResultExportRow[] = assignmentRows.map((assignment): ResultExportRow => {
     const candidate = candidateMap.get(String(assignment.candidate_id));
