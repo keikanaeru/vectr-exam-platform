@@ -20,8 +20,22 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
     const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
     const width = 842, height = 595, margin = 30, rowHeight = 19;
     const sectionLabels = data.sections.map((section) => trim(section.moduleCode, 10));
-    const headers = ["No", "Kode", "Nama", "Status", "Nilai", ...sectionLabels, "Lulus"];
-    const widths = [28, 70, 150, 78, 52, ...data.sections.map(() => 58), 68];
+    const headers = ["No", "Kode", "Nama", "Status", "Nilai Akhir", ...sectionLabels, "Status Ujian"];
+    const widths = [28, 70, 142, 72, 58, ...data.sections.map(() => 72), 88];
+
+    const moduleResult = (
+      value: number | "" | null | undefined
+    ) => {
+      if (value === "" || value == null) return "-";
+      return `${value} | ${Number(value) >= data.passingScore ? "LULUS" : "TIDAK LULUS"}`;
+    };
+
+    const examStatus = (value: string) =>
+      value === "LULUS"
+        ? "LULUS UJIAN"
+        : value === "TIDAK LULUS"
+          ? "TIDAK LULUS UJIAN"
+          : value || "-";
     const usableScale = Math.min(1, (width - margin * 2) / widths.reduce((a,b) => a+b, 0));
     const scaled = widths.map((value) => value * usableScale);
     let page = pdf.addPage([width, height]);
@@ -29,7 +43,8 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
     const drawTitle = () => {
       page.drawText("HASIL UJIAN", { x: margin, y, size: 16, font: bold, color: rgb(0.08,0.15,0.25) }); y -= 21;
       page.drawText(trim(data.exam.title, 90), { x: margin, y, size: 11, font: bold }); y -= 15;
-      page.drawText(trim(`${data.organizationName} · ${formatWib(data.exam.startsAt)} · Passing ${data.passingScore}`, 120), { x: margin, y, size: 8, font: regular, color: rgb(.35,.4,.48) }); y -= 20;
+      page.drawText(trim(`${data.organizationName} · ${formatWib(data.exam.startsAt)} · Passing per modul ${data.passingScore}`, 120), { x: margin, y, size: 8, font: regular, color: rgb(.35,.4,.48) }); y -= 12;
+      page.drawText("Nilai Akhir informatif; kelulusan ditentukan berdasarkan setiap modul.", { x: margin, y, size: 7, font: regular, color: rgb(.35,.4,.48) }); y -= 20;
     };
     const drawHeader = () => {
       let x = margin;
@@ -38,9 +53,66 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
     drawTitle(); drawHeader();
     data.rows.forEach((row, index) => {
       if (y < margin + rowHeight) { page = pdf.addPage([width,height]); y = height-margin; drawTitle(); drawHeader(); }
-      const values = [String(index+1), row.code, trim(row.name, 28), row.sessionStatus, row.finalScore === "" ? "-" : String(row.finalScore), ...data.sections.map((section) => row.sectionScores[section.id] === "" || row.sectionScores[section.id] == null ? "-" : String(row.sectionScores[section.id])), row.passFail || "-"];
+      const values = [
+        String(index + 1),
+        row.code,
+        trim(row.name, 28),
+        row.sessionStatus,
+        row.finalScore === "" ? "-" : String(row.finalScore),
+        ...data.sections.map((section) =>
+          moduleResult(row.sectionScores[section.id])
+        ),
+        examStatus(row.passFail),
+      ];
       let x = margin;
-      values.forEach((value, column) => { page.drawRectangle({ x, y: y-4, width: scaled[column], height: rowHeight, borderColor: rgb(.83,.86,.9), borderWidth: .4 }); page.drawText(trim(String(value), column === 2 ? 26 : 13), { x:x+3, y:y+2, size:6.8, font:regular, color:rgb(.15,.2,.28) }); x += scaled[column]; });
+      values.forEach((value, column) => {
+        const firstModuleColumn = 5;
+        const lastModuleColumn =
+          firstModuleColumn + data.sections.length - 1;
+
+        const isModuleColumn =
+          column >= firstModuleColumn &&
+          column <= lastModuleColumn;
+
+        const isExamStatusColumn =
+          column === values.length - 1;
+
+        const maxChars =
+          column === 2
+            ? 26
+            : isModuleColumn
+              ? 18
+              : isExamStatusColumn
+                ? 20
+                : 14;
+
+        const fontSize =
+          isModuleColumn || isExamStatusColumn
+            ? 6.2
+            : 6.8;
+
+        page.drawRectangle({
+          x,
+          y: y - 4,
+          width: scaled[column],
+          height: rowHeight,
+          borderColor: rgb(.83,.86,.9),
+          borderWidth: .4,
+        });
+
+        page.drawText(
+          trim(String(value), maxChars),
+          {
+            x: x + 3,
+            y: y + 2,
+            size: fontSize,
+            font: regular,
+            color: rgb(.15,.2,.28),
+          }
+        );
+
+        x += scaled[column];
+      });
       y -= rowHeight;
     });
     const bytes = await pdf.save();
