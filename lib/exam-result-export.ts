@@ -55,6 +55,16 @@ export async function loadExamResultExportData(
   organizationId: string,
   organizationName: string
 ): Promise<ExamResultExportData> {
+  const resultExportPerfStartedAt = Date.now();
+  let resultExportPerfStageStartedAt = resultExportPerfStartedAt;
+  const resultExportPerf: Record<string, number> = {};
+
+  const markResultExportPerf = (stage: string) => {
+    const now = Date.now();
+    resultExportPerf[stage] = now - resultExportPerfStageStartedAt;
+    resultExportPerfStageStartedAt = now;
+  };
+
   const { data: exam, error: examError } = await supabase
     .from("exams")
     .select("id, title, starts_at, settings")
@@ -99,6 +109,8 @@ export async function loadExamResultExportData(
     ? await supabase.from("results").select("session_id, raw_score, max_score, correct_count, wrong_count, blank_count, final_score").in("session_id", sessionIds)
     : { data: [], error: null };
   if (resultError) throw new Error(`Hasil gagal dibaca: ${resultError.message}`);
+
+  markResultExportPerf("before_session_questions");
 
   const sessionQuestionRows: SessionQuestionDbRow[] = [];
   const sessionQuestionSessionChunkSize = 100;
@@ -154,6 +166,8 @@ export async function loadExamResultExportData(
   }
 
   const sessionQuestions = sessionQuestionRows;
+
+  markResultExportPerf("session_questions");
 
   const sessionQuestionIds = (sessionQuestions ?? []).map(
     (row) => String(row.id)
@@ -216,6 +230,8 @@ export async function loadExamResultExportData(
       answerRows.push(...rows);
     }
   }
+
+  markResultExportPerf("answers_and_mapping");
 
   const sourceQuestionModuleMap = new Map<string, string>();
   const sourceQuestionIds = [...new Set(
@@ -368,6 +384,16 @@ export async function loadExamResultExportData(
       sectionScores,
     };
   }).sort((a, b) => a.code.localeCompare(b.code, "id-ID", { numeric: true }));
+
+  markResultExportPerf("source_questions_and_assemble");
+
+  console.info("[RESULT EXPORT PERF]", {
+    examId,
+    ...resultExportPerf,
+    total: Date.now() - resultExportPerfStartedAt,
+    sessionQuestionCount: sessionQuestions.length,
+    answerCount: answerRows.length,
+  });
 
   return {
     exam: { id: String(exam.id), title: String(exam.title), startsAt: exam.starts_at ? String(exam.starts_at) : null },
