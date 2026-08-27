@@ -115,7 +115,7 @@ export async function loadExamResultExportData(
   const sessionQuestionRows: SessionQuestionDbRow[] = [];
   const sessionQuestionSessionChunkSize = 5;
   const sessionQuestionPageSize = 1000;
-  const sessionQuestionConcurrency = 4;
+  const sessionQuestionConcurrency = 6;
 
   if (sessionIds.length && sections.length) {
     const sessionQuestionBatches: Array<{
@@ -215,7 +215,7 @@ export async function loadExamResultExportData(
 
   const answerRows: AnswerDbRow[] = [];
   const answerChunkSize = 100;
-  const answerConcurrency = 10;
+  const answerConcurrency = 16;
 
   const answerBatches: Array<{
     batchNumber: number;
