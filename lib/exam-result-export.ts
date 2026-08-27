@@ -161,33 +161,60 @@ export async function loadExamResultExportData(
 
   const answerRows: AnswerDbRow[] = [];
   const answerChunkSize = 100;
+  const answerConcurrency = 6;
+
+  const answerBatches: Array<{
+    batchNumber: number;
+    ids: string[];
+  }> = [];
 
   for (
     let index = 0;
     index < sessionQuestionIds.length;
     index += answerChunkSize
   ) {
-    const chunk = sessionQuestionIds.slice(
+    answerBatches.push({
+      batchNumber:
+        Math.floor(index / answerChunkSize) + 1,
+      ids: sessionQuestionIds.slice(
+        index,
+        index + answerChunkSize
+      ),
+    });
+  }
+
+  for (
+    let index = 0;
+    index < answerBatches.length;
+    index += answerConcurrency
+  ) {
+    const batchWindow = answerBatches.slice(
       index,
-      index + answerChunkSize
+      index + answerConcurrency
     );
 
-    const { data, error } = await supabase
-      .from("answers")
-      .select("session_question_id, selected_option_id")
-      .in("session_question_id", chunk);
+    const batchResults = await Promise.all(
+      batchWindow.map(async ({ batchNumber, ids }) => {
+        const { data, error } = await supabase
+          .from("answers")
+          .select(
+            "session_question_id, selected_option_id"
+          )
+          .in("session_question_id", ids);
 
-    if (error) {
-      throw new Error(
-        `Jawaban gagal dibaca pada batch ${
-          Math.floor(index / answerChunkSize) + 1
-        }: ${error.message}`
-      );
+        if (error) {
+          throw new Error(
+            `Jawaban gagal dibaca pada batch ${batchNumber}: ${error.message}`
+          );
+        }
+
+        return (data ?? []) as AnswerDbRow[];
+      })
+    );
+
+    for (const rows of batchResults) {
+      answerRows.push(...rows);
     }
-
-    answerRows.push(
-      ...((data ?? []) as AnswerDbRow[])
-    );
   }
 
   const sourceQuestionModuleMap = new Map<string, string>();
