@@ -120,7 +120,9 @@ export async function loadExamResultExportData(
       while (true) {
         const { data, error } = await supabase
           .from("session_questions")
-          .select("id, session_id, question_id, exam_section_id")
+          .select(
+            "id, session_id, question_id, exam_section_id, question_snapshot"
+          )
           .in("session_id", sessionChunk)
           .order("id", { ascending: true })
           .range(
@@ -152,106 +154,6 @@ export async function loadExamResultExportData(
   }
 
   const sessionQuestions = sessionQuestionRows;
-
-  const validSectionIdsForSnapshotFetch = new Set(
-    sections.map((section) => String(section.id))
-  );
-
-  const rowsNeedingSnapshot = sessionQuestionRows.filter(
-    (row) => {
-      const sectionId =
-        row.exam_section_id == null
-          ? ""
-          : String(row.exam_section_id);
-
-      return (
-        !sectionId ||
-        !validSectionIdsForSnapshotFetch.has(sectionId)
-      );
-    }
-  );
-
-  if (rowsNeedingSnapshot.length) {
-    const snapshotChunkSize = 100;
-    const snapshotConcurrency = 6;
-
-    const snapshotBatches: Array<{
-      batchNumber: number;
-      ids: string[];
-    }> = [];
-
-    const snapshotIds = rowsNeedingSnapshot.map(
-      (row) => String(row.id)
-    );
-
-    for (
-      let index = 0;
-      index < snapshotIds.length;
-      index += snapshotChunkSize
-    ) {
-      snapshotBatches.push({
-        batchNumber:
-          Math.floor(index / snapshotChunkSize) + 1,
-        ids: snapshotIds.slice(
-          index,
-          index + snapshotChunkSize
-        ),
-      });
-    }
-
-    const snapshotById = new Map<
-      string,
-      SessionQuestionDbRow["question_snapshot"]
-    >();
-
-    for (
-      let index = 0;
-      index < snapshotBatches.length;
-      index += snapshotConcurrency
-    ) {
-      const batchWindow = snapshotBatches.slice(
-        index,
-        index + snapshotConcurrency
-      );
-
-      const batchResults = await Promise.all(
-        batchWindow.map(
-          async ({ batchNumber, ids }) => {
-            const { data, error } = await supabase
-              .from("session_questions")
-              .select("id, question_snapshot")
-              .in("id", ids);
-
-            if (error) {
-              throw new Error(
-                `Snapshot soal sesi gagal dibaca pada batch ${batchNumber}: ${error.message}`
-              );
-            }
-
-            return (data ?? []) as Array<{
-              id: string;
-              question_snapshot:
-                SessionQuestionDbRow["question_snapshot"];
-            }>;
-          }
-        )
-      );
-
-      for (const rows of batchResults) {
-        for (const row of rows) {
-          snapshotById.set(
-            String(row.id),
-            row.question_snapshot
-          );
-        }
-      }
-    }
-
-    for (const row of rowsNeedingSnapshot) {
-      row.question_snapshot =
-        snapshotById.get(String(row.id)) ?? null;
-    }
-  }
 
   const sessionQuestionIds = (sessionQuestions ?? []).map(
     (row) => String(row.id)
