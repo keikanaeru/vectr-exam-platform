@@ -165,6 +165,90 @@ export async function loadExamResultExportData(
     }
   }
 
+  const normalizeLegacyQuestionKey = (value: unknown) =>
+    String(value ?? "")
+      .trim()
+      .toLocaleLowerCase("id-ID")
+      .replace(/\s+/g, " ");
+
+  type LegacyQuestionCandidate = {
+    moduleId: string;
+    codeKey: string;
+    textKey: string;
+  };
+
+  const legacyQuestionsByCode = new Map<string, LegacyQuestionCandidate[]>();
+  const legacyQuestionsByText = new Map<string, LegacyQuestionCandidate[]>();
+
+  const examModuleIds = [
+    ...new Set(
+      sections
+        .map((section) => String(section.module_id ?? ""))
+        .filter(Boolean)
+    ),
+  ];
+
+  const questionBankPageSize = 1000;
+  const questionBankModuleChunkSize = 20;
+
+  for (
+    let moduleIndex = 0;
+    moduleIndex < examModuleIds.length;
+    moduleIndex += questionBankModuleChunkSize
+  ) {
+    const moduleChunk = examModuleIds.slice(
+      moduleIndex,
+      moduleIndex + questionBankModuleChunkSize
+    );
+
+    let rangeStart = 0;
+
+    while (true) {
+      const { data, error } = await supabase
+        .from("questions")
+        .select("id, module_id, code, question_text")
+        .in("module_id", moduleChunk)
+        .order("id", { ascending: true })
+        .range(rangeStart, rangeStart + questionBankPageSize - 1);
+
+      if (error) {
+        throw new Error(
+          `Bank soal legacy gagal dibaca pada batch modul ${
+            Math.floor(moduleIndex / questionBankModuleChunkSize) + 1
+          }: ${error.message}`
+        );
+      }
+
+      const page = data ?? [];
+
+      for (const row of page) {
+        const candidate: LegacyQuestionCandidate = {
+          moduleId: String(row.module_id ?? ""),
+          codeKey: normalizeLegacyQuestionKey(row.code),
+          textKey: normalizeLegacyQuestionKey(row.question_text),
+        };
+
+        if (!candidate.moduleId) continue;
+
+        if (candidate.codeKey) {
+          const current = legacyQuestionsByCode.get(candidate.codeKey) ?? [];
+          current.push(candidate);
+          legacyQuestionsByCode.set(candidate.codeKey, current);
+        }
+
+        if (candidate.textKey) {
+          const current = legacyQuestionsByText.get(candidate.textKey) ?? [];
+          current.push(candidate);
+          legacyQuestionsByText.set(candidate.textKey, current);
+        }
+      }
+
+      if (page.length < questionBankPageSize) break;
+
+      rangeStart += questionBankPageSize;
+    }
+  }
+
   const candidateRows = (candidates ?? []) as CandidateDbRow[];
   const resultRows = (results ?? []) as ResultDbRow[];
   const questionRows = (sessionQuestions ?? []) as SessionQuestionDbRow[];
@@ -206,6 +290,8 @@ export async function loadExamResultExportData(
     const snapshot = (question.question_snapshot ?? {}) as {
       exam_section_id?: unknown;
       module_id?: unknown;
+      code?: unknown;
+      question_text?: unknown;
     };
 
     const snapshotSectionId =
@@ -236,6 +322,61 @@ export async function loadExamResultExportData(
 
     if (sourceResolved) {
       resolvedSectionByQuestion.set(String(question.id), sourceResolved);
+      continue;
+    }
+
+    const snapshotCodeKey = normalizeLegacyQuestionKey(snapshot.code);
+    const snapshotTextKey = normalizeLegacyQuestionKey(snapshot.question_text);
+
+    const resolveLegacyCandidates = (
+      candidates: LegacyQuestionCandidate[]
+    ): string | null => {
+      if (!candidates.length) return null;
+
+      let narrowed = candidates;
+
+      if (snapshotTextKey) {
+        const textMatches = candidates.filter(
+          (candidate) => candidate.textKey === snapshotTextKey
+        );
+
+        if (textMatches.length) {
+          narrowed = textMatches;
+        }
+      }
+
+      const moduleIds = [
+        ...new Set(
+          narrowed
+            .map((candidate) => candidate.moduleId)
+            .filter(Boolean)
+        ),
+      ];
+
+      if (moduleIds.length !== 1) return null;
+
+      return uniqueSectionByModule.get(moduleIds[0]) ?? null;
+    };
+
+    if (snapshotCodeKey) {
+      const codeResolved = resolveLegacyCandidates(
+        legacyQuestionsByCode.get(snapshotCodeKey) ?? []
+      );
+
+      if (codeResolved) {
+        resolvedSectionByQuestion.set(String(question.id), codeResolved);
+        continue;
+      }
+    }
+
+    if (snapshotTextKey) {
+      const textResolved = resolveLegacyCandidates(
+        legacyQuestionsByText.get(snapshotTextKey) ?? []
+      );
+
+      if (textResolved) {
+        resolvedSectionByQuestion.set(String(question.id), textResolved);
+      }
     }
   }
 
