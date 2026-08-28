@@ -11,6 +11,14 @@ type ResultDbRow = { session_id: string; raw_score: number | null; max_score: nu
 type SessionQuestionDbRow = { id: string; session_id: string; question_id: string | null; exam_section_id: string | null; question_snapshot: unknown };
 type AnswerDbRow = { session_question_id: string; selected_option_id: string | null };
 
+type EmbeddedAnswerDbRow = {
+  selected_option_id: string | null;
+};
+
+type SessionQuestionExportDbRow = SessionQuestionDbRow & {
+  answer?: EmbeddedAnswerDbRow | EmbeddedAnswerDbRow[] | null;
+};
+
 type ResultExportRow = {
   code: string;
   name: string;
@@ -157,7 +165,7 @@ export async function loadExamResultExportData(
         const { data, error } = await supabase
           .from("session_questions")
           .select(
-            "id, session_id, question_id, exam_section_id, question_snapshot"
+            "id, session_id, question_id, exam_section_id, question_snapshot, answer:answers!answers_session_question_id_fkey(selected_option_id)"
           )
           .in("session_id", ids)
           .order("id", { ascending: true })
@@ -217,62 +225,86 @@ export async function loadExamResultExportData(
   );
 
   const answerRows: AnswerDbRow[] = [];
-  const answerChunkSize = 100;
-  const answerConcurrency = 10;
+  let embeddedAnswersAvailable = true;
 
-  const answerBatches: Array<{
-    batchNumber: number;
-    ids: string[];
-  }> = [];
+  for (const row of sessionQuestionRows as SessionQuestionExportDbRow[]) {
+    if (!Object.prototype.hasOwnProperty.call(row, "answer")) {
+      embeddedAnswersAvailable = false;
+      break;
+    }
 
-  for (
-    let index = 0;
-    index < sessionQuestionIds.length;
-    index += answerChunkSize
-  ) {
-    answerBatches.push({
-      batchNumber:
-        Math.floor(index / answerChunkSize) + 1,
-      ids: sessionQuestionIds.slice(
-        index,
-        index + answerChunkSize
-      ),
-    });
+    const embedded = Array.isArray(row.answer)
+      ? row.answer[0] ?? null
+      : row.answer ?? null;
+
+    if (embedded) {
+      answerRows.push({
+        session_question_id: String(row.id),
+        selected_option_id:
+          embedded.selected_option_id == null
+            ? null
+            : String(embedded.selected_option_id),
+      });
+    }
   }
 
   markResultExportPerf("answer_batch_prep");
 
-  for (
-    let index = 0;
-    index < answerBatches.length;
-    index += answerConcurrency
-  ) {
-    const batchWindow = answerBatches.slice(
-      index,
-      index + answerConcurrency
-    );
+  if (!embeddedAnswersAvailable) {
+    answerRows.length = 0;
 
-    const batchResults = await Promise.all(
-      batchWindow.map(async ({ batchNumber, ids }) => {
-        const { data, error } = await supabase
-          .from("answers")
-          .select(
-            "session_question_id, selected_option_id"
-          )
-          .in("session_question_id", ids);
+    const answerChunkSize = 100;
+    const answerConcurrency = 10;
 
-        if (error) {
-          throw new Error(
-            `Jawaban gagal dibaca pada batch ${batchNumber}: ${error.message}`
-          );
-        }
+    const answerBatches: Array<{
+      batchNumber: number;
+      ids: string[];
+    }> = [];
 
-        return (data ?? []) as AnswerDbRow[];
-      })
-    );
+    for (
+      let index = 0;
+      index < sessionQuestionIds.length;
+      index += answerChunkSize
+    ) {
+      answerBatches.push({
+        batchNumber: Math.floor(index / answerChunkSize) + 1,
+        ids: sessionQuestionIds.slice(
+          index,
+          index + answerChunkSize
+        ),
+      });
+    }
 
-    for (const rows of batchResults) {
-      answerRows.push(...rows);
+    for (
+      let index = 0;
+      index < answerBatches.length;
+      index += answerConcurrency
+    ) {
+      const batchWindow = answerBatches.slice(
+        index,
+        index + answerConcurrency
+      );
+
+      const batchResults = await Promise.all(
+        batchWindow.map(async ({ batchNumber, ids }) => {
+          const { data, error } = await supabase
+            .from("answers")
+            .select("session_question_id, selected_option_id")
+            .in("session_question_id", ids);
+
+          if (error) {
+            throw new Error(
+              `Jawaban gagal dibaca (batch ${batchNumber}): ${error.message}`
+            );
+          }
+
+          return (data ?? []) as AnswerDbRow[];
+        })
+      );
+
+      for (const rows of batchResults) {
+        answerRows.push(...rows);
+      }
     }
   }
 
