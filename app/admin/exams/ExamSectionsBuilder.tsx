@@ -152,6 +152,8 @@ export default function ExamSectionsBuilder({
             </div>
 
             <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_150px]">
+              <div className="block">
+                <span className="mb-2 block text-[11px] text-slate-500">Modul</span>
               <GlassSelect
                 name="section_module_id"
                 required
@@ -165,6 +167,7 @@ export default function ExamSectionsBuilder({
                   disabled: rows.some((other) => other.key !== row.key && other.moduleId === module.id),
                 }))}
               />
+              </div>
 
               <label className="block">
                 <span className="mb-2 block text-[11px] text-slate-500">Batas waktu sesi</span>
