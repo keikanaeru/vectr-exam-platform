@@ -74,6 +74,7 @@ export async function loadExamResultExportData(
   if (examError || !exam) throw new Error("Ujian tidak ditemukan.");
   const policy = getExamPolicy(exam.settings);
   const sections = await getExamSections(supabase, examId);
+  markResultExportPerf("exam_and_sections");
 
   const { data: assignments, error: assignmentError } = await supabase
     .from("exam_assignments")
@@ -89,11 +90,13 @@ export async function loadExamResultExportData(
     ? await supabase.from("candidates").select("id, candidate_code, display_name, external_identifier, email").eq("organization_id", organizationId).in("id", candidateIds)
     : { data: [], error: null };
   if (candidateError) throw new Error(`Peserta gagal dibaca: ${candidateError.message}`);
+  markResultExportPerf("assignments_and_candidates");
 
   const { data: allSessions, error: sessionError } = assignmentIds.length
     ? await supabase.from("exam_sessions").select("id, assignment_id, status, submitted_at, attempt_no").in("assignment_id", assignmentIds)
     : { data: [], error: null };
   if (sessionError) throw new Error(`Sesi gagal dibaca: ${sessionError.message}`);
+  markResultExportPerf("sessions");
 
   const sessionRows = (allSessions ?? []) as SessionDbRow[];
   const latestByAssignment = new Map<string, SessionDbRow>();
@@ -110,7 +113,7 @@ export async function loadExamResultExportData(
     : { data: [], error: null };
   if (resultError) throw new Error(`Hasil gagal dibaca: ${resultError.message}`);
 
-  markResultExportPerf("before_session_questions");
+  markResultExportPerf("results");
 
   const sessionQuestionRows: SessionQuestionDbRow[] = [];
   const sessionQuestionSessionChunkSize = 5;
@@ -237,6 +240,8 @@ export async function loadExamResultExportData(
     });
   }
 
+  markResultExportPerf("answer_batch_prep");
+
   for (
     let index = 0;
     index < answerBatches.length;
@@ -271,7 +276,7 @@ export async function loadExamResultExportData(
     }
   }
 
-  markResultExportPerf("answers_and_mapping");
+  markResultExportPerf("answer_queries");
 
   const sourceQuestionModuleMap = new Map<string, string>();
   const sourceQuestionIds = [...new Set(
