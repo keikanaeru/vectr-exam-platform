@@ -63,16 +63,6 @@ export async function loadExamResultExportData(
   organizationId: string,
   organizationName: string
 ): Promise<ExamResultExportData> {
-  const resultExportPerfStartedAt = Date.now();
-  let resultExportPerfStageStartedAt = resultExportPerfStartedAt;
-  const resultExportPerf: Record<string, number> = {};
-
-  const markResultExportPerf = (stage: string) => {
-    const now = Date.now();
-    resultExportPerf[stage] = now - resultExportPerfStageStartedAt;
-    resultExportPerfStageStartedAt = now;
-  };
-
   const { data: exam, error: examError } = await supabase
     .from("exams")
     .select("id, title, starts_at, settings")
@@ -82,7 +72,6 @@ export async function loadExamResultExportData(
   if (examError || !exam) throw new Error("Ujian tidak ditemukan.");
   const policy = getExamPolicy(exam.settings);
   const sections = await getExamSections(supabase, examId);
-  markResultExportPerf("exam_and_sections");
 
   const { data: assignments, error: assignmentError } = await supabase
     .from("exam_assignments")
@@ -98,13 +87,11 @@ export async function loadExamResultExportData(
     ? await supabase.from("candidates").select("id, candidate_code, display_name, external_identifier, email").eq("organization_id", organizationId).in("id", candidateIds)
     : { data: [], error: null };
   if (candidateError) throw new Error(`Peserta gagal dibaca: ${candidateError.message}`);
-  markResultExportPerf("assignments_and_candidates");
 
   const { data: allSessions, error: sessionError } = assignmentIds.length
     ? await supabase.from("exam_sessions").select("id, assignment_id, status, submitted_at, attempt_no").in("assignment_id", assignmentIds)
     : { data: [], error: null };
   if (sessionError) throw new Error(`Sesi gagal dibaca: ${sessionError.message}`);
-  markResultExportPerf("sessions");
 
   const sessionRows = (allSessions ?? []) as SessionDbRow[];
   const latestByAssignment = new Map<string, SessionDbRow>();
@@ -121,7 +108,6 @@ export async function loadExamResultExportData(
     : { data: [], error: null };
   if (resultError) throw new Error(`Hasil gagal dibaca: ${resultError.message}`);
 
-  markResultExportPerf("results");
 
   const sessionQuestionRows: SessionQuestionDbRow[] = [];
   const sessionQuestionSessionChunkSize = 5;
@@ -218,7 +204,6 @@ export async function loadExamResultExportData(
 
   const sessionQuestions = sessionQuestionRows;
 
-  markResultExportPerf("session_questions");
 
   const sessionQuestionIds = (sessionQuestions ?? []).map(
     (row) => String(row.id)
@@ -248,7 +233,6 @@ export async function loadExamResultExportData(
     }
   }
 
-  markResultExportPerf("answer_batch_prep");
 
   if (!embeddedAnswersAvailable) {
     answerRows.length = 0;
@@ -308,7 +292,6 @@ export async function loadExamResultExportData(
     }
   }
 
-  markResultExportPerf("answer_queries");
 
   const sourceQuestionModuleMap = new Map<string, string>();
   const sourceQuestionIds = [...new Set(
@@ -462,15 +445,6 @@ export async function loadExamResultExportData(
     };
   }).sort((a, b) => a.code.localeCompare(b.code, "id-ID", { numeric: true }));
 
-  markResultExportPerf("source_questions_and_assemble");
-
-  console.info("[RESULT EXPORT PERF]", {
-    examId,
-    ...resultExportPerf,
-    total: Date.now() - resultExportPerfStartedAt,
-    sessionQuestionCount: sessionQuestions.length,
-    answerCount: answerRows.length,
-  });
 
   return {
     exam: { id: String(exam.id), title: String(exam.title), startsAt: exam.starts_at ? String(exam.starts_at) : null },
