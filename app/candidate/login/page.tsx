@@ -53,7 +53,7 @@ export default function CandidateLoginPage() {
       {/* LOGIN AREA */}
       {/* ================================= */}
 
-      <div className="liquid-enter relative z-10 w-full max-w-md">
+      <div className="candidate-enter relative z-10 w-full max-w-md">
 
         {/* ================================= */}
         {/* BRAND */}
@@ -75,7 +75,7 @@ export default function CandidateLoginPage() {
 
         <form
           action={formAction}
-          className="liquid-card p-6 sm:p-7"
+          className="candidate-card p-6 sm:p-7"
         >
 
           <div className="relative z-10">
@@ -112,7 +112,7 @@ export default function CandidateLoginPage() {
                 spellCheck={false}
                 required
                 disabled={pending}
-                className="liquid-input w-full py-3 pl-12 pr-4 uppercase disabled:cursor-not-allowed disabled:opacity-60"
+                className="candidate-input w-full py-3 pl-12 pr-4 uppercase disabled:cursor-not-allowed disabled:opacity-60"
               />
 
             </div>
@@ -154,7 +154,7 @@ export default function CandidateLoginPage() {
                 autoComplete="off"
                 required
                 disabled={pending}
-                className="liquid-input w-full py-3 pl-12 pr-4 disabled:cursor-not-allowed disabled:opacity-60"
+                className="candidate-input w-full py-3 pl-12 pr-4 disabled:cursor-not-allowed disabled:opacity-60"
               />
 
             </div>
@@ -206,7 +206,7 @@ export default function CandidateLoginPage() {
             <button
               type="submit"
               disabled={pending}
-              className="liquid-button-primary group mt-6 flex w-full items-center justify-center rounded-[15px] px-5 py-3.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+              className="candidate-button-primary group mt-6 flex w-full items-center justify-center rounded-[15px] px-5 py-3.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
             >
 
               {pending ? (
@@ -240,7 +240,7 @@ export default function CandidateLoginPage() {
             {/* FOOT NOTE */}
             {/* ================================= */}
 
-            <div className="liquid-divider my-5" />
+            <div className="candidate-divider my-5" />
 
 
             <div className="flex items-start gap-3">

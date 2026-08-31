@@ -662,7 +662,7 @@ export default function ExamClient({
           <div className="absolute left-1/2 top-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose-500/[0.06] blur-[110px]" />
         </div>
 
-        <div className="liquid-card relative z-10 max-w-md p-8 text-center">
+        <div className="candidate-card relative z-10 max-w-md p-8 text-center">
           <div className="relative z-10">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-rose-400/15 bg-rose-400/[0.06] text-lg font-bold text-rose-300">
               !
@@ -713,7 +713,7 @@ export default function ExamClient({
 
       <div className="sticky top-0 z-40 px-3 pt-3 sm:px-5">
 
-        <header className="liquid-nav mx-auto max-w-7xl rounded-[24px]">
+        <header className="candidate-nav mx-auto max-w-7xl rounded-[24px]">
 
           <div className="flex flex-col gap-4 px-5 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
 
@@ -876,7 +876,7 @@ export default function ExamClient({
         {/* QUESTION AREA */}
         {/* ================================= */}
 
-        <section className="liquid-card min-w-0 p-5 sm:p-7">
+        <section className="candidate-card min-w-0 p-5 sm:p-7">
 
           <div className="relative z-10">
 
@@ -886,7 +886,7 @@ export default function ExamClient({
 
               <div className="flex flex-wrap items-center gap-2">
 
-                <span className="liquid-badge px-3 py-1.5 text-xs font-semibold text-slate-300">
+                <span className="candidate-badge px-3 py-1.5 text-xs font-semibold text-slate-300">
                   Soal {currentIndex + 1}
                 </span>
 
@@ -921,7 +921,7 @@ export default function ExamClient({
                 className={
                   currentFlag
                     ? "rounded-[14px] border border-amber-400/25 bg-amber-400/[0.09] px-4 py-2.5 text-sm font-medium text-amber-200 transition hover:bg-amber-400/[0.13] disabled:cursor-not-allowed disabled:opacity-50"
-                    : "liquid-button px-4 py-2.5 text-sm text-slate-300 disabled:cursor-not-allowed disabled:opacity-50"
+                    : "candidate-button px-4 py-2.5 text-sm text-slate-300 disabled:cursor-not-allowed disabled:opacity-50"
                 }
               >
 
@@ -1117,7 +1117,7 @@ export default function ExamClient({
                             void finishExam(true);
                           }
                         }}
-                        className="liquid-button-primary mt-3 rounded-[12px] px-4 py-2.5 text-xs font-semibold"
+                        className="candidate-button-primary mt-3 rounded-[12px] px-4 py-2.5 text-xs font-semibold"
                       >
                         Kirim Ulang
                       </button>
@@ -1160,7 +1160,7 @@ export default function ExamClient({
             {/* BOTTOM NAVIGATION */}
             {/* ================================= */}
 
-            <div className="liquid-divider my-6" />
+            <div className="candidate-divider my-6" />
 
 
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1184,7 +1184,7 @@ export default function ExamClient({
                       )
                   )
                 }
-                className="liquid-button px-5 py-3 text-sm font-medium text-slate-300 disabled:cursor-not-allowed disabled:opacity-30"
+                className="candidate-button px-5 py-3 text-sm font-medium text-slate-300 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 ← Sebelumnya
               </button>
@@ -1211,7 +1211,7 @@ export default function ExamClient({
                         )
                     )
                   }
-                  className="liquid-button-primary rounded-[14px] px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-30"
+                  className="candidate-button-primary rounded-[14px] px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   Berikutnya →
                 </button>
@@ -1254,7 +1254,7 @@ export default function ExamClient({
 
         <aside className="h-fit lg:sticky lg:top-[150px]">
 
-          <div className="liquid-card p-5">
+          <div className="candidate-card p-5">
 
             <div className="relative z-10">
 
@@ -1276,7 +1276,7 @@ export default function ExamClient({
                 </div>
 
 
-                <span className="liquid-badge px-2.5 py-1 text-[10px] text-slate-400">
+                <span className="candidate-badge px-2.5 py-1 text-[10px] text-slate-400">
                   {answeredCount}/{questions.length}
                 </span>
 
@@ -1382,7 +1382,7 @@ export default function ExamClient({
               </div>
 
 
-              <div className="liquid-divider my-5" />
+              <div className="candidate-divider my-5" />
 
 
               {/* ================================= */}
@@ -1483,7 +1483,7 @@ export default function ExamClient({
 
         <div className="fixed inset-0 z-[100] flex items-center justify-center candidate-overlay-backdrop px-6 backdrop-blur-md">
 
-          <div className="liquid-card w-full max-w-sm p-7 text-center">
+          <div className="candidate-card w-full max-w-sm p-7 text-center">
 
             <div className="relative z-10">
 

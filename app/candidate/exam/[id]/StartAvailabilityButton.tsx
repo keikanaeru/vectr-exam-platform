@@ -37,7 +37,7 @@ export default function StartAvailabilityButton({ startsAt, hardCloseAt }: Props
       <button
         type="submit"
         disabled={!ready || pending}
-        className="liquid-button-primary group flex w-full items-center justify-center rounded-[16px] px-5 py-4 font-semibold disabled:cursor-not-allowed disabled:opacity-45"
+        className="candidate-button-primary group flex w-full items-center justify-center rounded-[16px] px-5 py-4 font-semibold disabled:cursor-not-allowed disabled:opacity-45"
       >
         <span>{pending ? "Menyiapkan sesi..." : closed ? "Waktu Akses Berakhir" : ready ? "Mulai / Lanjutkan Ujian" : "Menunggu Waktu Mulai"}</span>
         {ready && !pending ? <span className="ml-3 transition-transform duration-200 group-hover:translate-x-1">→</span> : null}

@@ -420,7 +420,7 @@ export default async function ResultPage({
       {/* RESULT */}
       {/* ================================= */}
 
-      <div className="liquid-enter relative z-10 mx-auto w-full max-w-3xl">
+      <div className="candidate-enter relative z-10 mx-auto w-full max-w-3xl">
 
         {/* ================================= */}
         {/* BRAND */}
@@ -465,7 +465,7 @@ export default async function ResultPage({
         {/* RESULT CARD */}
         {/* ================================= */}
 
-        <section className="liquid-card overflow-hidden p-6 sm:p-8">
+        <section className="candidate-card overflow-hidden p-6 sm:p-8">
 
           <div className="relative z-10">
 
@@ -486,7 +486,7 @@ export default async function ResultPage({
                 )}
 
 
-                <span className="liquid-badge liquid-badge-success px-2.5 py-1 text-[10px] font-semibold">
+                <span className="candidate-badge candidate-badge-success px-2.5 py-1 text-[10px] font-semibold">
                   SUBMITTED
                 </span>
 
@@ -515,7 +515,7 @@ export default async function ResultPage({
             </div>
 
 
-            <div className="liquid-divider my-7" />
+            <div className="candidate-divider my-7" />
 
 
             {policy.results.showResultPage && policy.results.showPassFail ? (
@@ -723,14 +723,14 @@ export default async function ResultPage({
 
             {policy.results.showResultPage && sectionScores.length > 1 ? (
               <>
-                <div className="liquid-divider my-7" />
+                <div className="candidate-divider my-7" />
                 <div>
                   <div className="flex items-end justify-between gap-4">
                     <div>
                       <p className="text-[10px] uppercase tracking-[0.16em] text-slate-600">Hasil per modul</p>
                       <h3 className="mt-1 text-lg font-semibold text-white">Rincian Sesi Ujian</h3>
                     </div>
-                    <span className="liquid-badge px-3 py-1.5 text-[10px] text-slate-400">{sectionScores.length} MODUL</span>
+                    <span className="candidate-badge px-3 py-1.5 text-[10px] text-slate-400">{sectionScores.length} MODUL</span>
                   </div>
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     {sectionScores.map((score) => (

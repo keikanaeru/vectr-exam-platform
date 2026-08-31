@@ -312,7 +312,7 @@ export default async function CandidateExamPage({
 
       <div className="px-3 pt-3 sm:px-5">
 
-        <header className="liquid-nav mx-auto max-w-5xl rounded-[24px]">
+        <header className="candidate-nav mx-auto max-w-5xl rounded-[24px]">
 
           <div className="flex items-center justify-between px-5 py-4 sm:px-6">
 
@@ -323,7 +323,7 @@ export default async function CandidateExamPage({
             </div>
 
 
-            <span className="liquid-badge px-3 py-1.5 text-[10px] font-medium tracking-wide text-slate-400">
+            <span className="candidate-badge px-3 py-1.5 text-[10px] font-medium tracking-wide text-slate-400">
               CANDIDATE
             </span>
 
@@ -364,7 +364,7 @@ export default async function CandidateExamPage({
 
               {(effectiveSections.length > 1 || effectiveModuleCode) && (
 
-                <span className="liquid-badge px-2.5 py-1 text-[10px] text-slate-400">
+                <span className="candidate-badge px-2.5 py-1 text-[10px] text-slate-400">
                   {effectiveSections.length > 1 ? `${effectiveSections.length} SESI MODUL` : effectiveModuleCode}
                 </span>
 
@@ -391,7 +391,7 @@ export default async function CandidateExamPage({
         {/* EXAM PREPARATION CARD */}
         {/* ================================= */}
 
-        <section className="liquid-card mt-6 p-6 sm:p-8">
+        <section className="candidate-card mt-6 p-6 sm:p-8">
 
           <div className="relative z-10">
 

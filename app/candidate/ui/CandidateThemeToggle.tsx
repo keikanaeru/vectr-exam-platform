@@ -81,7 +81,7 @@ export default function CandidateThemeToggle({ compact = false }: { compact?: bo
         aria-expanded={open}
         aria-controls={panelId}
         aria-label="Pilih tema tampilan"
-        className="candidate-theme-button liquid-button gap-2 rounded-[12px] px-3 py-2 text-xs font-semibold"
+        className="candidate-theme-button candidate-button gap-2 rounded-[12px] px-3 py-2 text-xs font-semibold"
       >
         <span aria-hidden="true">{symbol}</span>
         {compact ? null : <span>{label}</span>}

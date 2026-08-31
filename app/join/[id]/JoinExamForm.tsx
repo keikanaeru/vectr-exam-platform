@@ -84,7 +84,7 @@ export default function JoinExamForm({
           autoCapitalize="characters"
           spellCheck={false}
           disabled={pending}
-          className="liquid-input w-full py-3.5 pl-12 pr-4 uppercase disabled:cursor-not-allowed disabled:opacity-60"
+          className="candidate-input w-full py-3.5 pl-12 pr-4 uppercase disabled:cursor-not-allowed disabled:opacity-60"
         />
 
       </div>
@@ -127,7 +127,7 @@ export default function JoinExamForm({
           required
           autoComplete="off"
           disabled={pending}
-          className="liquid-input w-full py-3.5 pl-12 pr-4 disabled:cursor-not-allowed disabled:opacity-60"
+          className="candidate-input w-full py-3.5 pl-12 pr-4 disabled:cursor-not-allowed disabled:opacity-60"
         />
 
       </div>
@@ -181,7 +181,7 @@ export default function JoinExamForm({
       <button
         type="submit"
         disabled={pending}
-        className="liquid-button-primary group mt-6 flex w-full items-center justify-center rounded-[15px] px-5 py-3.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+        className="candidate-button-primary group mt-6 flex w-full items-center justify-center rounded-[15px] px-5 py-3.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
       >
 
         {pending ? (
@@ -215,7 +215,7 @@ export default function JoinExamForm({
       {/* SECURITY NOTE */}
       {/* ================================= */}
 
-      <div className="liquid-divider my-5" />
+      <div className="candidate-divider my-5" />
 
 
       <div className="flex items-start gap-3">

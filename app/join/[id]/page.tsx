@@ -119,9 +119,9 @@ export default async function JoinExamPage({
         <BackgroundGlow />
 
 
-        <div className="liquid-enter relative z-10 w-full max-w-lg">
+        <div className="candidate-enter relative z-10 w-full max-w-lg">
 
-          <div className="liquid-card p-7 text-center sm:p-8">
+          <div className="candidate-card p-7 text-center sm:p-8">
 
             <div className="relative z-10">
 
@@ -377,7 +377,7 @@ export default async function JoinExamPage({
       <BackgroundGlow />
 
 
-      <div className="liquid-enter relative z-10 mx-auto w-full max-w-3xl">
+      <div className="candidate-enter relative z-10 mx-auto w-full max-w-3xl">
 
         {/* ================================= */}
         {/* BRAND */}
@@ -391,7 +391,7 @@ export default async function JoinExamPage({
         {/* EXAM HEADER */}
         {/* ================================= */}
 
-        <section className="liquid-card overflow-hidden p-6 sm:p-8">
+        <section className="candidate-card overflow-hidden p-6 sm:p-8">
 
           <div className="relative z-10">
 
@@ -403,7 +403,7 @@ export default async function JoinExamPage({
 
                   {organization && (
 
-                    <span className="liquid-badge px-3 py-1.5 text-[10px] font-medium text-slate-300">
+                    <span className="candidate-badge px-3 py-1.5 text-[10px] font-medium text-slate-300">
                       {organization.name}
                     </span>
 
@@ -413,10 +413,10 @@ export default async function JoinExamPage({
                   <span
                     className={
                       examActive
-                        ? "liquid-badge liquid-badge-success px-3 py-1.5 text-[11px] font-semibold"
+                        ? "candidate-badge candidate-badge-success px-3 py-1.5 text-[11px] font-semibold"
                         : examResumeOnly
-                          ? "liquid-badge px-3 py-1.5 text-[11px] font-semibold text-amber-200"
-                          : "liquid-badge px-3 py-1.5 text-[11px] font-semibold text-slate-400"
+                          ? "candidate-badge px-3 py-1.5 text-[11px] font-semibold text-amber-200"
+                          : "candidate-badge px-3 py-1.5 text-[11px] font-semibold text-slate-400"
                     }
                   >
                     {examResumeOnly ? "RESUME ONLY" : exam.status}
@@ -449,7 +449,7 @@ export default async function JoinExamPage({
             {/* EXAM INFO */}
             {/* ================================= */}
 
-            <div className="liquid-divider my-6" />
+            <div className="candidate-divider my-6" />
 
 
             <div className="grid gap-3 sm:grid-cols-2">

@@ -52,31 +52,173 @@
   display: none;
 }
 
-.candidate-system .candidate-surface .liquid-nav,
-.candidate-system .candidate-surface .liquid-card {
+.candidate-system .candidate-surface .candidate-nav,
+.candidate-system .candidate-surface .candidate-card {
   border-color: var(--candidate-border);
   background: var(--candidate-surface);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
   backdrop-filter: none;
 }
 
-.candidate-system .candidate-surface .liquid-nav {
+.candidate-system .candidate-surface .candidate-nav {
   border-radius: 14px;
 }
 
-.candidate-system .candidate-surface .liquid-card {
+.candidate-system .candidate-surface .candidate-card {
   border-radius: 16px;
 }
 
-.candidate-system .candidate-surface .liquid-card::before,
-.candidate-system .candidate-surface .liquid-nav::before {
+.candidate-system .candidate-surface .candidate-card::before,
+.candidate-system .candidate-surface .candidate-nav::before {
   display: none;
 }
 
-.candidate-system .candidate-surface .liquid-button,
-.candidate-system .candidate-surface .liquid-button-primary,
-.candidate-system .candidate-surface .liquid-input {
+.candidate-system .candidate-surface .candidate-button,
+.candidate-system .candidate-surface .candidate-button-primary,
+.candidate-system .candidate-surface .candidate-input {
   border-radius: 10px;
+}
+
+/* Candidate primitives are intentionally token-based. The candidate flow no
+ * longer depends on the global liquid/glass component family. */
+.candidate-system .candidate-button,
+.candidate-system .candidate-button-primary {
+  position: relative;
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid transparent;
+  padding: 0.6rem 0.9rem;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  line-height: 1rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    color 120ms ease,
+    background 120ms ease,
+    border-color 120ms ease,
+    transform 120ms ease;
+}
+
+.candidate-system .candidate-button {
+  border-color: var(--candidate-border);
+  background: var(--candidate-surface-raised);
+  color: var(--candidate-text-secondary);
+}
+
+.candidate-system .candidate-button:hover:not(:disabled) {
+  border-color: var(--candidate-border-strong);
+  background: var(--candidate-surface-hover);
+  color: var(--candidate-text);
+}
+
+.candidate-system .candidate-button-primary {
+  border-color: color-mix(in srgb, var(--candidate-signal) 40%, transparent);
+  background: var(--candidate-signal);
+  color: #04161b;
+}
+
+.candidate-system .candidate-button-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--candidate-signal) 82%, white);
+  transform: translateY(-1px);
+}
+
+.candidate-system .candidate-button:active:not(:disabled),
+.candidate-system .candidate-button-primary:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.candidate-system .candidate-button:disabled,
+.candidate-system .candidate-button-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.candidate-system .candidate-input,
+.candidate-system .candidate-select {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 1px solid var(--candidate-border);
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+  background: var(--candidate-surface-raised);
+  color: var(--candidate-text);
+  font: inherit;
+  font-size: 0.875rem;
+  outline: none;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.candidate-system .candidate-input::placeholder,
+.candidate-system .candidate-select::placeholder {
+  color: var(--candidate-text-muted);
+}
+
+.candidate-system .candidate-input:hover:not(:disabled),
+.candidate-system .candidate-select:hover:not(:disabled) {
+  border-color: var(--candidate-border-strong);
+  background: var(--candidate-surface-hover);
+}
+
+.candidate-system .candidate-input:focus-visible,
+.candidate-system .candidate-select:focus-visible {
+  border-color: var(--candidate-signal);
+  box-shadow: var(--candidate-focus);
+}
+
+.candidate-system .candidate-input:disabled,
+.candidate-system .candidate-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.candidate-system .candidate-badge {
+  display: inline-flex;
+  min-height: 1.6rem;
+  align-items: center;
+  border: 1px solid var(--candidate-border);
+  border-radius: 999px;
+  padding: 0.25rem 0.6rem;
+  background: var(--candidate-surface-hover);
+  color: var(--candidate-text-secondary);
+  font-size: 0.6875rem;
+  font-weight: 650;
+  line-height: 1rem;
+}
+
+.candidate-system .candidate-badge-success {
+  border-color: color-mix(in srgb, var(--candidate-success) 34%, transparent);
+  background: color-mix(in srgb, var(--candidate-success) 12%, transparent);
+  color: var(--candidate-success);
+}
+
+.candidate-system .candidate-divider {
+  height: 1px;
+  border: 0;
+  background: var(--candidate-border);
+}
+
+@keyframes candidateFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.candidate-system .candidate-enter {
+  animation: candidateFadeIn 260ms ease both;
 }
 
 .candidate-system :is(a, button, input, select, textarea):focus-visible {

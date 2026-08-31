@@ -432,11 +432,11 @@ export default function ExamGuard({ examId, policy }: Props) {
 
       {fullscreenGate ? (
         <div className="fixed inset-0 z-[120] flex items-center justify-center candidate-overlay-backdrop px-6 backdrop-blur-xl">
-          <div className="liquid-card w-full max-w-md p-7 text-center">
+          <div className="candidate-card w-full max-w-md p-7 text-center">
             <p className="text-xs uppercase tracking-[0.18em] text-cyan-300/70">Focus Mode</p>
             <h2 className="mt-3 text-xl font-semibold text-white">Fullscreen wajib</h2>
             <p className="mt-2 text-sm leading-6 text-slate-500">Ujian ini mewajibkan fullscreen. Keluar dari fullscreen setelah sesi berjalan akan dicatat sebagai pelanggaran.</p>
-            <button type="button" onClick={enterFullscreen} className="liquid-button-primary mt-5 w-full rounded-[14px] px-5 py-3 text-sm font-semibold">Masuk Fullscreen</button>
+            <button type="button" onClick={enterFullscreen} className="candidate-button-primary mt-5 w-full rounded-[14px] px-5 py-3 text-sm font-semibold">Masuk Fullscreen</button>
           </div>
         </div>
       ) : null}
@@ -447,13 +447,13 @@ export default function ExamGuard({ examId, policy }: Props) {
 
       {submittingByPolicy ? (
         <div className="fixed inset-0 z-[130] flex items-center justify-center candidate-overlay-backdrop px-6 backdrop-blur-xl">
-          <div className="liquid-card max-w-sm p-7 text-center"><p className="font-semibold text-rose-200">Sesi di-submit otomatis</p><p className="mt-2 text-sm leading-6 text-slate-500">Batas pelanggaran yang ditetapkan pengawas telah tercapai.</p></div>
+          <div className="candidate-card max-w-sm p-7 text-center"><p className="font-semibold text-rose-200">Sesi di-submit otomatis</p><p className="mt-2 text-sm leading-6 text-slate-500">Batas pelanggaran yang ditetapkan pengawas telah tercapai.</p></div>
         </div>
       ) : null}
 
       {deviceConflict ? (
         <div className="fixed inset-0 z-[125] flex items-center justify-center candidate-overlay-backdrop px-6 backdrop-blur-xl">
-          <div className="liquid-card w-full max-w-md p-7 text-center">
+          <div className="candidate-card w-full max-w-md p-7 text-center">
             <p className="text-xs uppercase tracking-[0.18em] text-rose-300/70">Single Device Lock</p>
             <h2 className="mt-3 text-xl font-semibold text-white">Sesi aktif di perangkat lain</h2>
             <p className="mt-2 text-sm leading-6 text-slate-500">Credential ini sedang memiliki device lock aktif. Tutup sesi di perangkat lain atau minta pengawas melepas lock dari Proctor Monitor.</p>

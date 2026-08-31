@@ -94,7 +94,7 @@ export default function SectionTransition({
         <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-violet-500/[0.055] blur-[120px]" />
       </div>
 
-      <section className="liquid-card relative z-10 w-full max-w-2xl p-6 sm:p-8">
+      <section className="candidate-card relative z-10 w-full max-w-2xl p-6 sm:p-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <CandidateBrand displayName={branding.displayName} logoUrl={branding.logoUrl} subtitle="Pergantian Sesi" />
           <div className="rounded-[16px] border border-rose-400/20 bg-rose-400/[0.06] px-4 py-3 text-right">
@@ -103,7 +103,7 @@ export default function SectionTransition({
           </div>
         </div>
 
-        <div className="liquid-divider my-6" />
+        <div className="candidate-divider my-6" />
 
         {completedSectionName ? (
           <div className="rounded-[18px] border border-emerald-400/15 bg-emerald-400/[0.045] p-4">
@@ -114,7 +114,7 @@ export default function SectionTransition({
 
         <div className="mt-4 rounded-[22px] border border-cyan-400/15 bg-cyan-400/[0.035] p-5 sm:p-6">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="liquid-badge px-3 py-1.5 text-[11px] font-semibold text-cyan-100">SESI {nextSection.position}/{nextSection.total}</span>
+            <span className="candidate-badge px-3 py-1.5 text-[11px] font-semibold text-cyan-100">SESI {nextSection.position}/{nextSection.total}</span>
             <span className="font-mono text-[11px] text-cyan-300/60">{nextSection.code}</span>
           </div>
           <h1 className="mt-4 text-2xl font-bold tracking-tight text-white">{nextSection.name}</h1>
@@ -132,7 +132,7 @@ export default function SectionTransition({
           type="button"
           onClick={startNext}
           disabled={starting || !ready || remaining <= 0}
-          className="liquid-button-primary mt-6 w-full rounded-[15px] px-5 py-3.5 text-sm font-semibold disabled:opacity-50"
+          className="candidate-button-primary mt-6 w-full rounded-[15px] px-5 py-3.5 text-sm font-semibold disabled:opacity-50"
         >
           {starting ? "Menyiapkan sesi..." : `Saya Siap · Mulai ${nextSection.name}`}
         </button>

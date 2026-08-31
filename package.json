@@ -13,6 +13,7 @@
     "context": "repomix",
     "test:e2e": "playwright test",
     "test:e2e:safe": "playwright test tests/admin-platform.spec.js tests/candidate-login.spec.js",
+    "test:e2e:remedial": "playwright test tests/remedial-multisection.spec.js",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "audit:r832-finalizer": "node scripts/check-r832-finalizer.mjs",

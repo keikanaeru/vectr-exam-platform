@@ -321,7 +321,7 @@ export default async function CandidatePage() {
 
       <div className="relative z-10 px-3 pt-3 sm:px-5">
 
-        <header className="liquid-nav mx-auto max-w-5xl rounded-[24px]">
+        <header className="candidate-nav mx-auto max-w-5xl rounded-[24px]">
 
           <div className="flex items-center justify-between gap-4 px-5 py-4 sm:px-6">
 
@@ -341,7 +341,7 @@ export default async function CandidatePage() {
 
               <button
                 type="submit"
-                className="liquid-button px-4 py-2 text-xs font-medium text-slate-300"
+                className="candidate-button px-4 py-2 text-xs font-medium text-slate-300"
               >
                 Keluar
               </button>
@@ -366,7 +366,7 @@ export default async function CandidatePage() {
         {/* WELCOME HERO */}
         {/* ================================= */}
 
-        <section className="liquid-enter">
+        <section className="candidate-enter">
 
           <div className="relative overflow-hidden rounded-[28px] border border-white/[0.07] bg-white/[0.025] px-6 py-8 backdrop-blur-xl sm:px-8">
 
@@ -379,7 +379,7 @@ export default async function CandidatePage() {
 
               <div className="flex flex-wrap items-center gap-3">
 
-                <span className="liquid-badge px-3 py-1.5 font-mono text-[10px] text-blue-300/80">
+                <span className="candidate-badge px-3 py-1.5 font-mono text-[10px] text-blue-300/80">
                   {candidate.candidate_code}
                 </span>
 
@@ -416,7 +416,7 @@ export default async function CandidatePage() {
         {/* EXAM CARD */}
         {/* ================================= */}
 
-        <section className="liquid-card mt-6 overflow-hidden p-6 sm:p-8">
+        <section className="candidate-card mt-6 overflow-hidden p-6 sm:p-8">
 
           <div className="relative z-10">
 
@@ -439,7 +439,7 @@ export default async function CandidatePage() {
                   )}
 
 
-                  <span className={examStatus === "CLOSED" ? "liquid-badge px-2.5 py-1 text-[11px] font-semibold text-amber-200" : "liquid-badge liquid-badge-success px-2.5 py-1 text-[11px] font-semibold"}>
+                  <span className={examStatus === "CLOSED" ? "candidate-badge px-2.5 py-1 text-[11px] font-semibold text-amber-200" : "candidate-badge candidate-badge-success px-2.5 py-1 text-[11px] font-semibold"}>
                     {examStatus === "CLOSED" ? "RESUME ONLY" : "ACTIVE"}
                   </span>
 
@@ -550,7 +550,7 @@ export default async function CandidatePage() {
             </div>
 
 
-            <div className="liquid-divider my-6" />
+            <div className="candidate-divider my-6" />
 
 
             {/* ================================= */}
@@ -683,7 +683,7 @@ export default async function CandidatePage() {
 
                   <Link
                     href={`/candidate/exam/${exam.id}`}
-                    className="liquid-button-primary group flex w-full items-center justify-center rounded-[16px] px-5 py-4 font-semibold"
+                    className="candidate-button-primary group flex w-full items-center justify-center rounded-[16px] px-5 py-4 font-semibold"
                   >
 
                     <span>
