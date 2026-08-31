@@ -215,7 +215,7 @@ export default function LoginPage() {
   // =====================================
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-12">
+    <main className="admin-auth-page relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-12">
 
       {/* ================================= */}
       {/* BACKGROUND GLOW */}
@@ -242,17 +242,17 @@ export default function LoginPage() {
         {/* BRAND */}
         {/* ================================= */}
 
-        <div className="mb-7 text-center">
+        <div className="admin-auth-brand">
 
           <VectrBrand centered className="mx-auto w-fit" subtitle="Exam Platform" />
 
 
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">
+          <h1 className="admin-auth-title">
             Login Admin
           </h1>
 
 
-          <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-slate-500">
+          <p className="admin-auth-description">
             Masuk untuk mengelola workspace,
             peserta, modul, dan pelaksanaan ujian.
           </p>
@@ -268,7 +268,7 @@ export default function LoginPage() {
           onSubmit={
             handleLogin
           }
-          className="liquid-card overflow-hidden p-6 sm:p-7"
+          className="admin-auth-card"
         >
 
           <div className="relative z-10">
@@ -277,23 +277,23 @@ export default function LoginPage() {
             {/* WORKSPACE INFO */}
             {/* ================================= */}
 
-            <div className="mb-6 flex items-center gap-3 rounded-[18px] border border-white/[0.055] bg-white/[0.022] px-4 py-3">
+            <div className="admin-auth-context">
 
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-400/15 bg-emerald-400/[0.06]">
+              <div className="admin-auth-context__signal">
 
-                <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.8)]" />
+                <span />
 
               </div>
 
 
               <div>
 
-                <p className="text-xs font-medium text-slate-300">
+                <strong>
                   Administrasi Platform
-                </p>
+                </strong>
 
 
-                <p className="mt-0.5 text-[10px] text-slate-600">
+                <p>
                   Secure admin authentication
                 </p>
 
@@ -308,20 +308,20 @@ export default function LoginPage() {
 
             <label
               htmlFor="email"
-              className="text-sm text-slate-400"
+              className="admin-auth-label"
             >
               Email
             </label>
 
 
-            <div className="relative mt-2">
+            <div className="admin-auth-input-wrap">
 
-              <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center">
+              <div className="admin-auth-input-icon">
 
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
-                  className="h-4 w-4 text-slate-600"
+                  className="h-4 w-4"
                   aria-hidden="true"
                 >
                   <path
@@ -362,7 +362,7 @@ export default function LoginPage() {
                 disabled={
                   loading
                 }
-                className="liquid-input w-full py-3.5 pl-11 pr-4 disabled:cursor-not-allowed disabled:opacity-60"
+                className="admin-auth-input"
               />
 
             </div>
@@ -374,20 +374,20 @@ export default function LoginPage() {
 
             <label
               htmlFor="password"
-              className="mt-5 block text-sm text-slate-400"
+              className="admin-auth-label mt-5"
             >
               Password
             </label>
 
 
-            <div className="relative mt-2">
+            <div className="admin-auth-input-wrap">
 
-              <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center">
+              <div className="admin-auth-input-icon">
 
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
-                  className="h-4 w-4 text-slate-600"
+                  className="h-4 w-4"
                   aria-hidden="true"
                 >
                   <rect
@@ -431,7 +431,7 @@ export default function LoginPage() {
                 disabled={
                   loading
                 }
-                className="liquid-input w-full py-3.5 pl-11 pr-4 disabled:cursor-not-allowed disabled:opacity-60"
+                className="admin-auth-input"
               />
 
             </div>
@@ -442,7 +442,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={handleForgotPassword}
                 disabled={loading}
-                className="text-[11px] font-medium text-cyan-300/70 transition hover:text-cyan-200 disabled:opacity-40"
+                className="admin-auth-forgot"
               >
                 Lupa password?
               </button>
@@ -456,23 +456,16 @@ export default function LoginPage() {
             {message && (
 
               <div
-                className={
-                  messageType ===
-                  "error"
-                    ? "mt-5 rounded-[18px] border border-rose-400/15 bg-rose-400/[0.045] p-4"
-                    : "mt-5 rounded-[18px] border border-blue-400/15 bg-blue-400/[0.04] p-4"
-                }
+                role={messageType === "error" ? "alert" : "status"}
+                aria-live={messageType === "error" ? "assertive" : "polite"}
+                data-tone={messageType || "info"}
+                className="admin-auth-message"
               >
 
                 <div className="flex items-start gap-3">
 
                   <div
-                    className={
-                      messageType ===
-                      "error"
-                        ? "flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-rose-400/15 bg-rose-400/[0.07] text-[10px] font-bold text-rose-300"
-                        : "flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-blue-400/15 bg-blue-400/[0.07] text-[10px] font-bold text-blue-300"
-                    }
+                    className="admin-auth-message__signal"
                   >
                     {messageType ===
                     "error"
@@ -481,14 +474,7 @@ export default function LoginPage() {
                   </div>
 
 
-                  <p
-                    className={
-                      messageType ===
-                      "error"
-                        ? "pt-1 text-xs leading-5 text-rose-200/80"
-                        : "pt-1 text-xs leading-5 text-blue-200/75"
-                    }
-                  >
+                  <p>
                     {message}
                   </p>
 
@@ -508,7 +494,7 @@ export default function LoginPage() {
               disabled={
                 loading
               }
-              className="liquid-button-primary mt-6 flex w-full items-center justify-center gap-2 rounded-[15px] px-4 py-3.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+              className="admin-auth-submit"
             >
 
               {loading && (
@@ -531,15 +517,12 @@ export default function LoginPage() {
             {/* SECURITY NOTE */}
             {/* ================================= */}
 
-            <div className="liquid-divider my-6" />
+            <div className="admin-auth-security">
+
+              <span />
 
 
-            <div className="flex items-center justify-center gap-2 text-center">
-
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400/80 shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
-
-
-              <p className="text-[10px] leading-5 text-slate-600">
+              <p>
                 Akses workspace ditentukan berdasarkan
                 akun dan organisasi yang terdaftar.
               </p>
@@ -555,9 +538,9 @@ export default function LoginPage() {
         {/* FOOTER */}
         {/* ================================= */}
 
-        <div className="mt-6 text-center">
+        <div className="admin-auth-footer">
 
-          <p className="text-[10px] uppercase tracking-[0.2em] text-slate-700">
+          <p>
             VECTR Exam Platform Administration
           </p>
 

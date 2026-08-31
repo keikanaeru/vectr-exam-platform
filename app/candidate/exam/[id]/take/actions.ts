@@ -454,10 +454,10 @@ export async function completeExamSection(
     return { finished: true, nextSectionId: null };
   }
 
-  const [{ getExamSections, getSectionProgress }] = await Promise.all([
+  const [{ getExamSectionsForAssignment, getSectionProgress }] = await Promise.all([
     import("@/lib/exam-sections"),
   ]);
-  const sections = await getExamSections(supabase, examId);
+  const sections = await getExamSectionsForAssignment(supabase, examId, String(examSession.assignment_id));
   const progress = await getSectionProgress(supabase, String(examSession.id));
   const target = progress.find((row) => row.sectionId === sectionId);
   if (!target) throw new Error("Sesi modul yang akan diselesaikan tidak ditemukan.");
@@ -537,10 +537,10 @@ export async function startExamSection(examId: string, sectionId: string) {
   if (examSession.status !== "ACTIVE") throw new Error("Sesi ujian sudah tidak aktif.");
   if (!examSession.deadline_at) throw new Error("Deadline ujian tidak valid.");
 
-  const [{ getExamSections, getSectionProgress }] = await Promise.all([
+  const [{ getExamSectionsForAssignment, getSectionProgress }] = await Promise.all([
     import("@/lib/exam-sections"),
   ]);
-  const sections = await getExamSections(supabase, examId);
+  const sections = await getExamSectionsForAssignment(supabase, examId, String(examSession.assignment_id));
   const progress = await getSectionProgress(supabase, String(examSession.id));
   const targetSection = sections.find((section) => section.id === sectionId);
   const targetProgress = progress.find((row) => row.sectionId === sectionId);

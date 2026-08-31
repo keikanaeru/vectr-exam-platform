@@ -175,7 +175,7 @@ export default async function ExamCommunicationPage({
     return (
       <main className="mx-auto max-w-7xl px-6 py-10">
 
-        <div className="liquid-card p-8 text-center">
+        <div className="r9-surface p-8 text-center">
 
           <div className="relative z-10">
 
@@ -184,7 +184,7 @@ export default async function ExamCommunicationPage({
             </div>
 
 
-            <h1 className="mt-5 text-2xl font-bold text-white">
+            <h1 className="mt-5 text-2xl font-bold text-slate-100">
               Ujian tidak ditemukan
             </h1>
 
@@ -196,7 +196,7 @@ export default async function ExamCommunicationPage({
 
             <Link
               href="/admin/exams"
-              className="liquid-button mt-6 inline-flex rounded-[14px] px-5 py-3 text-sm text-slate-200"
+              className="r9-button r9-button--secondary mt-6"
             >
               Kembali ke Ujian
             </Link>
@@ -573,18 +573,15 @@ ${organization.name}`;
       {/* HERO */}
       {/* ================================= */}
 
-      <section className="liquid-enter mt-5">
-
-        <div className="admin-page-hero relative overflow-hidden rounded-[28px] border border-white/[0.07] bg-white/[0.025] px-6 py-8 backdrop-blur-xl sm:px-8">
-
-          <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-violet-500/[0.09] blur-3xl" />
+      <section className="mt-5">
+        <div className="r9-surface px-6 py-8 sm:px-8">
 
 
           <div className="relative">
 
             <div className="flex flex-wrap items-center gap-2">
 
-              <span className="liquid-badge px-3 py-1.5 text-[11px] text-slate-300">
+              <span className="r9-badge">
                 {organization.name}
               </span>
 
@@ -593,8 +590,8 @@ ${organization.name}`;
                 className={
                   exam.status ===
                   "ACTIVE"
-                    ? "liquid-badge liquid-badge-success px-3 py-1.5 text-[11px] font-semibold"
-                    : "liquid-badge px-3 py-1.5 text-[11px] text-slate-400"
+                    ? "r9-badge r9-badge--success"
+                    : "r9-badge"
                 }
               >
                 {exam.status}
@@ -603,12 +600,12 @@ ${organization.name}`;
             </div>
 
 
-            <p className="mt-5 text-xs uppercase tracking-[0.18em] text-violet-300/60">
+            <p className="r9-kicker text-xs font-semibold">
               Pusat Komunikasi
             </p>
 
 
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-white">
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-100">
               Email Peserta
             </h1>
 
@@ -639,7 +636,7 @@ ${organization.name}`;
       {/* SUMMARY */}
       {/* ================================= */}
 
-      <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="admin-summary-strip admin-communication-summary mt-5 grid gap-0 sm:grid-cols-2 xl:grid-cols-4">
 
         <SummaryCard
           label="Peserta Ujian"
@@ -676,7 +673,7 @@ ${organization.name}`;
           value={
             campaigns.length
           }
-          valueClassName="text-violet-300"
+          valueClassName="text-cyan-300"
         />
 
       </section>
@@ -686,7 +683,7 @@ ${organization.name}`;
       {/* EXAM INFO */}
       {/* ================================= */}
 
-      <section className="mt-5 liquid-card p-5">
+      <section className="r9-surface mt-5 p-5">
 
         <div className="relative z-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
@@ -731,8 +728,8 @@ ${organization.name}`;
 
 
       <section className="mt-5 grid gap-3 sm:grid-cols-2">
-        <div className={`liquid-card p-4 ${emailSenderReady ? "border-emerald-400/10" : "border-amber-400/15"}`}>
-          <p className="text-[11px] uppercase tracking-wider text-slate-600">Pengirim Email</p>
+        <div className={`r9-surface p-4 ${emailSenderReady ? "border-emerald-400/30" : "border-amber-400/30"}`}>
+          <p className="r9-kicker">Pengirim Email</p>
           <p className={`mt-2 text-sm font-semibold ${emailSenderReady ? "text-emerald-200" : "text-amber-200"}`}>
             {emailSenderReady ? "SIAP PRODUKSI" : "BELUM SIAP PRODUKSI"}
           </p>
@@ -740,8 +737,8 @@ ${organization.name}`;
             {emailSenderReady ? "RESEND_API_KEY dan sender domain tersedia." : "Lengkapi RESEND_API_KEY + RESEND_FROM_EMAIL sebelum mengirim ke peserta sungguhan."}
           </p>
         </div>
-        <div className="liquid-card p-4">
-          <p className="text-[11px] uppercase tracking-wider text-slate-600">Credential Email</p>
+        <div className="r9-surface p-4">
+          <p className="r9-kicker">Credential Email</p>
           <p className={`mt-2 text-sm font-semibold ${credentialReadyCount === recipientCount && recipientCount > 0 ? "text-emerald-200" : "text-amber-200"}`}>
             {credentialReadyCount}/{recipientCount} READY
           </p>
@@ -764,17 +761,17 @@ ${organization.name}`;
           action={
             saveThisExam
           }
-          className="liquid-card p-6"
+          className="r9-surface p-6"
         >
 
           <div className="relative z-10">
 
-            <p className="text-xs uppercase tracking-[0.18em] text-cyan-300/60">
+            <p className="r9-kicker">
               Penyusun Pesan
             </p>
 
 
-            <h2 className="mt-2 text-xl font-semibold text-white">
+            <h2 className="mt-2 text-xl font-semibold text-slate-100">
               Buat Kampanye
             </h2>
 
@@ -789,7 +786,7 @@ ${organization.name}`;
             {/* CAMPAIGN NAME */}
             {/* ================================= */}
 
-            <label className="mt-6 block text-sm text-slate-400">
+            <label className="r9-field-label mt-6">
               Nama Kampanye
             </label>
 
@@ -798,7 +795,7 @@ ${organization.name}`;
               name="name"
               required
               placeholder="Undangan Ujian H-1"
-              className="liquid-input mt-2 p-3"
+              className="r9-input mt-2"
             />
 
 
@@ -811,7 +808,7 @@ ${organization.name}`;
             {/* SUBJECT */}
             {/* ================================= */}
 
-            <label className="mt-5 block text-sm text-slate-400">
+            <label className="r9-field-label mt-5">
               Subject Email
             </label>
 
@@ -822,7 +819,7 @@ ${organization.name}`;
               defaultValue={
                 defaultSubject
               }
-              className="liquid-input mt-2 p-3"
+              className="r9-input mt-2"
             />
 
 
@@ -830,7 +827,7 @@ ${organization.name}`;
             {/* BODY */}
             {/* ================================= */}
 
-            <label className="mt-5 block text-sm text-slate-400">
+            <label className="r9-field-label mt-5">
               Isi Pesan
             </label>
 
@@ -842,7 +839,7 @@ ${organization.name}`;
                 defaultBody
               }
               rows={18}
-              className="liquid-input mt-2 min-h-[420px] resize-y p-4 font-mono text-xs leading-6"
+              className="r9-input mt-2 min-h-[420px] resize-y font-mono text-xs leading-6"
             />
 
 
@@ -863,7 +860,7 @@ ${organization.name}`;
                 recipientCount ===
                 0
               }
-              className="liquid-button-primary mt-6 w-full rounded-[14px] px-5 py-3.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+              className="r9-button r9-button--primary mt-6 w-full disabled:opacity-40"
             >
               Simpan Kampanye
             </button>
@@ -894,16 +891,16 @@ ${organization.name}`;
           {/* VARIABLES */}
           {/* ================================= */}
 
-          <div className="liquid-card p-5">
+          <div className="r9-surface p-5">
 
             <div className="relative z-10">
 
-              <p className="text-xs uppercase tracking-[0.16em] text-violet-300/60">
+              <p className="r9-kicker">
                 Variabel Template
               </p>
 
 
-              <h3 className="mt-2 font-semibold text-white">
+              <h3 className="mt-2 font-semibold text-slate-100">
                 Variabel Pesan
               </h3>
 
@@ -976,7 +973,7 @@ ${organization.name}`;
           {/* RECIPIENTS */}
           {/* ================================= */}
 
-          <div className="liquid-card p-5">
+          <div className="r9-surface p-5">
 
             <div className="relative z-10">
 
@@ -985,7 +982,7 @@ ${organization.name}`;
               </p>
 
 
-              <h3 className="mt-2 font-semibold text-white">
+              <h3 className="mt-2 font-semibold text-slate-100">
                 Penerima Email
               </h3>
 
@@ -1115,7 +1112,7 @@ ${organization.name}`;
                   key={
                     campaign.id
                   }
-                  className="liquid-card p-5"
+                  className="r9-surface p-5"
                 >
 
                   <div className="relative z-10">
@@ -1167,12 +1164,12 @@ ${organization.name}`;
                           "SCHEDULED" &&
                           campaign.scheduled_at && (
 
-                          <div className="mt-3 inline-flex items-center gap-2 rounded-[12px] border border-violet-400/10 bg-violet-400/[0.025] px-3 py-2">
+                          <div className="r9-datetime__note mt-3 inline-flex items-center gap-2 px-3 py-2">
 
-                            <span className="h-1.5 w-1.5 rounded-full bg-violet-400" />
+                            <span className="r9-datetime__note-signal h-1.5 w-1.5 rounded-full" />
 
 
-                            <p className="text-[11px] text-violet-200/70">
+                            <p className="text-[11px] text-cyan-200/80">
                               Dijadwalkan{" "}
                               {
                                 formatWib(
@@ -1206,7 +1203,7 @@ ${organization.name}`;
                             className={
                               campaign.send_mode ===
                               "SCHEDULED"
-                                ? "mt-1 text-xs text-violet-300"
+                                ? "mt-1 text-xs text-cyan-300"
                                 : "mt-1 text-xs text-slate-400"
                             }
                           >
@@ -1222,7 +1219,7 @@ ${organization.name}`;
                           href={
                             `/admin/exams/${exam.id}/communication/${campaign.id}`
                           }
-                          className="liquid-button flex items-center justify-center gap-2 rounded-[14px] px-5 py-3 text-xs font-semibold text-slate-200"
+                          className="r9-button r9-button--secondary flex items-center justify-center gap-2"
                         >
                           Pratinjau Email
 
@@ -1246,7 +1243,7 @@ ${organization.name}`;
 
         ) : (
 
-          <div className="liquid-card p-8 text-center">
+          <div className="r9-surface p-8 text-center">
 
             <p className="text-sm text-slate-400">
               Belum ada campaign email.
@@ -1283,7 +1280,7 @@ function SummaryCard({
   valueClassName?: string;
 }) {
   return (
-    <div className="liquid-card p-4">
+    <div className="r9-surface p-4">
 
       <div className="relative z-10">
 
@@ -1375,7 +1372,7 @@ function CampaignStatus({
     "SENT"
   ) {
     return (
-      <span className="rounded-full border border-emerald-400/15 bg-emerald-400/[0.06] px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
+      <span className="r9-badge r9-badge--success">
         SENT
       </span>
     );
@@ -1387,7 +1384,7 @@ function CampaignStatus({
     "SCHEDULED"
   ) {
     return (
-      <span className="rounded-full border border-violet-400/15 bg-violet-400/[0.06] px-2.5 py-1 text-[11px] font-semibold text-violet-300">
+      <span className="r9-badge r9-badge--accent">
         SCHEDULED
       </span>
     );
@@ -1399,7 +1396,7 @@ function CampaignStatus({
     "SENDING"
   ) {
     return (
-      <span className="rounded-full border border-blue-400/15 bg-blue-400/[0.06] px-2.5 py-1 text-[11px] font-semibold text-blue-300">
+      <span className="r9-badge r9-badge--accent">
         SENDING
       </span>
     );
@@ -1411,7 +1408,7 @@ function CampaignStatus({
     "FAILED"
   ) {
     return (
-      <span className="rounded-full border border-rose-400/15 bg-rose-400/[0.06] px-2.5 py-1 text-[11px] font-semibold text-rose-300">
+      <span className="r9-badge r9-badge--danger">
         FAILED
       </span>
     );
@@ -1423,7 +1420,7 @@ function CampaignStatus({
     "PARTIAL"
   ) {
     return (
-      <span className="rounded-full border border-amber-400/15 bg-amber-400/[0.05] px-2.5 py-1 text-[11px] font-semibold text-amber-300">
+      <span className="r9-badge r9-badge--warning">
         PARTIAL
       </span>
     );
@@ -1431,7 +1428,7 @@ function CampaignStatus({
 
 
   return (
-    <span className="rounded-full border border-white/[0.08] bg-white/[0.035] px-2.5 py-1 text-[11px] font-semibold text-slate-400">
+    <span className="r9-badge">
       {status}
     </span>
   );

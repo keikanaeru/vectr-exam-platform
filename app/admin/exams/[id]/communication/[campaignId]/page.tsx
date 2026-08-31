@@ -760,9 +760,8 @@ export default async function CampaignPreviewPage({
       {/* HERO */}
       {/* ================================= */}
 
-      <section className="liquid-enter mt-5">
-
-        <div className="admin-page-hero relative overflow-hidden rounded-[28px] border border-white/[0.07] bg-white/[0.025] px-6 py-8 backdrop-blur-xl sm:px-8">
+      <section className="mt-5">
+        <div className="r9-surface px-6 py-8 sm:px-8">
 
           <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-cyan-500/[0.08] blur-3xl" />
 
@@ -771,7 +770,7 @@ export default async function CampaignPreviewPage({
 
             <div className="flex flex-wrap items-center gap-2">
 
-              <span className="liquid-badge px-3 py-1.5 text-[11px] text-slate-300">
+              <span className="r9-badge">
                 {organization.name}
               </span>
 
@@ -788,7 +787,7 @@ export default async function CampaignPreviewPage({
                 "DRAFT" &&
               !hasProviderHistory && (
 
-                <span className="rounded-full border border-emerald-400/15 bg-emerald-400/[0.05] px-3 py-1.5 text-[11px] font-semibold text-emerald-300">
+                <span className="r9-badge r9-badge--success">
                   ANTREAN SIAP
                 </span>
 
@@ -797,12 +796,12 @@ export default async function CampaignPreviewPage({
             </div>
 
 
-            <p className="mt-5 text-xs uppercase tracking-[0.18em] text-cyan-300/60">
+            <p className="r9-kicker mt-5">
               Pratinjau Email
             </p>
 
 
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-white">
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-100">
               {campaign.name}
             </h1>
 
@@ -858,7 +857,7 @@ export default async function CampaignPreviewPage({
 
       {!emailSenderReady ? (
         <section className="mt-4">
-          <div className="rounded-[18px] border border-amber-400/15 bg-amber-400/[0.04] p-4">
+          <div className="r9-surface border-amber-400/30 bg-amber-400/[0.04] p-4">
             <p className="text-xs font-semibold text-amber-200">Email sender belum siap produksi</p>
             <p className="mt-1 text-[11px] leading-5 text-slate-500">Lengkapi RESEND_API_KEY dan RESEND_FROM_EMAIL lalu restart aplikasi. Antrean boleh ditinjau, tetapi pengiriman nyata dan penjadwalan dikunci sampai sender siap.</p>
           </div>
@@ -871,7 +870,7 @@ export default async function CampaignPreviewPage({
 
       <section className="mt-4">
 
-        <div className="liquid-card p-5">
+        <div className="r9-surface p-5">
 
           <div className="relative z-10">
 
@@ -879,12 +878,12 @@ export default async function CampaignPreviewPage({
 
               <div>
 
-                <p className="text-xs uppercase tracking-[0.17em] text-violet-300/60">
+                <p className="r9-kicker">
                   Antrean Email
                 </p>
 
 
-                <h2 className="mt-2 text-lg font-semibold text-white">
+                <h2 className="mt-2 text-lg font-semibold text-slate-100">
                   Status Pengiriman
                 </h2>
 
@@ -910,7 +909,7 @@ export default async function CampaignPreviewPage({
 
                   <button
                     type="submit"
-                    className="liquid-button-primary rounded-[14px] px-6 py-3 text-sm font-semibold"
+                    className="r9-button r9-button--primary"
                   >
                     {hasDeliveryQueue ? "Refresh Antrean Email" : "Siapkan Antrean Email"}
                   </button>
@@ -932,27 +931,27 @@ export default async function CampaignPreviewPage({
                   <div className="rounded-[18px] border border-cyan-400/15 bg-cyan-400/[0.035] p-4">
                     <p className="text-xs font-medium text-cyan-100">Kirim Test Dulu</p>
                     <p className="mt-1 text-[11px] leading-5 text-slate-500">Kode akses pada test memakai kode contoh, bukan credential peserta asli.</p>
-                    <input name="test_email" type="email" required placeholder="email.tester@gmail.com" className="liquid-input mt-3 p-2.5 text-xs" />
-                    <button type="submit" disabled={!emailSenderReady} className="liquid-button mt-3 w-full rounded-[12px] px-4 py-2.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40">Kirim Email Test</button>
+                    <input name="test_email" type="email" required placeholder="email.tester@gmail.com" className="r9-input mt-3 text-xs" />
+                    <button type="submit" disabled={!emailSenderReady} className="r9-button r9-button--secondary mt-3 w-full disabled:opacity-40">Kirim Email Test</button>
                   </div>
                 </form>
               )}
 
               {canRetryFailed && (
                 <form action={retryFailed} className="shrink-0">
-                  <button type="submit" className="liquid-button rounded-[14px] border border-amber-400/15 px-5 py-3 text-xs font-semibold text-amber-200">Coba Lagi Gagal · {failedCount}</button>
+                  <button type="submit" className="r9-button r9-button--secondary">Coba Lagi Gagal · {failedCount}</button>
                 </form>
               )}
 
               {canCancelScheduled && (
                 <form action={cancelScheduled} className="shrink-0">
-                  <button type="submit" className="liquid-button rounded-[14px] border border-rose-400/15 px-5 py-3 text-xs font-semibold text-rose-200">Batalkan Jadwal</button>
+                  <button type="submit" className="r9-button r9-button--danger">Batalkan Jadwal</button>
                 </form>
               )}
 
               {canSyncProvider && (
                 <form action={syncProvider} className="shrink-0">
-                  <button type="submit" className="liquid-button rounded-[14px] px-5 py-3 text-xs font-semibold">Sinkronkan Status Resend</button>
+                  <button type="submit" className="r9-button r9-button--secondary">Sinkronkan Status Resend</button>
                 </form>
               )}
 
@@ -1000,7 +999,7 @@ export default async function CampaignPreviewPage({
 
                     <button
                       type="submit"
-                      className="liquid-button-primary mt-4 w-full rounded-[14px] px-5 py-3 text-sm font-semibold"
+                      className="r9-button r9-button--primary mt-4 w-full"
                     >
                       Kirim Sekarang · {pendingCount} Email
                     </button>
@@ -1023,9 +1022,9 @@ export default async function CampaignPreviewPage({
                   className="w-full shrink-0 lg:w-[300px]"
                 >
 
-                  <div className="rounded-[18px] border border-violet-400/15 bg-violet-400/[0.04] p-4">
+                  <div className="r9-surface border-cyan-400/30 bg-cyan-400/[0.04] p-4">
 
-                    <p className="text-xs font-medium text-violet-200">
+                    <p className="text-xs font-medium text-cyan-200">
                       Siap dijadwalkan
                     </p>
 
@@ -1036,9 +1035,9 @@ export default async function CampaignPreviewPage({
                     </p>
 
 
-                    <div className="mt-3 rounded-[12px] border border-violet-400/10 bg-violet-400/[0.035] px-3 py-2.5">
+                    <div className="r9-surface-subtle mt-3 px-3 py-2.5">
 
-                      <p className="text-[11px] font-medium leading-5 text-violet-200">
+                      <p className="text-[11px] font-medium leading-5 text-cyan-200">
                         {formatWib(
                           campaign.scheduled_at
                         )} WIB
@@ -1066,7 +1065,7 @@ export default async function CampaignPreviewPage({
 
                     <button
                       type="submit"
-                      className="liquid-button-primary mt-4 w-full rounded-[14px] px-5 py-3 text-sm font-semibold"
+                      className="r9-button r9-button--primary mt-4 w-full"
                     >
                       Jadwalkan · {pendingCount} Email
                     </button>
@@ -1082,9 +1081,9 @@ export default async function CampaignPreviewPage({
 
               {campaignScheduled && (
 
-                <div className="shrink-0 rounded-[18px] border border-violet-400/15 bg-violet-400/[0.045] px-5 py-4">
+                <div className="r9-surface shrink-0 border-cyan-400/30 bg-cyan-400/[0.045] px-5 py-4">
 
-                  <p className="text-xs font-medium text-violet-200">
+                  <p className="text-xs font-medium text-cyan-200">
                     Kampanye terjadwal
                   </p>
 
@@ -1096,7 +1095,7 @@ export default async function CampaignPreviewPage({
 
                   {campaign.scheduled_at && (
 
-                    <p className="mt-2 text-[11px] leading-5 text-violet-200/70">
+                    <p className="mt-2 text-[11px] leading-5 text-cyan-200/80">
                       {formatWib(
                         campaign.scheduled_at
                       )} WIB
@@ -1207,7 +1206,7 @@ export default async function CampaignPreviewPage({
                 value={
                   processingCount
                 }
-                valueClassName="text-blue-300"
+                valueClassName="text-cyan-300"
               />
 
 
@@ -1216,7 +1215,7 @@ export default async function CampaignPreviewPage({
                 value={
                   scheduledCount
                 }
-                valueClassName="text-violet-300"
+                valueClassName="text-cyan-300"
               />
 
 
@@ -1260,7 +1259,7 @@ export default async function CampaignPreviewPage({
 
           {/* SAMPLE RECIPIENT */}
 
-          <div className="liquid-card p-5">
+          <div className="r9-surface p-5">
 
             <div className="relative z-10">
 
@@ -1269,7 +1268,7 @@ export default async function CampaignPreviewPage({
               </p>
 
 
-              <h2 className="mt-2 font-semibold text-white">
+              <h2 className="mt-2 font-semibold text-slate-100">
                 Pratinjau Peserta
               </h2>
 
@@ -1305,11 +1304,11 @@ export default async function CampaignPreviewPage({
 
           {/* VARIABLES */}
 
-          <div className="liquid-card p-5">
+          <div className="r9-surface p-5">
 
             <div className="relative z-10">
 
-              <p className="text-xs uppercase tracking-[0.16em] text-violet-300/60">
+              <p className="r9-kicker">
                 Variabel Pratinjau
               </p>
 
@@ -1379,7 +1378,7 @@ export default async function CampaignPreviewPage({
 
           {hasDeliveryQueue && (
 
-            <div className="liquid-card p-5">
+            <div className="r9-surface p-5">
 
               <div className="relative z-10">
 
@@ -1388,7 +1387,7 @@ export default async function CampaignPreviewPage({
                 </p>
 
 
-                <h3 className="mt-2 font-semibold text-white">
+                <h3 className="mt-2 font-semibold text-slate-100">
                   Queue Peserta
                 </h3>
 
@@ -1481,7 +1480,7 @@ export default async function CampaignPreviewPage({
         {/* EMAIL PREVIEW */}
         {/* ================================= */}
 
-        <div className="liquid-card overflow-hidden">
+        <div className="r9-surface overflow-hidden">
 
           <div className="relative z-10">
 
@@ -1505,19 +1504,19 @@ export default async function CampaignPreviewPage({
 
                 {campaignSent ? (
 
-                  <span className="rounded-full border border-emerald-400/15 bg-emerald-400/[0.05] px-3 py-1.5 text-[11px] font-semibold text-emerald-300">
+                  <span className="r9-badge r9-badge--success">
                     TERKIRIM
                   </span>
 
                 ) : campaignScheduled ? (
 
-                  <span className="rounded-full border border-violet-400/15 bg-violet-400/[0.05] px-3 py-1.5 text-[11px] font-semibold text-violet-300">
+                  <span className="r9-badge r9-badge--accent">
                     TERJADWAL
                   </span>
 
                 ) : (
 
-                  <span className="rounded-full border border-amber-400/15 bg-amber-400/[0.04] px-3 py-1.5 text-[11px] font-semibold text-amber-300">
+                  <span className="r9-badge r9-badge--warning">
                     BELUM DIKIRIM
                   </span>
 
@@ -1562,7 +1561,7 @@ export default async function CampaignPreviewPage({
 
                 <div className="mb-6 flex items-center gap-3">
 
-                  <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-blue-400/15 bg-white/[0.04] p-2">
+                  <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-cyan-400/20 bg-white/[0.04] p-2">
                     <Image src="/vectr-mark.png" alt="VECTR" width={34} height={34} className="h-full w-full object-contain" />
                   </div>
 
@@ -1583,7 +1582,7 @@ export default async function CampaignPreviewPage({
                 </div>
 
 
-                <div className="liquid-divider mb-6" />
+                <div className="r9-divider mb-6" />
 
 
                 <div className="whitespace-pre-wrap break-words text-sm leading-7 text-slate-300">
@@ -1602,10 +1601,10 @@ export default async function CampaignPreviewPage({
               <div
                 className={
                   campaignSent
-                    ? "rounded-[18px] border border-emerald-400/10 bg-emerald-400/[0.03] p-4"
+                    ? "r9-surface-subtle border-emerald-400/30 bg-emerald-400/[0.03] p-4"
                     : campaignScheduled
-                      ? "rounded-[18px] border border-violet-400/10 bg-violet-400/[0.03] p-4"
-                      : "rounded-[18px] border border-blue-400/10 bg-blue-400/[0.03] p-4"
+                      ? "r9-surface-subtle border-cyan-400/30 bg-cyan-400/[0.03] p-4"
+                      : "r9-surface-subtle border-cyan-400/30 bg-cyan-400/[0.03] p-4"
                 }
               >
 
@@ -1614,8 +1613,8 @@ export default async function CampaignPreviewPage({
                     campaignSent
                       ? "text-xs font-medium text-emerald-200"
                       : campaignScheduled
-                        ? "text-xs font-medium text-violet-200"
-                        : "text-xs font-medium text-blue-200"
+                        ? "text-xs font-medium text-cyan-200"
+                        : "text-xs font-medium text-cyan-200"
                   }
                 >
                   {
@@ -1687,7 +1686,7 @@ function SummaryCard({
   value: string;
 }) {
   return (
-    <div className="liquid-card p-4">
+    <div className="r9-surface p-4">
 
       <div className="relative z-10">
 
@@ -1810,7 +1809,7 @@ function DeliveryStatus({
     "SENT"
   ) {
     return (
-      <span className="shrink-0 rounded-full border border-emerald-400/15 bg-emerald-400/[0.05] px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
+      <span className="r9-badge r9-badge--success shrink-0">
         SENT
       </span>
     );
@@ -1822,7 +1821,7 @@ function DeliveryStatus({
     "FAILED"
   ) {
     return (
-      <span className="shrink-0 rounded-full border border-rose-400/15 bg-rose-400/[0.05] px-2.5 py-1 text-[11px] font-semibold text-rose-300">
+      <span className="r9-badge r9-badge--danger shrink-0">
         FAILED
       </span>
     );
@@ -1834,7 +1833,7 @@ function DeliveryStatus({
     "PROCESSING"
   ) {
     return (
-      <span className="shrink-0 rounded-full border border-blue-400/15 bg-blue-400/[0.05] px-2.5 py-1 text-[11px] font-semibold text-blue-300">
+      <span className="r9-badge r9-badge--accent shrink-0">
         PROCESSING
       </span>
     );
@@ -1846,7 +1845,7 @@ function DeliveryStatus({
     "SCHEDULED"
   ) {
     return (
-      <span className="shrink-0 rounded-full border border-violet-400/15 bg-violet-400/[0.05] px-2.5 py-1 text-[11px] font-semibold text-violet-300">
+      <span className="r9-badge r9-badge--accent shrink-0">
         SCHEDULED
       </span>
     );
@@ -1854,7 +1853,7 @@ function DeliveryStatus({
 
 
   return (
-    <span className="shrink-0 rounded-full border border-amber-400/15 bg-amber-400/[0.04] px-2.5 py-1 text-[11px] font-semibold text-amber-300">
+    <span className="r9-badge r9-badge--warning shrink-0">
       PENDING
     </span>
   );
@@ -1875,7 +1874,7 @@ function CampaignStatus({
     "SENT"
   ) {
     return (
-      <span className="rounded-full border border-emerald-400/15 bg-emerald-400/[0.05] px-3 py-1.5 text-[11px] font-semibold text-emerald-300">
+      <span className="r9-badge r9-badge--success">
         SENT
       </span>
     );
@@ -1887,7 +1886,7 @@ function CampaignStatus({
     "SENDING"
   ) {
     return (
-      <span className="rounded-full border border-blue-400/15 bg-blue-400/[0.05] px-3 py-1.5 text-[11px] font-semibold text-blue-300">
+      <span className="r9-badge r9-badge--accent">
         SENDING
       </span>
     );
@@ -1899,7 +1898,7 @@ function CampaignStatus({
     "SCHEDULED"
   ) {
     return (
-      <span className="rounded-full border border-violet-400/15 bg-violet-400/[0.05] px-3 py-1.5 text-[11px] font-semibold text-violet-300">
+      <span className="r9-badge r9-badge--accent">
         SCHEDULED
       </span>
     );
@@ -1911,7 +1910,7 @@ function CampaignStatus({
     "FAILED"
   ) {
     return (
-      <span className="rounded-full border border-rose-400/15 bg-rose-400/[0.05] px-3 py-1.5 text-[11px] font-semibold text-rose-300">
+      <span className="r9-badge r9-badge--danger">
         FAILED
       </span>
     );
@@ -1923,7 +1922,7 @@ function CampaignStatus({
     "PARTIAL"
   ) {
     return (
-      <span className="rounded-full border border-amber-400/15 bg-amber-400/[0.04] px-3 py-1.5 text-[11px] font-semibold text-amber-300">
+      <span className="r9-badge r9-badge--warning">
         PARTIAL
       </span>
     );
@@ -1931,7 +1930,7 @@ function CampaignStatus({
 
 
   return (
-    <span className="rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold text-slate-400">
+    <span className="r9-badge">
       {status}
     </span>
   );
@@ -1954,7 +1953,7 @@ function NotFoundCard({
   return (
     <main className="mx-auto max-w-7xl px-6 py-10 sm:px-8">
 
-      <div className="liquid-card p-8 text-center">
+      <div className="r9-surface p-8 text-center">
 
         <div className="relative z-10">
 
@@ -1963,7 +1962,7 @@ function NotFoundCard({
           </div>
 
 
-          <h1 className="mt-5 text-2xl font-bold text-white">
+          <h1 className="mt-5 text-2xl font-bold text-slate-100">
             {title}
           </h1>
 
@@ -1977,7 +1976,7 @@ function NotFoundCard({
             href={
               href
             }
-            className="liquid-button mt-6 inline-flex rounded-[14px] px-5 py-3 text-sm text-slate-200"
+            className="r9-button r9-button--secondary mt-6"
           >
             Kembali
           </Link>

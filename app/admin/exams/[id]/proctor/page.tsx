@@ -225,21 +225,20 @@ export default async function ProctorPage({ params, searchParams }: { params: Pr
   const highRisk = monitored.filter((row) => row.violationCount >= policy.security.violationLimit).length;
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-10 sm:px-8">
+    <main className="admin-proctor-page mx-auto max-w-7xl px-6 py-10 sm:px-8">
       <AutoRefresh />
       <AdminPageHero
         eyebrow="Live Supervision"
         title="Proctor Monitor"
         organizationName={organization.name}
-        status={<span className="liquid-badge px-3 py-1.5 text-[11px] font-semibold text-slate-400">Refresh 10 detik</span>}
+        status={<span className="r9-badge">Refresh 10 detik</span>}
         description={<span>{String(exam.title)} · Pantau sesi aktif, violation, deadline, device lock, dan tindakan pengawas.</span>}
         backHref="/admin/exams"
         backLabel="Kembali ke Ujian"
-        accent="violet"
         actions={
           <>
-            <Link href={`/admin/exams/${examId}/settings`} className="liquid-button rounded-[14px] px-5 py-3 text-sm font-semibold">Pengaturan & Punishment</Link>
-            {proctorReady ? <Link href={`/admin/exams/${examId}/proctor/events/xlsx`} className="liquid-button rounded-[14px] px-5 py-3 text-sm font-semibold text-emerald-200">Export Audit Excel</Link> : null}
+            <Link href={`/admin/exams/${examId}/settings`} className="r9-button r9-button--secondary">Pengaturan & Punishment</Link>
+            {proctorReady ? <Link href={`/admin/exams/${examId}/proctor/events/xlsx`} className="r9-button r9-button--secondary">Export Audit Excel</Link> : null}
           </>
         }
       />
@@ -247,13 +246,13 @@ export default async function ProctorPage({ params, searchParams }: { params: Pr
       {query.error ? <FlashNotice tone="error" message={query.error} /> : null}
       {query.success ? <FlashNotice tone="success" message={query.success} /> : null}
       {!proctorReady ? (
-        <div className="mt-5 rounded-[18px] border border-rose-400/15 bg-rose-400/[0.04] p-5">
+        <div className="r9-surface mt-5 border-rose-400/30 bg-rose-400/[0.04] p-5">
           <p className="text-sm font-semibold text-rose-200">Database proctoring belum aktif</p>
           <p className="mt-2 text-xs leading-5 text-slate-400">Jalankan <span className="font-mono text-slate-200">FINAL_SETUP.sql</span> di Supabase SQL Editor. Tanpa tabel ini, event pelanggaran browser tidak dapat disimpan permanen.</p>
         </div>
       ) : null}
 
-      <section className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="admin-summary-strip admin-proctor-summary mt-5 grid gap-0 sm:grid-cols-2 xl:grid-cols-5">
         <Metric label="Peserta" value={monitored.length} />
         <Metric label="Sesi Active" value={activeSessions} accent="cyan" />
         <Metric label="Submitted" value={submittedSessions} accent="green" />
@@ -261,15 +260,15 @@ export default async function ProctorPage({ params, searchParams }: { params: Pr
         <Metric label="Limit Tercapai" value={highRisk} accent={highRisk ? "rose" : undefined} />
       </section>
 
-      <div className="mt-5 rounded-[18px] border border-white/[0.055] bg-white/[0.02] p-4 text-xs text-slate-500">
+      <div className="r9-surface-subtle mt-5 p-4 text-xs text-slate-500">
         Policy aktif: limit <span className="font-semibold text-slate-300">{policy.security.violationLimit}</span> violation · auto-submit <span className={policy.security.autoSubmitOnLimit ? "font-semibold text-rose-300" : "font-semibold text-slate-300"}>{policy.security.autoSubmitOnLimit ? "ON" : "OFF"}</span> · fullscreen <span className="font-semibold text-slate-300">{policy.security.requireFullscreen ? "WAJIB" : "opsional"}</span>.
       </div>
 
-      <section className="mt-4 flex flex-wrap items-center gap-2 rounded-[18px] border border-white/[0.055] bg-white/[0.018] p-4">
+      <section className="r9-surface-subtle mt-4 flex flex-wrap items-center gap-2 p-4">
         <form action={finalizeOverdueSessions.bind(null, examId)}>
           <ConfirmSubmitButton
             message="Finalisasi semua sesi ACTIVE yang deadline-nya sudah lewat? Jawaban tersimpan akan langsung dinilai."
-            className="rounded-[12px] border border-amber-400/15 bg-amber-400/[0.04] px-4 py-2.5 text-xs font-semibold text-amber-200"
+            className="r9-button r9-button--secondary"
           >
             Finalize Overdue
           </ConfirmSubmitButton>
@@ -277,7 +276,7 @@ export default async function ProctorPage({ params, searchParams }: { params: Pr
         <form action={forceSubmitAllActiveSessions.bind(null, examId)}>
           <ConfirmSubmitButton
             message="Submit SEMUA sesi ACTIVE sekarang? Gunakan saat pengawas benar-benar mengakhiri ujian untuk seluruh peserta."
-            className="rounded-[12px] border border-rose-400/15 bg-rose-400/[0.05] px-4 py-2.5 text-xs font-semibold text-rose-200"
+            className="r9-button r9-button--danger"
           >
             Submit Semua Sesi Aktif
           </ConfirmSubmitButton>
@@ -292,7 +291,7 @@ export default async function ProctorPage({ params, searchParams }: { params: Pr
           const atLimit = violationCount >= policy.security.violationLimit;
           const lastEvent = row.violations[0];
           return (
-            <article key={row.assignmentId} className={`liquid-card p-5 sm:p-6 ${atLimit ? "ring-1 ring-rose-400/15" : ""}`}>
+            <article key={row.assignmentId} className={`admin-proctor-record r9-surface p-5 sm:p-6 ${atLimit ? "ring-1 ring-rose-400/15" : ""}`}>
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
@@ -300,11 +299,11 @@ export default async function ProctorPage({ params, searchParams }: { params: Pr
                     <SessionStatus status={session?.status ?? "NOT_STARTED"} />
                     {!row.active ? <span className="rounded-full bg-white/[0.04] px-2 py-1 text-[11px] text-slate-600">ASSIGNMENT OFF</span> : null}
                   </div>
-                  <h2 className="mt-2 truncate text-lg font-semibold text-white">{row.displayName}</h2>
+                  <h2 className="mt-2 truncate text-lg font-semibold text-slate-100">{row.displayName}</h2>
                   <p className="mt-1 text-[11px] text-slate-600">{row.email}</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:min-w-[520px]">
+                <div className="admin-proctor-meta grid grid-cols-2 gap-2 sm:grid-cols-4 xl:min-w-[520px]">
                   <Small label="Attempt" value={session ? String(session.attempt_no) : "-"} />
                   <Small label="Violation" value={String(violationCount)} danger={atLimit} />
                   <Small label="Last seen" value={session ? relativeSeen(session.last_seen_at) : "-"} />
@@ -325,27 +324,27 @@ export default async function ProctorPage({ params, searchParams }: { params: Pr
               {session?.status === "ACTIVE" ? (
                 <div className="mt-4 flex flex-wrap items-end gap-2">
                   <form action={extendSessionTime.bind(null, examId, session.id)} className="flex items-end gap-2">
-                    <label><span className="mb-1 block text-[11px] text-slate-600">Tambah waktu</span><input name="minutes" type="number" min="1" max="120" defaultValue="10" className="w-20 rounded-[11px] border border-white/[0.07] bg-white/[0.025] px-3 py-2 text-xs text-slate-200 outline-none" /></label>
-                    <button className="liquid-button rounded-[11px] px-3 py-2 text-xs font-semibold">+ Menit</button>
+                    <label><span className="r9-field-label mb-1">Tambah waktu</span><input name="minutes" type="number" min="1" max="120" defaultValue="10" className="r9-input w-20" /></label>
+                    <button className="r9-button r9-button--secondary">+ Menit</button>
                   </form>
                   {proctorReady && violationCount > 0 ? (
                     <form action={resetSessionViolationCounter.bind(null, examId, session.id)}>
-                      <ConfirmSubmitButton message={`Reset counter ${violationCount} violation untuk ${row.displayName}? Audit historis tidak akan dihapus.`} className="rounded-[11px] border border-amber-400/12 bg-amber-400/[0.04] px-3 py-2 text-xs font-semibold text-amber-200">Reset Counter</ConfirmSubmitButton>
+                      <ConfirmSubmitButton message={`Reset counter ${violationCount} violation untuk ${row.displayName}? Audit historis tidak akan dihapus.`} className="r9-button r9-button--secondary">Reset Counter</ConfirmSubmitButton>
                     </form>
                   ) : null}
                   <form action={releaseDeviceLock.bind(null, examId, session.id)}>
-                    <ConfirmSubmitButton message={`Lepas device lock untuk ${row.displayName}? Gunakan ini jika peserta perlu pindah laptop/browser.`} className="rounded-[11px] border border-cyan-400/12 bg-cyan-400/[0.04] px-3 py-2 text-xs font-semibold text-cyan-200">Release Device</ConfirmSubmitButton>
+                    <ConfirmSubmitButton message={`Lepas device lock untuk ${row.displayName}? Gunakan ini jika peserta perlu pindah laptop/browser.`} className="r9-button r9-button--secondary">Release Device</ConfirmSubmitButton>
                   </form>
                   <form action={forceSubmitSession.bind(null, examId, session.id)}>
-                    <ConfirmSubmitButton message={`Submit paksa sesi ${row.displayName}? Jawaban yang tersimpan akan langsung dinilai.`} className="rounded-[11px] border border-rose-400/15 bg-rose-400/[0.05] px-3 py-2 text-xs font-semibold text-rose-200">Submit Paksa</ConfirmSubmitButton>
+                    <ConfirmSubmitButton message={`Submit paksa sesi ${row.displayName}? Jawaban yang tersimpan akan langsung dinilai.`} className="r9-button r9-button--danger">Submit Paksa</ConfirmSubmitButton>
                   </form>
                 </div>
               ) : null}
 
               {session?.status !== "ACTIVE" ? (
                 <form action={setAssignmentExtraTime.bind(null, examId, row.assignmentId)} className="mt-4 flex items-end gap-2">
-                  <label><span className="mb-1 block text-[11px] text-slate-600">Extra time sebelum start</span><input name="extra_time_minutes" type="number" min="0" max="240" defaultValue={row.extraTimeMinutes} className="w-24 rounded-[11px] border border-white/[0.07] bg-white/[0.025] px-3 py-2 text-xs text-slate-200 outline-none" /></label>
-                  <button className="liquid-button rounded-[11px] px-3 py-2 text-xs font-semibold">Simpan Extra Time</button>
+                  <label><span className="r9-field-label mb-1">Extra time sebelum start</span><input name="extra_time_minutes" type="number" min="0" max="240" defaultValue={row.extraTimeMinutes} className="r9-input w-24" /></label>
+                  <button className="r9-button r9-button--secondary">Simpan Extra Time</button>
                 </form>
               ) : null}
             </article>
@@ -354,8 +353,8 @@ export default async function ProctorPage({ params, searchParams }: { params: Pr
       </section>
 
       {events.length ? (
-        <section className="liquid-card mt-6 p-6">
-          <h2 className="text-lg font-semibold text-white">Audit Event Terbaru</h2>
+        <section className="r9-surface mt-6 p-6">
+          <h2 className="text-lg font-semibold text-slate-100">Audit Event Terbaru</h2>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-xs">
               <thead className="text-[11px] uppercase tracking-wider text-slate-700"><tr><th className="pb-3 pr-4">Waktu</th><th className="pb-3 pr-4">Peserta</th><th className="pb-3 pr-4">Event</th><th className="pb-3">Detail</th></tr></thead>
@@ -375,15 +374,14 @@ export default async function ProctorPage({ params, searchParams }: { params: Pr
 
 function Metric({ label, value, accent }: { label: string; value: number; accent?: "cyan" | "green" | "amber" | "rose" }) {
   const tone = accent === "cyan" ? "text-cyan-200" : accent === "green" ? "text-emerald-200" : accent === "amber" ? "text-amber-200" : accent === "rose" ? "text-rose-200" : "text-slate-100";
-  return <div className="liquid-card p-5"><p className="text-[11px] uppercase tracking-wider text-slate-600">{label}</p><p className={`mt-2 text-2xl font-semibold ${tone}`}>{value}</p></div>;
+  return <div className="admin-proctor-metric r9-surface p-5"><p className="r9-kicker">{label}</p><p className={`mt-2 text-2xl font-semibold ${tone}`}>{value}</p></div>;
 }
 
 function Small({ label, value, danger = false }: { label: string; value: string; danger?: boolean }) {
-  return <div className="rounded-[13px] border border-white/[0.055] bg-black/10 p-3"><p className="text-[11px] uppercase tracking-wider text-slate-700">{label}</p><p className={`mt-1 truncate text-[11px] font-medium ${danger ? "text-rose-200" : "text-slate-300"}`}>{value}</p></div>;
+  return <div className="admin-proctor-meta-item r9-surface-subtle p-3"><p className="r9-kicker">{label}</p><p className={`mt-1 truncate text-[11px] font-medium ${danger ? "text-rose-200" : "text-slate-300"}`}>{value}</p></div>;
 }
 
 function SessionStatus({ status }: { status: string }) {
-  const cls = status === "ACTIVE" ? "bg-cyan-400/[0.08] text-cyan-200" : status === "SUBMITTED" ? "bg-emerald-400/[0.08] text-emerald-200" : "bg-white/[0.04] text-slate-600";
-  return <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${cls}`}>{status}</span>;
+  const toneClass = status === "ACTIVE" ? "r9-badge--success" : status === "SUBMITTED" ? "r9-badge--accent" : "";
+  return <span className={`r9-badge ${toneClass}`}>{status}</span>;
 }
-

@@ -146,7 +146,8 @@ export default function ExamShareActions({
         onClick={
           handleCopy
         }
-        className="liquid-button flex items-center justify-center gap-2 rounded-[14px] px-4 py-3 text-xs font-semibold text-slate-200"
+        className="r9-button r9-button--secondary w-full"
+        aria-live="polite"
       >
 
         <span>
@@ -170,7 +171,7 @@ export default function ExamShareActions({
         onClick={
           handleOpen
         }
-        className="liquid-button flex items-center justify-center gap-2 rounded-[14px] px-4 py-3 text-xs font-semibold text-slate-200"
+        className="r9-button r9-button--secondary w-full"
       >
 
         <span>

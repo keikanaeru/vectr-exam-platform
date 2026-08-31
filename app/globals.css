@@ -72,6 +72,16 @@ html {
   scroll-behavior: smooth;
 }
 
+/*
+   R8.4-C4.1 ADMIN VIEWPORT STABILITY
+   Reserve the viewport scrollbar slot on Admin routes so centered
+   max-width shell/header content does not shift between short and
+   long admin pages.
+*/
+html:has(.admin-shell) {
+  scrollbar-gutter: stable;
+}
+
 
 body {
   min-height: 100vh;
@@ -1536,4 +1546,2587 @@ body {
   .admin-performance-shell button [class*="animate-spin"] {
     animation-duration: .7s;
   }
+}
+
+/* =========================================================
+   R8.4-B QUIET OPERATIONAL ADMIN
+   Admin should read as focused operational software rather
+   than decorative liquid-glass / AI-dashboard chrome.
+   Candidate surfaces intentionally remain unchanged.
+   ========================================================= */
+
+.admin-performance-shell {
+  --ui-radius-control: 10px;
+  --ui-radius-panel: 14px;
+  background: #070d18;
+}
+
+/* Decorative ambient blobs add visual noise and GPU work. */
+.admin-performance-shell [class*="blur-3xl"],
+.admin-performance-shell .liquid-glow::after {
+  display: none !important;
+}
+
+/* ---------------------------------------------------------
+   SURFACES
+   --------------------------------------------------------- */
+
+.admin-performance-shell .liquid-card {
+  border-color: rgba(148, 163, 184, 0.12) !important;
+  border-radius: var(--ui-radius-panel) !important;
+  background: #0b1322 !important;
+  box-shadow: none !important;
+}
+
+.admin-performance-shell .liquid-card::before {
+  display: none !important;
+}
+
+.admin-performance-shell .liquid-card-interactive {
+  transition:
+    border-color 140ms ease,
+    background 140ms ease !important;
+}
+
+.admin-performance-shell .liquid-card-interactive:hover,
+.admin-performance-shell .liquid-card-interactive:active {
+  transform: none !important;
+  border-color: rgba(148, 163, 184, 0.22) !important;
+  background: #0d1728 !important;
+  box-shadow: none !important;
+}
+
+.admin-performance-shell .admin-page-hero > [class*="absolute"] {
+  box-shadow: none !important;
+}
+
+/* ---------------------------------------------------------
+   HEADER + NAV
+   --------------------------------------------------------- */
+
+.admin-performance-shell .admin-header-nav {
+  border-color: rgba(148, 163, 184, 0.12) !important;
+  border-radius: 16px !important;
+  background: #080f1c !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.035) !important;
+}
+
+.admin-performance-shell .liquid-nav-rail {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.admin-performance-shell .liquid-nav-orb {
+  border: 1px solid rgba(34, 211, 238, 0.16) !important;
+  background: rgba(34, 211, 238, 0.07) !important;
+  box-shadow: none !important;
+}
+
+.admin-performance-shell .liquid-nav-orb::after {
+  display: none !important;
+}
+
+.admin-performance-shell .admin-nav-link {
+  transition: color 140ms ease !important;
+}
+
+.admin-performance-shell .admin-nav-icon {
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+.admin-performance-shell
+  .admin-nav-link[aria-current="page"]
+  .admin-nav-icon {
+  border-color: rgba(34, 211, 238, 0.18) !important;
+  background: rgba(34, 211, 238, 0.07) !important;
+  color: #a5f3fc !important;
+  box-shadow: none !important;
+}
+
+/* ---------------------------------------------------------
+   BUTTONS
+   --------------------------------------------------------- */
+
+.admin-performance-shell .liquid-button,
+.admin-performance-shell .liquid-button-primary {
+  border-radius: 10px !important;
+  box-shadow: none !important;
+
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease !important;
+}
+
+.admin-performance-shell .liquid-button {
+  border-color: rgba(148, 163, 184, 0.16) !important;
+  background: #101927 !important;
+}
+
+.admin-performance-shell .liquid-button:hover {
+  transform: none !important;
+  border-color: rgba(148, 163, 184, 0.28) !important;
+  background: #152033 !important;
+  box-shadow: none !important;
+}
+
+.admin-performance-shell .liquid-button-primary {
+  border-color: #0891b2 !important;
+  background: #0e7490 !important;
+  filter: none !important;
+}
+
+.admin-performance-shell .liquid-button-primary:hover {
+  transform: none !important;
+  border-color: #22d3ee !important;
+  background: #0891b2 !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+.admin-performance-shell .liquid-button:active,
+.admin-performance-shell .liquid-button-primary:active {
+  transform: none !important;
+}
+
+.admin-performance-shell .liquid-button::after,
+.admin-performance-shell .liquid-button-primary::after {
+  display: none !important;
+}
+
+/* ---------------------------------------------------------
+   INPUTS
+   --------------------------------------------------------- */
+
+.admin-performance-shell .liquid-input,
+.admin-performance-shell .liquid-select,
+.admin-performance-shell .field,
+.admin-performance-shell .glass-select-trigger {
+  border-color: rgba(148, 163, 184, 0.15) !important;
+  border-radius: var(--ui-radius-control) !important;
+  background: #091220 !important;
+  box-shadow: none !important;
+}
+
+.admin-performance-shell .liquid-input:hover,
+.admin-performance-shell .liquid-select:hover,
+.admin-performance-shell .field:hover,
+.admin-performance-shell .glass-select-trigger:hover {
+  border-color: rgba(148, 163, 184, 0.28) !important;
+}
+
+.admin-performance-shell .liquid-input:focus,
+.admin-performance-shell .liquid-select:focus,
+.admin-performance-shell .field:focus,
+.admin-performance-shell
+  .glass-select-trigger[aria-expanded="true"] {
+  border-color: rgba(34, 211, 238, 0.52) !important;
+  background: #0b1525 !important;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.08) !important;
+}
+
+/* ---------------------------------------------------------
+   BADGES / STATUS
+   --------------------------------------------------------- */
+
+.admin-performance-shell .liquid-badge {
+  border-radius: 8px !important;
+  background: rgba(148, 163, 184, 0.07) !important;
+  box-shadow: none !important;
+}
+
+.admin-performance-shell .liquid-badge-success {
+  border-color: rgba(52, 211, 153, 0.2) !important;
+  background: rgba(16, 185, 129, 0.07) !important;
+  box-shadow: none !important;
+}
+
+/* Kill ornamental utility glows inside admin only. */
+.admin-performance-shell [class*="shadow-[0_0_"] {
+  box-shadow: none !important;
+}
+
+/* ---------------------------------------------------------
+   DIVIDERS
+   --------------------------------------------------------- */
+
+.admin-performance-shell .liquid-divider {
+  background: rgba(148, 163, 184, 0.12) !important;
+}
+
+/* ---------------------------------------------------------
+   LIGHT ADMIN
+   --------------------------------------------------------- */
+
+[data-admin-theme="light"] .admin-performance-shell {
+  background: #f3f6fa !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-header-stage::before {
+  display: none !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .liquid-card {
+  border-color: #dbe3ed !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-header-nav {
+  border-color: #dbe3ed !important;
+  background: #f9fbfd !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .liquid-nav-rail {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .liquid-nav-orb {
+  border-color: rgba(8, 145, 178, 0.18) !important;
+  background: rgba(8, 145, 178, 0.07) !important;
+  box-shadow: none !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .liquid-button:not(.liquid-button-primary) {
+  color: #334155 !important;
+  border-color: #d7e0ea !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .liquid-button:not(.liquid-button-primary):hover {
+  color: #0f172a !important;
+  border-color: #c4d0dd !important;
+  background: #f7fafc !important;
+  box-shadow: none !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .liquid-input,
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .liquid-select,
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .field,
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .glass-select-trigger,
+[data-admin-theme="light"]
+  .admin-performance-shell
+  input:not([type="checkbox"]):not([type="radio"]),
+[data-admin-theme="light"]
+  .admin-performance-shell
+  textarea {
+  color: #172033 !important;
+  border-color: #d7e0ea !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .liquid-badge:not(.liquid-badge-success) {
+  border-color: #d7e0ea !important;
+  background: #f5f8fb !important;
+  box-shadow: none !important;
+}
+
+/* =========================================================
+   R8.4-B2 ADMIN HIERARCHY + DENSITY
+   ========================================================= */
+
+.admin-performance-shell main {
+  padding-top: 1.5rem !important;
+}
+
+/* Page headings should behave as headings, not giant cards. */
+.admin-performance-shell .admin-page-hero {
+  border: 0 !important;
+  border-bottom:
+    1px solid
+    rgba(148, 163, 184, 0.12) !important;
+
+  border-radius: 0 !important;
+
+  padding:
+    1rem 0
+    1.35rem !important;
+
+  background:
+    transparent !important;
+
+  box-shadow:
+    none !important;
+}
+
+/* Organization is already visible in the global header. */
+.admin-performance-shell
+  .admin-page-hero
+  .liquid-badge {
+  display: none !important;
+}
+
+/* Workspace bar becomes metadata, not another floating card. */
+.admin-performance-shell
+  .admin-context-bar {
+  border-right: 0 !important;
+  border-left: 0 !important;
+
+  border-radius: 0 !important;
+
+  padding:
+    0.5rem
+    0.25rem !important;
+
+  background:
+    transparent !important;
+
+  box-shadow:
+    none !important;
+}
+
+/* Secondary copy was too dim in B1 screenshots. */
+.admin-performance-shell
+  .text-slate-500 {
+  color: #7c8ca3 !important;
+}
+
+.admin-performance-shell
+  .text-slate-600 {
+  color: #5f7189 !important;
+}
+
+/* Micro headings: less template-like all-caps + tracking. */
+.admin-performance-shell
+  main
+  [class*="uppercase"][class*="tracking-"] {
+  text-transform:
+    none !important;
+
+  letter-spacing:
+    0.025em !important;
+}
+
+/* Blue/violet are decorative accents here, not semantic states. */
+.admin-performance-shell
+  main
+  [class*="text-violet-"],
+.admin-performance-shell
+  main
+  [class*="text-blue-"] {
+  color:
+    #67e8f9 !important;
+}
+
+/* Remove leftover decorative icon glow. */
+/* Cleaner hierarchy under the new flat page heading. */
+.admin-performance-shell
+  .admin-page-hero
+  h1 {
+  margin-top:
+    0.6rem !important;
+}
+
+/* Light theme follows the same hierarchy. */
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-page-hero {
+  border-bottom-color:
+    #dbe3ed !important;
+
+  background:
+    transparent !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-context-bar {
+  border-top-color:
+    #dbe3ed !important;
+
+  border-bottom-color:
+    #dbe3ed !important;
+
+  background:
+    transparent !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .text-slate-500 {
+  color:
+    #52647a !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .text-slate-600 {
+  color:
+    #6a7b90 !important;
+}
+
+/* =========================================================
+   R8.4-B3 PRODUCT IA
+   Research direction:
+   repeated-use operational SaaS, restrained surfaces,
+   semantic status only, scan-first information hierarchy.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   DASHBOARD
+   --------------------------------------------------------- */
+
+.admin-performance-shell
+  .admin-dashboard-stats {
+  border-top:
+    1px solid
+    rgba(148, 163, 184, .12);
+
+  border-bottom:
+    1px solid
+    rgba(148, 163, 184, .12);
+}
+
+.admin-performance-shell
+  .admin-dashboard-stat {
+  border-right:
+    1px solid
+    rgba(148, 163, 184, .12);
+
+  background:
+    transparent;
+}
+
+.admin-performance-shell
+  .admin-dashboard-stat:last-child {
+  border-right:
+    0;
+}
+
+.admin-performance-shell
+  .admin-dashboard-stat:hover {
+  background:
+    rgba(148, 163, 184, .035);
+}
+
+/* ---------------------------------------------------------
+   EXAM TOP SUMMARY
+   Stat values remain the visual anchor.
+   --------------------------------------------------------- */
+
+.admin-performance-shell
+  .admin-exam-summary {
+  border-top:
+    1px solid
+    rgba(148, 163, 184, .12);
+
+  border-bottom:
+    1px solid
+    rgba(148, 163, 184, .12);
+}
+
+.admin-performance-shell
+  .admin-exam-summary
+  > * {
+  border:
+    0 !important;
+
+  border-right:
+    1px solid
+    rgba(148, 163, 184, .12) !important;
+
+  border-radius:
+    0 !important;
+
+  background:
+    transparent !important;
+
+  box-shadow:
+    none !important;
+}
+
+.admin-performance-shell
+  .admin-exam-summary
+  > *:last-child {
+  border-right:
+    0 !important;
+}
+
+/* ---------------------------------------------------------
+   EXAM RECORD
+   Outer record remains the grouping surface.
+   Neutral nested boxes are demoted.
+   Semantic status boxes keep their colors/borders.
+   --------------------------------------------------------- */
+
+.admin-performance-shell
+  .admin-exam-record
+  [class*="border-white/"] {
+  border-color:
+    rgba(148, 163, 184, .07) !important;
+}
+
+.admin-performance-shell
+  .admin-exam-record
+  [class*="bg-white/"],
+.admin-performance-shell
+  .admin-exam-record
+  [class*="bg-black/"] {
+  background:
+    transparent !important;
+}
+
+.admin-performance-shell
+  .admin-exam-record
+  [class*="rounded-[20px]"],
+.admin-performance-shell
+  .admin-exam-record
+  [class*="rounded-[18px]"],
+.admin-performance-shell
+  .admin-exam-record
+  [class*="rounded-[16px]"] {
+  border-radius:
+    8px !important;
+}
+
+/* Creation is a task panel, so it remains visibly grouped. */
+.admin-performance-shell
+  .admin-exam-create-panel {
+  border-color:
+    rgba(148, 163, 184, .14) !important;
+}
+
+/* ---------------------------------------------------------
+   RESPONSIVE
+   --------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .admin-performance-shell
+    .admin-dashboard-stat {
+    border-right:
+      0;
+
+    border-bottom:
+      1px solid
+      rgba(148, 163, 184, .12);
+  }
+
+  .admin-performance-shell
+    .admin-dashboard-stat:last-child {
+    border-bottom:
+      0;
+  }
+
+  .admin-performance-shell
+    .admin-exam-summary
+    > * {
+    border-right:
+      0 !important;
+
+    border-bottom:
+      1px solid
+      rgba(148, 163, 184, .12) !important;
+  }
+
+  .admin-performance-shell
+    .admin-exam-summary
+    > *:last-child {
+    border-bottom:
+      0 !important;
+  }
+}
+
+/* ---------------------------------------------------------
+   LIGHT ADMIN
+   --------------------------------------------------------- */
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-dashboard-stats,
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-exam-summary {
+  border-color:
+    #dbe3ed !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-dashboard-stat {
+  border-color:
+    #dbe3ed !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-dashboard-stat:hover {
+  background:
+    #f7fafc;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-exam-summary
+  > * {
+  border-color:
+    #dbe3ed !important;
+
+  background:
+    transparent !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-exam-record
+  [class*="border-white/"] {
+  border-color:
+    #edf1f5 !important;
+}
+
+/* =========================================================
+   R8.4-B4.2 FINAL EXAM IA
+   Operational exam records:
+   one primary grouping surface, inline metadata,
+   semantic state surfaces only.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   PRIMARY EXAM RECORD
+   --------------------------------------------------------- */
+
+.admin-performance-shell
+  .admin-exam-record {
+  overflow:
+    hidden;
+
+  border:
+    1px solid
+    rgba(148, 163, 184, .14) !important;
+
+  border-radius:
+    14px !important;
+
+  background:
+    #0b1322 !important;
+
+  box-shadow:
+    none !important;
+}
+
+/* ---------------------------------------------------------
+   PARTICIPANT METADATA
+   Batch / Assigned / Ready belong to one dataset.
+   --------------------------------------------------------- */
+
+.admin-performance-shell
+  .admin-exam-participant-meta {
+  min-width:
+    15rem;
+
+  align-self:
+    stretch;
+
+  border-left:
+    1px solid
+    rgba(148, 163, 184, .11);
+}
+
+.admin-performance-shell
+  .admin-exam-mini {
+  display:
+    flex;
+
+  min-width:
+    0;
+
+  flex-direction:
+    column;
+
+  justify-content:
+    center;
+
+  border-right:
+    1px solid
+    rgba(148, 163, 184, .11);
+
+  background:
+    transparent !important;
+}
+
+.admin-performance-shell
+  .admin-exam-mini:last-child {
+  border-right:
+    0;
+}
+
+/* ---------------------------------------------------------
+   SCHEDULE
+   One metadata strip instead of four independent cards.
+   --------------------------------------------------------- */
+
+.admin-performance-shell
+  .admin-exam-schedule-grid {
+  overflow:
+    hidden;
+
+  border-top:
+    1px solid
+    rgba(148, 163, 184, .11);
+
+  border-bottom:
+    1px solid
+    rgba(148, 163, 184, .11);
+
+  background:
+    rgba(2, 6, 23, .10);
+}
+
+.admin-performance-shell
+  .admin-exam-schedule {
+  display:
+    flex;
+
+  min-height:
+    3.75rem;
+
+  min-width:
+    0;
+
+  flex-direction:
+    column;
+
+  justify-content:
+    center;
+
+  border-right:
+    1px solid
+    rgba(148, 163, 184, .11);
+
+  background:
+    transparent !important;
+}
+
+.admin-performance-shell
+  .admin-exam-schedule:last-child {
+  border-right:
+    0;
+}
+
+/* ---------------------------------------------------------
+   EDIT DISCLOSURE
+   A disclosure is interaction chrome, not another content card.
+   --------------------------------------------------------- */
+
+.admin-performance-shell
+  .admin-exam-edit {
+  border-top:
+    1px solid
+    rgba(148, 163, 184, .11);
+
+  border-bottom:
+    1px solid
+    rgba(148, 163, 184, .11);
+
+  border-radius:
+    0 !important;
+
+  padding:
+    .8rem 0;
+
+  background:
+    transparent !important;
+
+  box-shadow:
+    none !important;
+}
+
+.admin-performance-shell
+  .admin-exam-edit > summary {
+  display:
+    flex;
+
+  min-height:
+    2rem;
+
+  cursor:
+    pointer;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+}
+
+.admin-performance-shell
+  .admin-exam-edit > summary::after {
+  content:
+    "+";
+
+  margin-left:
+    1rem;
+
+  color:
+    #64748b;
+
+  font-size:
+    .875rem;
+
+  font-weight:
+    500;
+}
+
+.admin-performance-shell
+  .admin-exam-edit[open] > summary::after {
+  content:
+    "−";
+}
+
+/* ---------------------------------------------------------
+   SYNC / CREDENTIAL ACTION ROW
+   --------------------------------------------------------- */
+
+.admin-performance-shell
+  .admin-exam-sync-row {
+  align-items:
+    center;
+}
+
+.admin-performance-shell
+  .admin-exam-sync-row
+  > * {
+  min-width:
+    0;
+}
+
+/* Completed credential is inline state, not another green card. */
+.admin-performance-shell
+  .admin-exam-credential-state {
+  min-height:
+    2.75rem;
+
+  border:
+    0 !important;
+
+  border-radius:
+    0 !important;
+
+  background:
+    transparent !important;
+
+  box-shadow:
+    none !important;
+}
+
+/* ---------------------------------------------------------
+   CREDENTIAL + RESULTS
+   Two information regions separated by divider.
+   --------------------------------------------------------- */
+
+.admin-performance-shell
+  .admin-exam-detail-grid {
+  overflow:
+    hidden;
+
+  border-top:
+    1px solid
+    rgba(148, 163, 184, .11);
+
+  border-bottom:
+    1px solid
+    rgba(148, 163, 184, .11);
+}
+
+.admin-performance-shell
+  .admin-exam-detail-section {
+  min-width:
+    0;
+
+  border:
+    0 !important;
+
+  border-radius:
+    0 !important;
+
+  padding:
+    1rem 0;
+
+  background:
+    transparent !important;
+
+  box-shadow:
+    none !important;
+}
+
+.admin-performance-shell
+  .admin-exam-detail-section:first-child {
+  padding-right:
+    1rem;
+
+  border-right:
+    1px solid
+    rgba(148, 163, 184, .11) !important;
+}
+
+.admin-performance-shell
+  .admin-exam-detail-section:last-child {
+  padding-left:
+    1rem;
+}
+
+/* Green remains on meaningful text/state, not whole surface. */
+.admin-performance-shell
+  .admin-exam-results {
+  background:
+    transparent !important;
+}
+
+/* ---------------------------------------------------------
+   SEMANTIC STATE CONTRACT
+   Explicitly preserve warning/readiness surfaces.
+   --------------------------------------------------------- */
+
+.admin-performance-shell
+  .admin-exam-record
+  [class*="border-amber-"][class*="bg-amber-"],
+.admin-performance-shell
+  .admin-exam-record
+  [class*="border-rose-"][class*="bg-rose-"],
+.admin-performance-shell
+  .admin-exam-record
+  [class*="border-emerald-"][class*="bg-emerald-"],
+.admin-performance-shell
+  .admin-exam-record
+  [class*="border-violet-"][class*="bg-violet-"] {
+  box-shadow:
+    none !important;
+}
+
+/* ---------------------------------------------------------
+   RESPONSIVE
+   --------------------------------------------------------- */
+
+@media (max-width: 1279px) {
+  .admin-performance-shell
+    .admin-exam-participant-meta {
+    width:
+      100%;
+
+    min-width:
+      0;
+
+    margin-top:
+      .75rem;
+
+    border-top:
+      1px solid
+      rgba(148, 163, 184, .11);
+
+    border-left:
+      0;
+
+    padding-top:
+      .65rem;
+  }
+}
+
+@media (max-width: 1023px) {
+  .admin-performance-shell
+    .admin-exam-detail-grid {
+    border-bottom:
+      0;
+  }
+
+  .admin-performance-shell
+    .admin-exam-detail-section:first-child {
+    padding-right:
+      0;
+
+    border-right:
+      0 !important;
+  }
+
+  .admin-performance-shell
+    .admin-exam-detail-section:last-child {
+    padding-left:
+      0;
+
+    border-top:
+      1px solid
+      rgba(148, 163, 184, .11) !important;
+  }
+}
+
+@media (max-width: 639px) {
+  .admin-performance-shell
+    .admin-exam-participant-meta {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-performance-shell
+    .admin-exam-mini {
+    padding-right:
+      .5rem;
+
+    padding-left:
+      .5rem;
+  }
+
+  .admin-performance-shell
+    .admin-exam-schedule {
+    border-right:
+      0;
+
+    border-bottom:
+      1px solid
+      rgba(148, 163, 184, .11);
+  }
+
+  .admin-performance-shell
+    .admin-exam-schedule:last-child {
+    border-bottom:
+      0;
+  }
+}
+
+/* ---------------------------------------------------------
+   LIGHT ADMIN
+   --------------------------------------------------------- */
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-exam-record {
+  border-color:
+    #dbe3ed !important;
+
+  background:
+    #fff !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-exam-participant-meta,
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-exam-mini,
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-exam-schedule-grid,
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-exam-schedule,
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-exam-edit,
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-exam-detail-grid,
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-exam-detail-section {
+  border-color:
+    #e2e8f0 !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-exam-schedule-grid {
+  background:
+    #f8fafc;
+}
+
+/* =========================================================
+   R8.4-B5 FINAL CONSISTENCY
+   Operational toolbar alignment + flat summary system.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   PARTICIPANT HEADER TOOLBAR
+   Import is primary; Export remains secondary.
+   Both behave as compact operational actions.
+   --------------------------------------------------------- */
+
+.admin-performance-shell
+  .admin-participant-header-actions {
+  align-items:
+    center;
+}
+
+.admin-performance-shell
+  .admin-participant-header-actions
+  > a {
+  display:
+    inline-flex;
+
+  min-height:
+    2.5rem;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    .5rem;
+
+  border-radius:
+    10px !important;
+
+  padding:
+    .55rem .9rem !important;
+
+  font-size:
+    .8125rem !important;
+
+  line-height:
+    1rem;
+}
+
+/* ---------------------------------------------------------
+   PARTICIPANT SUMMARY
+   Counts are one dataset, not four isolated cards.
+   --------------------------------------------------------- */
+
+.admin-performance-shell
+  .admin-participant-summary {
+  overflow:
+    hidden;
+
+  border-top:
+    1px solid
+    rgba(148, 163, 184, .12);
+
+  border-bottom:
+    1px solid
+    rgba(148, 163, 184, .12);
+}
+
+.admin-performance-shell
+  .admin-participant-summary
+  > * {
+  border:
+    0 !important;
+
+  border-right:
+    1px solid
+    rgba(148, 163, 184, .12) !important;
+
+  border-radius:
+    0 !important;
+
+  background:
+    transparent !important;
+
+  box-shadow:
+    none !important;
+}
+
+.admin-performance-shell
+  .admin-participant-summary
+  > *:last-child {
+  border-right:
+    0 !important;
+}
+
+/* ---------------------------------------------------------
+   MODULE HERO SUMMARY
+   --------------------------------------------------------- */
+
+.admin-performance-shell
+  .admin-module-summary {
+  min-width:
+    12rem;
+
+  overflow:
+    hidden;
+
+  border-left:
+    1px solid
+    rgba(148, 163, 184, .12);
+}
+
+.admin-performance-shell
+  .admin-module-summary
+  > * {
+  border:
+    0 !important;
+
+  border-right:
+    1px solid
+    rgba(148, 163, 184, .12) !important;
+
+  border-radius:
+    0 !important;
+
+  background:
+    transparent !important;
+
+  box-shadow:
+    none !important;
+}
+
+.admin-performance-shell
+  .admin-module-summary
+  > *:last-child {
+  border-right:
+    0 !important;
+}
+
+/* ---------------------------------------------------------
+   MODULE ACTION TOOLBAR
+   Links and form buttons must share the exact same geometry.
+   --------------------------------------------------------- */
+
+.admin-performance-shell
+  .admin-module-actions {
+  align-items:
+    stretch;
+}
+
+.admin-performance-shell
+  .admin-module-actions
+  > form {
+  display:
+    flex;
+
+  align-items:
+    stretch;
+}
+
+.admin-performance-shell
+  .admin-module-actions
+  > a,
+.admin-performance-shell
+  .admin-module-actions
+  > form
+  > button {
+  display:
+    inline-flex;
+
+  min-height:
+    2.5rem;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  border-radius:
+    10px !important;
+
+  padding:
+    .55rem .85rem !important;
+
+  font-size:
+    .8125rem !important;
+
+  line-height:
+    1rem;
+
+  white-space:
+    nowrap;
+}
+
+/* Prevent the form/button baseline mismatch visible before B5. */
+.admin-performance-shell
+  .admin-module-actions
+  > form
+  > button {
+  height:
+    100%;
+}
+
+/* ---------------------------------------------------------
+   RESPONSIVE
+   --------------------------------------------------------- */
+
+@media (max-width: 1023px) {
+  .admin-performance-shell
+    .admin-module-summary {
+    width:
+      100%;
+
+    min-width:
+      0;
+
+    border-top:
+      1px solid
+      rgba(148, 163, 184, .12);
+
+    border-left:
+      0;
+
+    padding-top:
+      .5rem;
+  }
+}
+
+@media (max-width: 639px) {
+  .admin-performance-shell
+    .admin-participant-summary
+    > * {
+    border-right:
+      0 !important;
+
+    border-bottom:
+      1px solid
+      rgba(148, 163, 184, .12) !important;
+  }
+
+  .admin-performance-shell
+    .admin-participant-summary
+    > *:last-child {
+    border-bottom:
+      0 !important;
+  }
+}
+
+/* ---------------------------------------------------------
+   LIGHT ADMIN
+   --------------------------------------------------------- */
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-participant-summary,
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-module-summary {
+  border-color:
+    #dbe3ed !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-participant-summary
+  > *,
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-module-summary
+  > * {
+  border-color:
+    #dbe3ed !important;
+
+  background:
+    transparent !important;
+}
+
+/* =========================================================
+   R8.4-C1 TRANSIENT UI + PLATFORM FIX
+   Theme-safe open states + final Platform hierarchy.
+   ========================================================= */
+
+/* =========================================================
+   WORKSPACE SWITCHER
+   Dark component already looks correct.
+   Only resolve the light-theme hardcoded dark surface.
+   ========================================================= */
+
+[data-admin-theme="light"]
+  .admin-workspace-menu {
+  border-color:
+    #d7e0ea !important;
+
+  background:
+    #ffffff !important;
+
+  color:
+    #172033 !important;
+
+  box-shadow:
+    0 18px 48px
+    rgba(15, 23, 42, .14) !important;
+
+  backdrop-filter:
+    none !important;
+
+  -webkit-backdrop-filter:
+    none !important;
+}
+
+[data-admin-theme="light"]
+  .admin-workspace-menu
+  .text-slate-100,
+[data-admin-theme="light"]
+  .admin-workspace-menu
+  .text-slate-200 {
+  color:
+    #172033 !important;
+}
+
+[data-admin-theme="light"]
+  .admin-workspace-menu
+  .text-slate-500,
+[data-admin-theme="light"]
+  .admin-workspace-menu
+  .text-slate-600 {
+  color:
+    #64748b !important;
+}
+
+[data-admin-theme="light"]
+  .admin-workspace-menu
+  .text-cyan-100,
+[data-admin-theme="light"]
+  .admin-workspace-menu
+  .text-cyan-200,
+[data-admin-theme="light"]
+  .admin-workspace-menu
+  .text-cyan-300 {
+  color:
+    #0e7490 !important;
+}
+
+[data-admin-theme="light"]
+  .admin-workspace-menu
+  button[role="option"] {
+  color:
+    #334155;
+
+  border-color:
+    transparent !important;
+
+  background:
+    transparent !important;
+}
+
+[data-admin-theme="light"]
+  .admin-workspace-menu
+  button[role="option"][aria-selected="true"] {
+  border-color:
+    #bae6fd !important;
+
+  background:
+    #ecfeff !important;
+
+  opacity:
+    1 !important;
+}
+
+[data-admin-theme="light"]
+  .admin-workspace-menu
+  button[role="option"][aria-selected="false"]:hover {
+  border-color:
+    #e2e8f0 !important;
+
+  background:
+    #f8fafc !important;
+}
+
+/* =========================================================
+   CUSTOM EXAM DATE/TIME POPOVER
+   The popup used a hardcoded navy background while global
+   light-theme rules converted its text to dark colors.
+   ========================================================= */
+
+[data-admin-theme="light"]
+  .admin-exam-datetime-popover {
+  border-color:
+    #d7e0ea !important;
+
+  background:
+    #ffffff !important;
+
+  color:
+    #172033 !important;
+
+  box-shadow:
+    0 18px 48px
+    rgba(15, 23, 42, .14) !important;
+
+  backdrop-filter:
+    none !important;
+
+  -webkit-backdrop-filter:
+    none !important;
+}
+
+[data-admin-theme="light"]
+  .admin-exam-datetime-popover
+  [class*="border-white/"] {
+  border-color:
+    #e2e8f0 !important;
+}
+
+[data-admin-theme="light"]
+  .admin-exam-datetime-popover
+  [class*="bg-white/"] {
+  background-color:
+    #f8fafc !important;
+}
+
+[data-admin-theme="light"]
+  .admin-exam-datetime-popover
+  .text-white,
+[data-admin-theme="light"]
+  .admin-exam-datetime-popover
+  .text-slate-100,
+[data-admin-theme="light"]
+  .admin-exam-datetime-popover
+  .text-slate-200 {
+  color:
+    #172033 !important;
+}
+
+[data-admin-theme="light"]
+  .admin-exam-datetime-popover
+  .text-slate-300 {
+  color:
+    #334155 !important;
+}
+
+[data-admin-theme="light"]
+  .admin-exam-datetime-popover
+  .text-slate-400 {
+  color:
+    #475569 !important;
+}
+
+[data-admin-theme="light"]
+  .admin-exam-datetime-popover
+  .text-slate-500,
+[data-admin-theme="light"]
+  .admin-exam-datetime-popover
+  .text-slate-600 {
+  color:
+    #64748b !important;
+}
+
+[data-admin-theme="light"]
+  .admin-exam-datetime-popover
+  .text-slate-700 {
+  color:
+    #94a3b8 !important;
+}
+
+[data-admin-theme="light"]
+  .admin-exam-datetime-popover
+  .text-slate-800 {
+  color:
+    #cbd5e1 !important;
+}
+
+[data-admin-theme="light"]
+  .admin-exam-datetime-popover
+  button:disabled {
+  color:
+    #cbd5e1 !important;
+
+  opacity:
+    .78 !important;
+}
+
+/* Semantic accents remain semantic in light mode. */
+[data-admin-theme="light"]
+  .admin-exam-datetime-popover
+  [class*="text-cyan-"] {
+  color:
+    #0e7490 !important;
+}
+
+[data-admin-theme="light"]
+  .admin-exam-datetime-popover
+  [class*="text-blue-"] {
+  color:
+    #1d4ed8 !important;
+}
+
+[data-admin-theme="light"]
+  .admin-exam-datetime-popover
+  [class*="text-violet-"] {
+  color:
+    #6d28d9 !important;
+}
+
+/* =========================================================
+   PLATFORM SUMMARY
+   One dataset = one flat strip.
+   ========================================================= */
+
+.admin-performance-shell
+  .admin-platform-summary {
+  overflow:
+    hidden;
+
+  border-top:
+    1px solid
+    rgba(148, 163, 184, .12);
+
+  border-bottom:
+    1px solid
+    rgba(148, 163, 184, .12);
+}
+
+.admin-performance-shell
+  .admin-platform-summary
+  > .liquid-card {
+  border:
+    0 !important;
+
+  border-right:
+    1px solid
+    rgba(148, 163, 184, .12) !important;
+
+  border-radius:
+    0 !important;
+
+  background:
+    transparent !important;
+
+  box-shadow:
+    none !important;
+}
+
+.admin-performance-shell
+  .admin-platform-summary
+  > .liquid-card:last-child {
+  border-right:
+    0 !important;
+}
+
+/* =========================================================
+   PLATFORM ONBOARDING STEPS
+   One sequence, not three independent mini cards.
+   ========================================================= */
+
+.admin-performance-shell
+  .admin-platform-onboarding-steps {
+  overflow:
+    hidden;
+
+  border-top:
+    1px solid
+    rgba(148, 163, 184, .10);
+
+  border-bottom:
+    1px solid
+    rgba(148, 163, 184, .10);
+}
+
+.admin-performance-shell
+  .admin-platform-onboarding-steps
+  > * {
+  border:
+    0 !important;
+
+  border-right:
+    1px solid
+    rgba(148, 163, 184, .10) !important;
+
+  border-radius:
+    0 !important;
+
+  background:
+    transparent !important;
+
+  box-shadow:
+    none !important;
+}
+
+.admin-performance-shell
+  .admin-platform-onboarding-steps
+  > *:last-child {
+  border-right:
+    0 !important;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 639px) {
+  .admin-performance-shell
+    .admin-platform-summary
+    > .liquid-card {
+    border-right:
+      0 !important;
+
+    border-bottom:
+      1px solid
+      rgba(148, 163, 184, .10) !important;
+  }
+
+  .admin-performance-shell
+    .admin-platform-summary
+    > .liquid-card:last-child {
+    border-bottom:
+      0 !important;
+  }
+
+  .admin-performance-shell
+    .admin-platform-onboarding-steps
+    > * {
+    border-right:
+      0 !important;
+
+    border-bottom:
+      1px solid
+      rgba(148, 163, 184, .10) !important;
+  }
+
+  .admin-performance-shell
+    .admin-platform-onboarding-steps
+    > *:last-child {
+    border-bottom:
+      0 !important;
+  }
+}
+
+/* =========================================================
+   LIGHT PLATFORM
+   ========================================================= */
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-platform-summary,
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-platform-onboarding-steps {
+  border-color:
+    #dbe3ed !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-platform-summary
+  > .liquid-card,
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-platform-onboarding-steps
+  > * {
+  border-color:
+    #dbe3ed !important;
+
+  background:
+    transparent !important;
+}
+
+
+/* =========================================================
+   R8.4-C3 PROCTOR CONSISTENCY
+   Operational supervision follows the same scan-first,
+   flat-summary hierarchy as Exams / Participants / Platform.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   TOP SUMMARY
+   Five metrics belong to one operational dataset.
+   --------------------------------------------------------- */
+
+.admin-performance-shell
+  .admin-proctor-summary {
+  gap:
+    0 !important;
+
+  overflow:
+    hidden;
+
+  border-top:
+    1px solid
+    rgba(148, 163, 184, .12);
+
+  border-bottom:
+    1px solid
+    rgba(148, 163, 184, .12);
+}
+
+.admin-performance-shell
+  .admin-proctor-metric {
+  border:
+    0 !important;
+
+  border-bottom:
+    1px solid
+    rgba(148, 163, 184, .12) !important;
+
+  border-radius:
+    0 !important;
+
+  background:
+    transparent !important;
+
+  box-shadow:
+    none !important;
+}
+
+.admin-performance-shell
+  .admin-proctor-metric:last-child {
+  border-bottom:
+    0 !important;
+}
+
+/* ---------------------------------------------------------
+   POLICY + EMERGENCY CONTROLS
+   Metadata/control strips, not floating cards.
+   Semantic action buttons remain unchanged.
+   --------------------------------------------------------- */
+
+.admin-performance-shell
+  .admin-proctor-policy,
+.admin-performance-shell
+  .admin-proctor-actions {
+  border:
+    0 !important;
+
+  border-top:
+    1px solid
+    rgba(148, 163, 184, .10) !important;
+
+  border-bottom:
+    1px solid
+    rgba(148, 163, 184, .10) !important;
+
+  border-radius:
+    0 !important;
+
+  background:
+    transparent !important;
+
+  box-shadow:
+    none !important;
+}
+
+.admin-performance-shell
+  .admin-proctor-policy {
+  padding:
+    .75rem .5rem !important;
+}
+
+.admin-performance-shell
+  .admin-proctor-actions {
+  padding:
+    .75rem 0 !important;
+}
+
+/* ---------------------------------------------------------
+   PARTICIPANT RECORD
+   Outer card remains the grouping surface.
+   --------------------------------------------------------- */
+
+.admin-performance-shell
+  .admin-proctor-record {
+  overflow:
+    hidden;
+}
+
+/* ---------------------------------------------------------
+   PARTICIPANT METADATA
+   Attempt / Violation / Last seen / Deadline are one dataset.
+   --------------------------------------------------------- */
+
+.admin-performance-shell
+  .admin-proctor-meta {
+  gap:
+    0 !important;
+
+  overflow:
+    hidden;
+
+  border-left:
+    1px solid
+    rgba(148, 163, 184, .11);
+}
+
+.admin-performance-shell
+  .admin-proctor-meta-item {
+  border:
+    0 !important;
+
+  border-right:
+    1px solid
+    rgba(148, 163, 184, .11) !important;
+
+  border-radius:
+    0 !important;
+
+  padding:
+    .3rem .75rem !important;
+
+  background:
+    transparent !important;
+
+  box-shadow:
+    none !important;
+}
+
+.admin-performance-shell
+  .admin-proctor-meta-item:last-child {
+  border-right:
+    0 !important;
+}
+
+/* ---------------------------------------------------------
+   TABLET / MOBILE
+   --------------------------------------------------------- */
+
+@media (max-width: 1279px) {
+  .admin-performance-shell
+    .admin-proctor-meta {
+    width:
+      100%;
+
+    min-width:
+      0;
+
+    border-top:
+      1px solid
+      rgba(148, 163, 184, .11);
+
+    border-left:
+      0;
+
+    padding-top:
+      .75rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .admin-performance-shell
+    .admin-proctor-metric {
+    border-right:
+      1px solid
+      rgba(148, 163, 184, .12) !important;
+  }
+
+  .admin-performance-shell
+    .admin-proctor-metric:nth-child(2n) {
+    border-right:
+      0 !important;
+  }
+
+  .admin-performance-shell
+    .admin-proctor-metric:last-child {
+    grid-column:
+      1 / -1;
+  }
+}
+
+@media (min-width: 1280px) {
+  .admin-performance-shell
+    .admin-proctor-metric {
+    grid-column:
+      auto !important;
+
+    border-right:
+      1px solid
+      rgba(148, 163, 184, .12) !important;
+
+    border-bottom:
+      0 !important;
+  }
+
+  .admin-performance-shell
+    .admin-proctor-metric:last-child {
+    border-right:
+      0 !important;
+  }
+}
+
+@media (max-width: 639px) {
+  .admin-performance-shell
+    .admin-proctor-meta-item {
+    border-bottom:
+      1px solid
+      rgba(148, 163, 184, .11) !important;
+  }
+
+  .admin-performance-shell
+    .admin-proctor-meta-item:nth-child(2n) {
+    border-right:
+      0 !important;
+  }
+
+  .admin-performance-shell
+    .admin-proctor-meta-item:nth-last-child(-n + 2) {
+    border-bottom:
+      0 !important;
+  }
+}
+
+/* ---------------------------------------------------------
+   LIGHT ADMIN
+   --------------------------------------------------------- */
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-proctor-summary,
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-proctor-policy,
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-proctor-actions,
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-proctor-meta {
+  border-color:
+    #dbe3ed !important;
+}
+
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-proctor-metric,
+[data-admin-theme="light"]
+  .admin-performance-shell
+  .admin-proctor-meta-item {
+  border-color:
+    #dbe3ed !important;
+
+  background:
+    transparent !important;
+}
+
+/* =========================================================
+   R8.4-C4 ADMIN NORMALIZATION
+   Shared page hierarchy and explicit summary contracts.
+   ========================================================= */
+
+.admin-performance-shell .admin-page-kicker {
+  margin-top: 0 !important;
+  color: #67e8f9 !important;
+  text-transform: none !important;
+  letter-spacing: .025em !important;
+}
+
+.admin-performance-shell .admin-page-hero-actions {
+  align-items: center;
+}
+
+.admin-performance-shell .admin-page-hero-actions > a,
+.admin-performance-shell .admin-page-hero-actions > button,
+.admin-performance-shell .admin-page-hero-actions > form > button {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px !important;
+  padding: .7rem 1rem !important;
+  font-size: .75rem !important;
+  line-height: 1.1 !important;
+}
+
+.admin-performance-shell .admin-page-hero [class*="text-violet-"],
+.admin-performance-shell .admin-page-hero [class*="text-blue-"] {
+  color: #67e8f9 !important;
+}
+
+.admin-performance-shell .admin-summary-strip {
+  gap: 0 !important;
+  overflow: hidden;
+  border-top: 1px solid rgba(148, 163, 184, .12);
+  border-right: 0 !important;
+  border-bottom: 1px solid rgba(148, 163, 184, .12);
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.admin-performance-shell .admin-summary-strip > * {
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.admin-performance-shell .admin-summary-strip > *:last-child {
+  border-right: 0 !important;
+}
+
+.admin-performance-shell .admin-module-summary {
+  width: auto !important;
+  min-width: 0 !important;
+  border-left: 0 !important;
+  padding-top: 0 !important;
+}
+
+.admin-performance-shell .admin-communication-summary > *,
+.admin-performance-shell .admin-subscription-summary > * {
+  border-right: 1px solid rgba(148, 163, 184, .12) !important;
+  padding: 1rem 1.1rem !important;
+}
+
+.admin-performance-shell .admin-communication-summary > *:last-child,
+.admin-performance-shell .admin-subscription-summary > *:last-child {
+  border-right: 0 !important;
+}
+
+.admin-performance-shell .admin-proctor-meta-item .text-slate-700 {
+  color: #71839c !important;
+}
+
+.admin-performance-shell .admin-proctor-meta-item .text-slate-300 {
+  color: #c6d0dd !important;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-page-kicker,
+[data-admin-theme="light"] .admin-performance-shell .admin-page-hero [class*="text-violet-"],
+[data-admin-theme="light"] .admin-performance-shell .admin-page-hero [class*="text-blue-"] {
+  color: #0e7490 !important;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-summary-strip,
+[data-admin-theme="light"] .admin-performance-shell .admin-summary-strip > * {
+  border-color: #dbe3ed !important;
+  background: transparent !important;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-proctor-meta-item .text-slate-700 {
+  color: #6a7b90 !important;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-proctor-meta-item .text-slate-300 {
+  color: #334155 !important;
+}
+
+@media (max-width: 639px) {
+  .admin-performance-shell .admin-module-summary,
+  .admin-performance-shell .admin-communication-summary,
+  .admin-performance-shell .admin-subscription-summary {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-performance-shell .admin-communication-summary > *,
+  .admin-performance-shell .admin-subscription-summary > * {
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(148, 163, 184, .12) !important;
+  }
+
+  .admin-performance-shell .admin-communication-summary > *:last-child,
+  .admin-performance-shell .admin-subscription-summary > *:last-child {
+    border-bottom: 0 !important;
+  }
+}
+
+/* =========================================================
+   R8.4-C5 STRUCTURAL PRIMARY HEADER
+   Six primary admin tabs share one DOM contract.
+   This class intentionally does not reuse .admin-page-hero,
+   so historical hero cascade cannot alter primary-tab rhythm.
+   ========================================================= */
+
+.admin-performance-shell .admin-primary-header {
+  min-height: 150px;
+  display: flex;
+  align-items: stretch;
+  border-top: 1px solid rgba(148, 163, 184, .10);
+  border-bottom: 1px solid rgba(148, 163, 184, .12);
+  background: rgba(15, 23, 42, .16);
+}
+
+.admin-performance-shell .admin-primary-header-grid {
+  width: 100%;
+  min-height: 148px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2rem;
+  align-items: start;
+  padding: 1.25rem 0;
+}
+
+.admin-performance-shell .admin-primary-header-copy {
+  min-width: 0;
+}
+
+.admin-performance-shell .admin-primary-kicker {
+  margin: 0;
+  color: #67e8f9;
+  font-size: .75rem;
+  line-height: 1rem;
+  font-weight: 600;
+  letter-spacing: .025em;
+}
+
+.admin-performance-shell .admin-primary-title {
+  margin: .65rem 0 0;
+  color: #f8fafc;
+  font-size: 1.875rem !important;
+  line-height: 2.25rem !important;
+  font-weight: 700;
+  letter-spacing: -.025em;
+}
+
+.admin-performance-shell .admin-primary-description {
+  max-width: 48rem;
+  margin-top: .55rem;
+  color: #8da0b8;
+  font-size: .875rem;
+  line-height: 1.5rem;
+}
+
+.admin-performance-shell .admin-primary-side {
+  align-self: center;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .625rem;
+}
+
+.admin-performance-shell .admin-primary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .5rem;
+}
+
+.admin-performance-shell .admin-primary-actions > a,
+.admin-performance-shell .admin-primary-actions > button,
+.admin-performance-shell .admin-primary-actions > form > button {
+  min-height: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  border-radius: 10px !important;
+  padding: .625rem .875rem !important;
+  font-size: .75rem !important;
+  line-height: 1rem !important;
+  font-weight: 600;
+}
+
+.admin-performance-shell .admin-primary-clock {
+  min-width: 148px;
+  border: 1px solid rgba(34, 211, 238, .10);
+  border-radius: 12px;
+  background: rgba(34, 211, 238, .035);
+  padding: .7rem .85rem;
+}
+
+.admin-performance-shell .admin-primary-clock p {
+  margin: 0;
+  color: #71839c;
+  font-size: .6875rem;
+  line-height: 1rem;
+}
+
+.admin-performance-shell .admin-primary-clock strong {
+  display: block;
+  margin-top: .15rem;
+  color: #a5f3fc;
+  font-size: .75rem;
+  line-height: 1rem;
+  font-weight: 600;
+}
+
+.admin-performance-shell .admin-primary-summary-cell {
+  min-height: 5.5rem !important;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-primary-header {
+  border-color: #dbe3ed;
+  background: rgba(248, 250, 252, .76);
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-primary-kicker {
+  color: #0e7490;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-primary-title {
+  color: #172033;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-primary-description {
+  color: #5f7085;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-primary-clock {
+  border-color: #d8edf2;
+  background: #eefafd;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-primary-clock p {
+  color: #6a7b90;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-primary-clock strong {
+  color: #0e7490;
+}
+
+@media (max-width: 1023px) {
+  .admin-performance-shell .admin-primary-header,
+  .admin-performance-shell .admin-primary-header-grid {
+    min-height: 0;
+  }
+
+  .admin-performance-shell .admin-primary-header-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .admin-performance-shell .admin-primary-side,
+  .admin-performance-shell .admin-primary-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 639px) {
+  .admin-performance-shell .admin-primary-header-grid {
+    padding: 1rem 0;
+  }
+
+  .admin-performance-shell .admin-primary-title {
+    font-size: 1.625rem !important;
+    line-height: 2rem !important;
+  }
+
+  .admin-performance-shell .admin-primary-description {
+    font-size: .8125rem;
+    line-height: 1.35rem;
+  }
+}
+
+/* =========================================================
+   R8.4-C6.1 BRANDING PREVIEW
+   Component-scoped preview surface; does not alter shared
+   Admin hero/card contracts.
+   ========================================================= */
+
+.admin-performance-shell .admin-brand-preview-kicker {
+  margin: 0;
+  color: #67e8f9;
+  font-size: .6875rem;
+  line-height: 1rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.admin-performance-shell .admin-brand-preview-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+  border: 1px solid rgba(34, 211, 238, .12);
+  border-radius: 999px;
+  background: rgba(34, 211, 238, .035);
+  padding: .2rem .55rem;
+  color: #67e8f9;
+  font-size: .625rem;
+  line-height: .875rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.admin-performance-shell .admin-brand-preview-canvas {
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, .14);
+  border-radius: 18px;
+  background: #07111f;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .035),
+    0 14px 36px rgba(0, 0, 0, .12);
+}
+
+.admin-performance-shell .admin-brand-preview-browser {
+  display: flex;
+  align-items: center;
+  gap: .32rem;
+  min-height: 2rem;
+  border-bottom: 1px solid rgba(148, 163, 184, .10);
+  padding: 0 .8rem;
+  background: rgba(15, 23, 42, .88);
+}
+
+.admin-performance-shell .admin-brand-preview-browser span {
+  width: .42rem;
+  height: .42rem;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, .32);
+}
+
+.admin-performance-shell .admin-brand-preview-content {
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.admin-performance-shell .admin-brand-preview-logo {
+  width: 4.75rem;
+  height: 4.75rem;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, .14);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .04);
+}
+
+.admin-performance-shell .admin-brand-preview-placeholder {
+  width: 100%;
+  max-width: 15rem;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  border: 1px dashed rgba(148, 163, 184, .20);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .025);
+  padding: .8rem;
+  text-align: left;
+}
+
+.admin-performance-shell .admin-brand-preview-placeholder-mark {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(34, 211, 238, .14);
+  border-radius: 10px;
+  background: rgba(34, 211, 238, .05);
+  color: #67e8f9;
+  font-size: .75rem;
+  font-weight: 800;
+}
+
+.admin-performance-shell .admin-brand-preview-placeholder p {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: .75rem;
+  line-height: 1rem;
+  font-weight: 600;
+}
+
+.admin-performance-shell .admin-brand-preview-placeholder span:not(.admin-brand-preview-placeholder-mark) {
+  display: block;
+  margin-top: .15rem;
+  color: #64748b;
+  font-size: .625rem;
+  line-height: .875rem;
+}
+
+.admin-performance-shell .admin-brand-preview-name {
+  margin: 1.15rem 0 0;
+  color: #f8fafc;
+  font-size: 1.05rem;
+  line-height: 1.5rem;
+  font-weight: 700;
+}
+
+.admin-performance-shell .admin-brand-preview-label {
+  margin: .15rem 0 0;
+  color: #71839c;
+  font-size: .6875rem;
+  line-height: 1rem;
+}
+
+.admin-performance-shell .admin-brand-preview-action {
+  width: 100%;
+  max-width: 12rem;
+  margin-top: 1rem;
+  border: 1px solid rgba(34, 211, 238, .12);
+  border-radius: 10px;
+  background: rgba(34, 211, 238, .08);
+  padding: .55rem .8rem;
+  color: #a5f3fc;
+  font-size: .6875rem;
+  line-height: 1rem;
+  font-weight: 600;
+}
+
+.admin-performance-shell .admin-brand-preview-powered {
+  margin: 1rem 0 0;
+  color: #52647c;
+  font-size: .5625rem;
+  line-height: .8rem;
+  font-weight: 600;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-brand-preview-kicker {
+  color: #0e7490;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-brand-preview-badge {
+  border-color: #c8e8ef;
+  background: #effafd;
+  color: #0e7490;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-brand-preview-canvas {
+  border-color: #dbe3ed;
+  background: #ffffff;
+  box-shadow:
+    0 16px 38px rgba(15, 23, 42, .06);
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-brand-preview-browser {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-brand-preview-browser span {
+  background: #cbd5e1;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-brand-preview-logo {
+  border-color: #dbe3ed;
+  background: #f8fafc;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-brand-preview-placeholder {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-brand-preview-placeholder-mark {
+  border-color: #c8e8ef;
+  background: #effafd;
+  color: #0e7490;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-brand-preview-placeholder p {
+  color: #334155;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-brand-preview-placeholder span:not(.admin-brand-preview-placeholder-mark) {
+  color: #7b8ba0;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-brand-preview-name {
+  color: #172033;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-brand-preview-label {
+  color: #71839c;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-brand-preview-action {
+  border-color: #c8e8ef;
+  background: #effafd;
+  color: #0e7490;
+}
+
+[data-admin-theme="light"] .admin-performance-shell .admin-brand-preview-powered {
+  color: #94a3b8;
 }

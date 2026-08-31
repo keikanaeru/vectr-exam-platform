@@ -21,6 +21,8 @@
     "wordprocessingml",
     "nosniff",
     "healthcheck",
+    "topbar",
+    "describedby",
     "cellspacing",
     "PGRST",
     "Segoe",

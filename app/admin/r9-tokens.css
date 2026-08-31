@@ -1,0 +1,120 @@
+/*
+ * VECTR R9 ADMIN DESIGN TOKENS
+ *
+ * Contract:
+ * - Admin-only scope.
+ * - Components consume tokens; they do not override legacy classes.
+ * - No forced-priority declarations.
+ * - No substring class selectors.
+ * - Light/dark themes change values, not component rules.
+ * - Cyan is the product signal; semantic colors are reserved for state.
+ */
+
+.r9-admin {
+  /* Canvas */
+  --r9-canvas: #080d15;
+  --r9-canvas-subtle: #0b111b;
+
+  /* Surfaces */
+  --r9-surface: #0d1520;
+  --r9-surface-raised: #111b28;
+  --r9-surface-muted: #0a121d;
+  --r9-surface-hover: #142131;
+
+  /* Borders */
+  --r9-border: rgba(148, 163, 184, 0.14);
+  --r9-border-strong: rgba(148, 163, 184, 0.24);
+
+  /* Text */
+  --r9-text: #f4f7fa;
+  --r9-text-secondary: #a6b3c3;
+  --r9-text-muted: #748399;
+  --r9-text-subtle: #536176;
+
+  /* Product signal */
+  --r9-accent: #39c6dc;
+  --r9-accent-strong: #67e8f9;
+  --r9-accent-soft: rgba(57, 198, 220, 0.10);
+  --r9-accent-border: rgba(57, 198, 220, 0.25);
+
+  /* Semantic state */
+  --r9-success: #5bd6a2;
+  --r9-success-soft: rgba(91, 214, 162, 0.10);
+
+  --r9-warning: #e7b75c;
+  --r9-warning-soft: rgba(231, 183, 92, 0.10);
+
+  --r9-danger: #ee7b86;
+  --r9-danger-soft: rgba(238, 123, 134, 0.10);
+
+  --r9-info: #76a9fa;
+  --r9-info-soft: rgba(118, 169, 250, 0.10);
+
+  /* Geometry */
+  --r9-radius-control: 9px;
+  --r9-radius-surface: 13px;
+  --r9-radius-popover: 15px;
+  --r9-radius-pill: 999px;
+
+  /* Spacing rhythm */
+  --r9-space-1: 0.25rem;
+  --r9-space-2: 0.5rem;
+  --r9-space-3: 0.75rem;
+  --r9-space-4: 1rem;
+  --r9-space-5: 1.25rem;
+  --r9-space-6: 1.5rem;
+  --r9-space-8: 2rem;
+  --r9-space-10: 2.5rem;
+
+  /* Focus */
+  --r9-focus: 0 0 0 3px rgba(57, 198, 220, 0.18);
+
+  /* Elevation: deliberately restrained */
+  --r9-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.18);
+  --r9-shadow-md: 0 14px 34px rgba(0, 0, 0, 0.20);
+
+  /* Motion */
+  --r9-motion-fast: 120ms;
+  --r9-motion-normal: 180ms;
+}
+
+.r9-admin[data-admin-theme="light"],
+[data-admin-theme="light"] .r9-admin {
+  --r9-canvas: #f5f7fa;
+  --r9-canvas-subtle: #eef2f6;
+
+  --r9-surface: #ffffff;
+  --r9-surface-raised: #ffffff;
+  --r9-surface-muted: #f7f9fb;
+  --r9-surface-hover: #f1f5f8;
+
+  --r9-border: #dce3ea;
+  --r9-border-strong: #c6d0da;
+
+  --r9-text: #17212f;
+  --r9-text-secondary: #46566a;
+  --r9-text-muted: #68788c;
+  --r9-text-subtle: #8b98a8;
+
+  --r9-accent: #087f96;
+  --r9-accent-strong: #086c80;
+  --r9-accent-soft: rgba(8, 127, 150, 0.08);
+  --r9-accent-border: rgba(8, 127, 150, 0.22);
+
+  --r9-success: #16835e;
+  --r9-success-soft: rgba(22, 131, 94, 0.08);
+
+  --r9-warning: #a56b0a;
+  --r9-warning-soft: rgba(165, 107, 10, 0.09);
+
+  --r9-danger: #b83c4b;
+  --r9-danger-soft: rgba(184, 60, 75, 0.08);
+
+  --r9-info: #306fbe;
+  --r9-info-soft: rgba(48, 111, 190, 0.08);
+
+  --r9-focus: 0 0 0 3px rgba(8, 127, 150, 0.15);
+
+  --r9-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --r9-shadow-md: 0 14px 34px rgba(15, 23, 42, 0.08);
+}

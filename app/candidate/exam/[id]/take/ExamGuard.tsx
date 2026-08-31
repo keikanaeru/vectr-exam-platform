@@ -139,7 +139,7 @@ export default function ExamGuard({ examId, policy }: Props) {
         await autoSubmitFallback();
       }
     }
-  }, [autoSubmitFallback, examId, getTabId, policy.security, router]);
+  }, [autoSubmitFallback, examId, getTabId, policy, router]);
 
   useEffect(() => {
     // Device lock is a session-integrity control, so keep the heartbeat alive

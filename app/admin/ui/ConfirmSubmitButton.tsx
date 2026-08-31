@@ -1,12 +1,12 @@
 "use client";
 
-import { createPortal, useFormStatus } from "react-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { useFormStatus } from "react-dom";
 
 export default function ConfirmSubmitButton({
   children,
   message,
-  className = "liquid-button rounded-[13px] px-4 py-2.5 text-xs font-semibold text-slate-200",
+  className = "r9-button r9-button--danger",
   disabled = false,
   title,
   pendingLabel = "Memproses...",
@@ -20,69 +20,47 @@ export default function ConfirmSubmitButton({
 }) {
   const { pending } = useFormStatus();
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
   const formRef = useRef<HTMLFormElement | null>(null);
-  const confirmRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => setMounted(true), []);
+  const wasPendingRef = useRef(false);
+  const headingId = useId();
+  const descriptionId = useId();
 
   useEffect(() => {
-    if (!open) return;
-    confirmRef.current?.focus();
+    const dialog = dialogRef.current;
+    if (!dialog) return;
 
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    if (open && !dialog.open) {
+      dialog.showModal();
+      cancelRef.current?.focus();
+    } else if (!open && dialog.open) {
+      dialog.close();
+    }
   }, [open]);
 
-  const dialog = open ? (
-    <div
-      className="admin-confirm-backdrop fixed inset-0 z-[1200] flex items-center justify-center bg-slate-950/70 px-5 py-8 backdrop-blur-sm"
-      role="presentation"
-      onMouseDown={(event) => {
-        if (event.currentTarget === event.target) setOpen(false);
-      }}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Konfirmasi tindakan"
-        className="admin-confirm-dialog w-full max-w-md rounded-[22px] border border-white/[0.11] bg-[#07101f]/95 p-5 shadow-[0_30px_100px_rgba(0,0,0,.58)] backdrop-blur-2xl"
-      >
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-300/80">Konfirmasi</p>
-        <h2 className="mt-2 text-lg font-semibold text-slate-100">Lanjutkan tindakan ini?</h2>
-        <p className="mt-3 text-sm leading-6 text-slate-400">{message}</p>
-        <div className="mt-5 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="liquid-button rounded-[12px] px-4 py-2.5 text-xs font-semibold"
-          >
-            Batal
-          </button>
-          <button
-            ref={confirmRef}
-            type="button"
-            onClick={() => {
-              const form = formRef.current;
-              setOpen(false);
-              form?.requestSubmit();
-            }}
-            className="rounded-[12px] border border-rose-400/20 bg-rose-400/[0.08] px-4 py-2.5 text-xs font-semibold text-rose-200 transition hover:bg-rose-400/[0.13]"
-            disabled={pending}
-          >
-            {pending ? pendingLabel : "Ya, lanjutkan"}
-          </button>
-        </div>
-      </div>
-    </div>
-  ) : null;
+  useEffect(() => {
+    if (pending) {
+      wasPendingRef.current = true;
+      return;
+    }
+
+    if (wasPendingRef.current) {
+      wasPendingRef.current = false;
+      setOpen(false);
+    }
+  }, [pending]);
+
+  const closeDialog = () => {
+    if (pending) return;
+    setOpen(false);
+  };
 
   return (
     <>
       <button
+        ref={triggerRef}
         type="button"
         className={className}
         disabled={disabled || pending}
@@ -93,14 +71,75 @@ export default function ConfirmSubmitButton({
           setOpen(true);
         }}
       >
-        {pending ? (
-          <span className="inline-flex items-center gap-2">
-            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-r-transparent opacity-80" aria-hidden="true" />
-            <span>{pendingLabel}</span>
-          </span>
-        ) : children}
+        {pending ? pendingLabel : children}
       </button>
-      {mounted && dialog ? createPortal(dialog, document.body) : null}
+
+      <dialog
+        ref={dialogRef}
+        className="r9-confirm-dialog"
+        aria-labelledby={headingId}
+        aria-describedby={descriptionId}
+        onCancel={(event) => {
+          event.preventDefault();
+          closeDialog();
+        }}
+        onClose={() => {
+          setOpen(false);
+          triggerRef.current?.focus();
+        }}
+        onMouseDown={(event) => {
+          if (event.currentTarget === event.target) closeDialog();
+        }}
+      >
+        <div className="r9-confirm-dialog__panel">
+          <p className="r9-confirm-dialog__eyebrow">Konfirmasi</p>
+          <h2 id={headingId} className="r9-confirm-dialog__title">
+            Konfirmasi tindakan
+          </h2>
+          <p id={descriptionId} className="r9-confirm-dialog__description">
+            {message}
+          </p>
+
+          <div className="r9-confirm-dialog__actions">
+            <button
+              ref={cancelRef}
+              type="button"
+              onClick={closeDialog}
+              className="r9-button r9-button--secondary"
+              disabled={pending}
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              className="r9-button r9-button--danger"
+              disabled={pending}
+              aria-busy={pending}
+              onClick={() => {
+                const form = formRef.current;
+                if (!form) return;
+
+                if (!form.checkValidity()) {
+                  setOpen(false);
+                  window.setTimeout(() => form.requestSubmit(), 0);
+                  return;
+                }
+
+                form.requestSubmit();
+              }}
+            >
+              {pending ? (
+                <span className="r9-button__pending" role="status">
+                  <span className="r9-spinner" aria-hidden="true" />
+                  {pendingLabel}
+                </span>
+              ) : (
+                children
+              )}
+            </button>
+          </div>
+        </div>
+      </dialog>
     </>
   );
 }

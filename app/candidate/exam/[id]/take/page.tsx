@@ -7,7 +7,6 @@ import { getCandidateDeviceId } from "@/lib/candidate-device";
 import { getExamPolicy } from "@/lib/exam-policy";
 import {
   ensureExamSectionsForSession,
-  getExamSections,
   getSectionProgress,
 } from "@/lib/exam-sections";
 import { getOrganizationBranding } from "@/lib/organization-branding";

@@ -17,7 +17,7 @@ export const options = {
 
 const baseURL = (__ENV.BASE_URL || "http://127.0.0.1:3000").replace(/\/$/, "");
 
-export default function () {
+export default function candidateLoginSmoke() {
   const response = http.get(`${baseURL}/candidate/login`, {
     tags: { route: "candidate-login" },
   });

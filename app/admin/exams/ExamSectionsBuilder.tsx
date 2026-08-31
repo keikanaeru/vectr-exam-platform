@@ -131,7 +131,7 @@ export default function ExamSectionsBuilder({
           type="button"
           onClick={addSection}
           disabled={!modules.length || rows.length >= Math.min(10, modules.length)}
-          className="liquid-button shrink-0 rounded-[11px] px-3 py-2 text-xs font-semibold disabled:opacity-40"
+          className="r9-button r9-button--secondary shrink-0 disabled:opacity-40"
         >
           + Tambah Modul
         </button>
@@ -139,14 +139,14 @@ export default function ExamSectionsBuilder({
 
       <div className="mt-3 space-y-3">
         {rows.map((row, index) => (
-          <div key={row.key} className="rounded-[16px] border border-white/[0.06] bg-black/10 p-4">
+          <div key={row.key} className="r9-surface p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-300/70">Sesi {index + 1}</p>
               <div className="flex items-center gap-1.5">
-                <button type="button" aria-label={`Naikkan sesi ${index + 1}`} disabled={index === 0} onClick={() => moveSection(row.key, -1)} className="liquid-button rounded-[9px] px-2 py-1 text-[10px] disabled:opacity-30">↑</button>
-                <button type="button" aria-label={`Turunkan sesi ${index + 1}`} disabled={index === rows.length - 1} onClick={() => moveSection(row.key, 1)} className="liquid-button rounded-[9px] px-2 py-1 text-[10px] disabled:opacity-30">↓</button>
+                <button type="button" aria-label={`Naikkan sesi ${index + 1}`} disabled={index === 0} onClick={() => moveSection(row.key, -1)} className="r9-button r9-button--quiet h-8 min-h-8 px-2 py-1 text-[10px] disabled:opacity-30">↑</button>
+                <button type="button" aria-label={`Turunkan sesi ${index + 1}`} disabled={index === rows.length - 1} onClick={() => moveSection(row.key, 1)} className="r9-button r9-button--quiet h-8 min-h-8 px-2 py-1 text-[10px] disabled:opacity-30">↓</button>
                 {rows.length > 1 ? (
-                  <button type="button" onClick={() => removeSection(row.key)} className="ml-1 text-[11px] font-medium text-rose-300/70 hover:text-rose-200">Hapus</button>
+                  <button type="button" onClick={() => removeSection(row.key)} className="r9-button r9-button--danger ml-1 min-h-8 px-2 py-1 text-[11px]">Hapus</button>
                 ) : null}
               </div>
             </div>
@@ -167,7 +167,7 @@ export default function ExamSectionsBuilder({
               />
 
               <label className="block">
-                <span className="mb-2 block text-[11px] text-slate-500">Batas waktu sesi</span>
+                <span className="r9-field-label mb-2 text-[11px]">Batas waktu sesi</span>
                 <div className="relative">
                   <input
                     name="section_duration_minutes"
@@ -185,7 +185,7 @@ export default function ExamSectionsBuilder({
                         event.currentTarget.blur();
                       }
                     }}
-                    className="field pr-14"
+                    className="r9-input pr-14"
                   />
                   <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-600">menit</span>
                 </div>
@@ -195,9 +195,9 @@ export default function ExamSectionsBuilder({
         ))}
       </div>
 
-      <div className="mt-4 rounded-[18px] border border-cyan-400/12 bg-cyan-400/[0.025] p-4">
+      <div className="r9-surface mt-4 p-4">
         <label className="block">
-          <span className="text-xs font-semibold text-cyan-100">Durasi Total Ujian · Timer Utama</span>
+          <span className="r9-datetime__accent-text text-xs font-semibold">Durasi Total Ujian · Timer Utama</span>
           <p className="mt-1 text-[11px] leading-5 text-slate-500">
             Ini timer keseluruhan dari mulai ujian sampai submit akhir. Sudah mencakup semua sesi modul dan tetap berjalan saat peserta berada di halaman pergantian sesi.
           </p>
@@ -218,7 +218,7 @@ export default function ExamSectionsBuilder({
                   event.currentTarget.blur();
                 }
               }}
-              className="field pr-16"
+              className="r9-input pr-16"
             />
             <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-600">menit</span>
           </div>
@@ -239,7 +239,7 @@ export default function ExamSectionsBuilder({
 
 function Summary({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="rounded-[13px] border border-white/[0.055] bg-black/10 px-3 py-2.5">
+    <div className="r9-surface px-3 py-2.5">
       <p className="text-[10px] uppercase tracking-[0.12em] text-slate-700">{label}</p>
       <p className={`mt-1 text-xs font-semibold ${accent ? "text-cyan-200" : "text-slate-300"}`}>{value}</p>
     </div>

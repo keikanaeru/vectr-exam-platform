@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 const MONTH_NAMES = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -179,36 +179,13 @@ function buildCalendar(year: number, month: number): CalendarCell[] {
   return cells;
 }
 
-function getAccentClasses(accent: Accent) {
-  if (accent === "cyan") {
-    return {
-      border: "border-cyan-400/15",
-      background: "bg-cyan-400/[0.04]",
-      text: "text-cyan-200",
-      dot: "bg-cyan-400",
-      selected:
-        "border-cyan-300/25 bg-cyan-400/[0.12] text-cyan-100",
-    };
-  }
-
-  if (accent === "blue") {
-    return {
-      border: "border-blue-400/15",
-      background: "bg-blue-400/[0.04]",
-      text: "text-blue-200",
-      dot: "bg-blue-400",
-      selected:
-        "border-blue-300/25 bg-blue-400/[0.12] text-blue-100",
-    };
-  }
-
+function getAccentClasses(_accent: Accent) {
   return {
-    border: "border-violet-400/15",
-    background: "bg-violet-400/[0.04]",
-    text: "text-violet-200",
-    dot: "bg-violet-400",
-    selected:
-      "border-violet-300/25 bg-violet-400/[0.12] text-violet-100",
+    border: "r9-datetime__accent-border",
+    background: "r9-datetime__accent-background",
+    text: "r9-datetime__accent-text",
+    dot: "r9-datetime__accent-dot",
+    selected: "r9-datetime__selected",
   };
 }
 
@@ -255,7 +232,7 @@ export default function ExamDateTimeFields({
   }, [initialLoginOpenAt, initialStartsAt, initialHardCloseAt]);
 
   return (
-    <div className={`${compact ? "mt-4" : "mt-6"} rounded-[24px] border border-white/[0.06] bg-white/[0.022] p-4`}>
+    <div className={`r9-datetime r9-surface ${compact ? "mt-4" : "mt-6"} p-4`}>
 
       <div className="flex items-start justify-between gap-4">
         <div>
@@ -268,12 +245,12 @@ export default function ExamDateTimeFields({
           </p>
         </div>
 
-        <div className="shrink-0 rounded-[14px] border border-cyan-400/10 bg-cyan-400/[0.035] px-3 py-2">
+        <div className="r9-datetime__zone shrink-0 px-3 py-2">
           <p className="text-[11px] uppercase tracking-wider text-slate-600">
             Zona
           </p>
 
-          <p className="mt-1 text-[11px] font-medium text-cyan-200">
+          <p className="r9-datetime__accent-text mt-1 text-[11px] font-medium">
             WIB
           </p>
         </div>
@@ -310,10 +287,10 @@ export default function ExamDateTimeFields({
 
       </div>
 
-      <div className="mt-4 rounded-[16px] border border-white/[0.05] bg-black/10 p-3">
+      <div className="r9-datetime__note mt-4 p-3">
         <div className="flex items-start gap-3">
 
-          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]" />
+          <span className="r9-datetime__note-signal mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" />
 
           <p className="text-[11px] leading-5 text-slate-500">
             Jadwal menggunakan WIB dan dapat diatur sampai presisi satu menit.
@@ -337,6 +314,12 @@ function DateTimePicker({
 }: PickerProps) {
   const [open, setOpen] =
     useState(false);
+
+  const triggerRef =
+    useRef<HTMLButtonElement>(null);
+
+  const popoverRef =
+    useRef<HTMLDivElement>(null);
 
   const [viewYear, setViewYear] =
     useState(2026);
@@ -364,6 +347,67 @@ function DateTimePicker({
       value.date.month
     );
   }, [value]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function handleOutside(
+      event: MouseEvent
+    ) {
+      const target =
+        event.target as Node;
+
+      if (
+        triggerRef.current?.contains(target) ||
+        popoverRef.current?.contains(target)
+      ) {
+        return;
+      }
+
+      setOpen(false);
+    }
+
+    function handleEscape(
+      event: KeyboardEvent
+    ) {
+      if (
+        event.key !== "Escape"
+      ) {
+        return;
+      }
+
+      setOpen(false);
+      triggerRef.current?.focus();
+    }
+
+    document.addEventListener(
+      "mousedown",
+      handleOutside
+    );
+
+    document.addEventListener(
+      "keydown",
+      handleEscape
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleOutside
+      );
+
+      document.removeEventListener(
+        "keydown",
+        handleEscape
+      );
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    popoverRef.current?.focus();
+  }, [open]);
 
   const calendarDays =
     useMemo(
@@ -459,14 +503,17 @@ function DateTimePicker({
       />
 
       <button
+        ref={triggerRef}
         type="button"
+        aria-haspopup="dialog"
+        aria-expanded={open}
         onClick={() =>
           setOpen(
             (current) =>
               !current
           )
         }
-        className={`w-full rounded-[18px] border ${accentClasses.border} ${accentClasses.background} p-4 text-left transition hover:bg-white/[0.05]`}
+        className="r9-datetime__trigger"
       >
         <div className="flex items-center justify-between gap-4">
 
@@ -478,13 +525,13 @@ function DateTimePicker({
                 className={`h-1.5 w-1.5 rounded-full ${accentClasses.dot}`}
               />
 
-              <p className="text-xs font-medium text-slate-300">
+              <p className="r9-datetime__label text-xs font-medium">
                 {label}
               </p>
 
             </div>
 
-            <p className="mt-2 text-sm font-semibold leading-6 text-white">
+            <p className="r9-datetime__value mt-2 text-sm font-semibold leading-6">
               {value
                 ? `${formatDate(value.date)} · ${pad(value.hour)}:${pad(
                     value.minute
@@ -492,14 +539,14 @@ function DateTimePicker({
                 : "Memuat jadwal..."}
             </p>
 
-            <p className="mt-1 text-[11px] leading-5 text-slate-600">
+            <p className="r9-datetime__description mt-1 text-[11px] leading-5">
               {description}
             </p>
 
           </div>
 
           <div
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${accentClasses.border} bg-white/[0.025] ${accentClasses.text}`}
+            className="r9-datetime__toggle flex h-9 w-9 shrink-0 items-center justify-center"
           >
             {open
               ? "↑"
@@ -511,7 +558,14 @@ function DateTimePicker({
 
       {open && value ? (
 
-        <div className="liquid-enter mt-2 overflow-hidden rounded-[22px] border border-white/[0.07] bg-[#09111f]/95 shadow-[0_24px_80px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
+        <div
+          ref={popoverRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Atur ${label}`}
+          tabIndex={-1}
+          className="admin-exam-datetime-popover r9-datetime__popover mt-2 overflow-hidden"
+        >
 
           <div className="p-4">
 
@@ -526,11 +580,11 @@ function DateTimePicker({
 
               <div className="min-w-0 text-center">
 
-                <p className="truncate text-sm font-semibold text-slate-100">
+                <p className="r9-datetime__popover-title truncate text-sm font-semibold">
                   {MONTH_NAMES[viewMonth]} {viewYear}
                 </p>
 
-                <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-slate-600">
+                <p className="r9-datetime__muted mt-1 text-[11px] uppercase tracking-[0.18em]">
                   Kalender
                 </p>
 
@@ -551,7 +605,7 @@ function DateTimePicker({
                 (day) => (
                   <div
                     key={day}
-                    className="flex h-7 items-center justify-center text-[11px] font-semibold uppercase tracking-wide text-slate-600"
+                    className="r9-datetime__weekday flex h-7 items-center justify-center text-[11px] font-semibold uppercase tracking-wide"
                   >
                     {day}
                   </div>
@@ -593,15 +647,11 @@ function DateTimePicker({
                           cell.date
                         )
                       }
-                      className={
-                        selected
-                          ? `relative flex h-10 items-center justify-center rounded-xl border text-xs font-semibold ${accentClasses.selected}`
-                          : past
-                            ? "flex h-10 cursor-not-allowed items-center justify-center rounded-xl text-xs text-slate-800"
-                            : cell.currentMonth
-                              ? "relative flex h-10 items-center justify-center rounded-xl border border-transparent text-xs text-slate-400 transition hover:border-white/[0.07] hover:bg-white/[0.045] hover:text-white"
-                              : "relative flex h-10 items-center justify-center rounded-xl border border-transparent text-xs text-slate-700 transition hover:bg-white/[0.03] hover:text-slate-400"
-                      }
+                      aria-label={`${cell.date.day} ${MONTH_NAMES[cell.date.month]} ${cell.date.year}`}
+                      aria-pressed={selected}
+                      data-current-month={cell.currentMonth}
+                      data-past={past}
+                      className={`r9-datetime__day relative flex h-10 items-center justify-center text-xs ${selected ? "r9-datetime__day--selected" : ""} ${past ? "r9-datetime__day--past" : ""} ${cell.currentMonth ? "" : "r9-datetime__day--outside"}`}
                     >
                       {cell.date.day}
 
@@ -621,27 +671,27 @@ function DateTimePicker({
 
           </div>
 
-          <div className="border-t border-white/[0.06] bg-white/[0.012] p-4">
+          <div className="r9-datetime__time-panel border-t p-4">
 
             <div className="flex items-center justify-between gap-3">
 
               <div>
 
-                <p className="text-[11px] uppercase tracking-[0.18em] text-slate-600">
+                <p className="r9-datetime__muted text-[11px] uppercase tracking-[0.18em]">
                   Waktu
                 </p>
 
-                <p className="mt-1 text-xs text-slate-400">
+                <p className="r9-datetime__description mt-1 text-xs">
                   Atur jam dan menit
                 </p>
 
               </div>
 
               <div
-                className={`rounded-xl border ${accentClasses.border} ${accentClasses.background} px-3 py-2`}
+                className="r9-datetime__time-readout px-3 py-2"
               >
                 <p
-                  className={`font-mono text-xs font-semibold ${accentClasses.text}`}
+                  className="r9-datetime__accent-text font-mono text-xs font-semibold"
                 >
                   {pad(value.hour)}:{pad(value.minute)} WIB
                 </p>
@@ -676,7 +726,7 @@ function DateTimePicker({
               onClick={() =>
                 setOpen(false)
               }
-              className="liquid-button mt-4 w-full rounded-[13px] px-4 py-3 text-xs font-semibold text-slate-200"
+              className="r9-button r9-button--secondary mt-4 w-full"
             >
               Selesai
             </button>
@@ -705,7 +755,7 @@ function MiniButton({
       type="button"
       aria-label={label}
       onClick={onClick}
-      className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-sm text-slate-400 transition hover:border-white/[0.12] hover:bg-white/[0.055] hover:text-white"
+      className="r9-datetime__mini-button flex h-9 w-9 items-center justify-center text-sm"
     >
       {children}
     </button>
@@ -747,8 +797,8 @@ function TimeStepper({
   }
 
   return (
-    <div className="rounded-[16px] border border-white/[0.055] bg-black/10 p-3">
-      <p className="text-center text-[11px] uppercase tracking-[0.14em] text-slate-600">
+    <div className="r9-datetime__stepper p-3">
+      <p className="r9-datetime__muted text-center text-[11px] uppercase tracking-[0.14em]">
         {label}
       </p>
 
@@ -757,12 +807,12 @@ function TimeStepper({
           type="button"
           onClick={() => onValueChange(Math.max(min, value - 1))}
           disabled={value <= min}
-          className="flex h-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-sm text-slate-400 transition hover:bg-white/[0.06] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+          className="r9-datetime__mini-button flex h-9 items-center justify-center text-sm disabled:cursor-not-allowed disabled:opacity-30"
         >
           −
         </button>
 
-        <div className={`flex h-11 min-w-0 items-center justify-center rounded-xl border ${accentClasses.border} ${accentClasses.background}`}>
+        <div className={`r9-datetime__time-input flex h-11 min-w-0 items-center justify-center ${accentClasses.border} ${accentClasses.background}`}>
           <input
             type="text"
             inputMode="numeric"
@@ -794,7 +844,7 @@ function TimeStepper({
                 onValueChange(Math.max(min, value - 1));
               }
             }}
-            className={`h-full w-full bg-transparent text-center font-mono text-lg font-semibold outline-none ${accentClasses.text}`}
+            className="r9-datetime__accent-text h-full w-full bg-transparent text-center font-mono text-lg font-semibold outline-none"
           />
         </div>
 
@@ -802,13 +852,13 @@ function TimeStepper({
           type="button"
           onClick={() => onValueChange(Math.min(max, value + 1))}
           disabled={value >= max}
-          className="flex h-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-sm text-slate-400 transition hover:bg-white/[0.06] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+          className="r9-datetime__mini-button flex h-9 items-center justify-center text-sm disabled:cursor-not-allowed disabled:opacity-30"
         >
           +
         </button>
       </div>
 
-      <p className="mt-2 text-center text-[10px] text-slate-700">
+      <p className="r9-datetime__muted mt-2 text-center text-[10px]">
         Bisa diketik · {label === "Jam" ? "00–23" : "00–59"}
       </p>
     </div>

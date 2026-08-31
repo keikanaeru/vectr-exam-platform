@@ -695,6 +695,30 @@ export async function activateExam(
     );
   }
 
+  // If this draft has any remedial overrides, every active assignment must be
+  // covered. Otherwise a forgotten participant would silently receive the
+  // global module list, which is the exact ambiguity this feature removes.
+  const { data: activeAssignmentsForRemedial, error: activeAssignmentsError } = await supabase
+    .from("exam_assignments")
+    .select("id")
+    .eq("exam_id", examId)
+    .eq("active", true);
+  if (activeAssignmentsError) throw new Error("Gagal memeriksa assignment remedial peserta.");
+  const activeAssignmentIds = (activeAssignmentsForRemedial ?? []).map((row) => String(row.id));
+  const { data: remedialRows, error: remedialError } = activeAssignmentIds.length
+    ? await supabase.from("exam_assignment_sections").select("assignment_id").in("assignment_id", activeAssignmentIds)
+    : { data: [], error: null };
+  if (remedialError && !["42P01", "PGRST205"].includes(remedialError.code ?? "")) {
+    throw new Error("Gagal memeriksa konfigurasi modul remedial peserta.");
+  }
+  if (!remedialError && remedialRows?.length) {
+    const covered = new Set(remedialRows.map((row) => String(row.assignment_id)));
+    const uncovered = (activeAssignmentsForRemedial ?? []).filter((row) => !covered.has(String(row.id))).length;
+    if (uncovered > 0) {
+      redirectWithError(`Ujian belum bisa diaktifkan karena ${uncovered} peserta belum memiliki modul remedial. Buka menu Modul Remedial per Peserta.`);
+    }
+  }
+
   const { error: updateError } =
     await supabase
       .from("exams")
@@ -1517,4 +1541,3 @@ export async function deleteExam(examId: string) {
   revalidatePath("/admin/exams");
   redirectWithSuccess(`Ujian draft "${exam.title}" berhasil dihapus.`);
 }
-

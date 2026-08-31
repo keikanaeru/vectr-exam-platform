@@ -52,6 +52,7 @@ const sourceTables = [
   "organization_subscription_events",
   "exam_sections",
   "exam_section_progress",
+  "exam_assignment_sections",
 ];
 
 function fail(message) {
@@ -158,6 +159,17 @@ if (!r83Health || r83Health.ok !== true) {
   fail("Database contract R8.3 admin speed belum lengkap.");
 }
 console.log(`[PRE-FLIGHT] Database contract ${r83Health.version ?? "R8.3-ADMIN-SPEED"}: OK`);
+
+const { data: r9RemedialHealth, error: r9RemedialHealthError } = await supabase.rpc("exam_platform_r9_remedial_healthcheck");
+if (r9RemedialHealthError) {
+  fail(`RPC exam_platform_r9_remedial_healthcheck belum siap (${r9RemedialHealthError.code ?? "NO_CODE"}): ${r9RemedialHealthError.message}. Jalankan migration 20260831000000_r9_remedial_assignment_sections.sql sebelum mengaktifkan remedial per peserta.`);
+}
+if (!r9RemedialHealth || r9RemedialHealth.ok !== true) {
+  const missing = Array.isArray(r9RemedialHealth?.missing) ? r9RemedialHealth.missing : [];
+  for (const item of missing) console.error(`  - ${String(item)}`);
+  fail("Database contract R9 remedial assignment belum lengkap.");
+}
+console.log(`[PRE-FLIGHT] Database contract ${r9RemedialHealth.version ?? "R9-REMEDIAL-ASSIGNMENT-SECTIONS"}: OK`);
 
 const { error: authDirectoryError } = await supabase.rpc("exam_platform_admin_auth_directory");
 if (authDirectoryError) {

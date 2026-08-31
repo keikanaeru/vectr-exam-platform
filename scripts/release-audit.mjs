@@ -90,8 +90,8 @@ if (/try\s*\{\s*await\s+finalizeExamSession\([^;]+;\s*redirect\s*\(/.test(takePa
 }
 
 const glassSelect = fs.readFileSync(path.join(root, "app/admin/ui/GlassSelect.tsx"), "utf8");
-if (!glassSelect.includes("createPortal") || !glassSelect.includes("z-[1000]")) {
-  failures.push("GlassSelect belum memakai portal layer sehingga dropdown berisiko terpotong card/overflow.");
+if (!glassSelect.includes("<select") || !glassSelect.includes('className="r9-select"') || !glassSelect.includes("aria-describedby")) {
+  failures.push("GlassSelect belum memakai native select R9 dengan label/description accessibility yang stabil.");
 }
 
 const adminAccountMenu = path.join(root, "app/admin/AdminAccountMenu.tsx");
@@ -295,6 +295,44 @@ if (!platformPageR83.includes("exam_platform_admin_auth_directory") || !platform
 }
 if (!platformActionsR83.includes("akun admin tanpa workspace ikut dibersihkan") || !platformActionsR83.includes("Promise.all(")) {
   failures.push("Organization delete R8.3 belum menjaga orphan-admin cleanup / parallel precheck.");
+}
+
+// R9 remedial assignment contract: the UI, server action, resolver, and
+// migration must ship together so a partial rollout cannot silently change
+// which modules a candidate receives.
+const r9RemedialMigrationPath = path.join(root, "supabase/migrations/20260831000000_r9_remedial_assignment_sections.sql");
+if (!fs.existsSync(r9RemedialMigrationPath)) {
+  failures.push("Migration R9 per-candidate remedial assignment belum tersedia.");
+} else {
+  const r9RemedialMigrationSource = fs.readFileSync(r9RemedialMigrationPath, "utf8");
+  for (const marker of [
+    "CREATE TABLE IF NOT EXISTS public.exam_assignment_sections",
+    "CREATE OR REPLACE FUNCTION public.replace_exam_assignment_sections",
+    "CREATE OR REPLACE FUNCTION public.exam_platform_r9_remedial_healthcheck",
+    "REVOKE ALL ON FUNCTION public.replace_exam_assignment_sections(uuid, jsonb) FROM PUBLIC",
+    "ALTER TABLE public.exam_assignment_sections ENABLE ROW LEVEL SECURITY",
+  ]) {
+    if (!r9RemedialMigrationSource.includes(marker)) {
+      failures.push(`Migration R9 remedial kehilangan marker safety: ${marker}.`);
+    }
+  }
+}
+const r9RemedialPagePath = path.join(root, "app/admin/exams/[id]/remedial/page.tsx");
+const r9RemedialActionPath = path.join(root, "app/admin/exams/[id]/remedial/actions.ts");
+const r9RemedialMatrixPath = path.join(root, "app/admin/exams/[id]/remedial/RemedialAssignmentMatrix.tsx");
+const r9RemedialPageSource = fs.existsSync(r9RemedialPagePath) ? fs.readFileSync(r9RemedialPagePath, "utf8") : "";
+const r9RemedialActionSource = fs.existsSync(r9RemedialActionPath) ? fs.readFileSync(r9RemedialActionPath, "utf8") : "";
+const r9RemedialMatrixSource = fs.existsSync(r9RemedialMatrixPath) ? fs.readFileSync(r9RemedialMatrixPath, "utf8") : "";
+for (const [source, marker, label] of [
+  [r9RemedialPageSource, "exam_assignment_sections", "remedial admin read path"],
+  [r9RemedialActionSource, "replace_exam_assignment_sections", "remedial atomic save action"],
+  [r9RemedialActionSource, 'String(exam.status) !== "DRAFT"', "remedial draft lock"],
+  [r9RemedialMatrixSource, "Hapus Override", "remedial global fallback control"],
+]) {
+  if (!source.includes(marker)) failures.push(`R9 remedial ${label} belum lengkap (${marker}).`);
+}
+if (!examSectionsSource.includes("getExamSectionsForAssignment") || !candidateTakeActionsSource.includes("getExamSectionsForAssignment") || !examSectionsSource.includes("String(session.assignment_id ?? \"\")")) {
+  failures.push("Candidate runtime belum mengonsumsi assignment-specific remedial sections.");
 }
 
 

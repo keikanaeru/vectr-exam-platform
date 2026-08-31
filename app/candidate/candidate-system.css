@@ -1,0 +1,214 @@
+/*
+ * VECTR Candidate System
+ * Calm, high-clarity surfaces for high-stakes exam work.
+ * This layer is Candidate-only and does not rewrite utility classes globally.
+ */
+
+.candidate-system {
+  --candidate-canvas: #080d14;
+  --candidate-surface: #0d151f;
+  --candidate-surface-raised: #111c28;
+  --candidate-surface-hover: #172433;
+  --candidate-border: rgba(148, 163, 184, 0.15);
+  --candidate-border-strong: rgba(148, 163, 184, 0.27);
+  --candidate-text: #f4f7fa;
+  --candidate-text-secondary: #a9b6c5;
+  --candidate-text-muted: #738399;
+  --candidate-signal: #42cadf;
+  --candidate-signal-soft: rgba(66, 202, 223, 0.1);
+  --candidate-success: #5bd6a2;
+  --candidate-warning: #e7b75c;
+  --candidate-danger: #ee7b86;
+  --candidate-focus: 0 0 0 3px rgba(66, 202, 223, 0.22);
+  min-height: 100vh;
+  background: var(--candidate-canvas);
+  color: var(--candidate-text);
+}
+
+[data-candidate-theme="light"] .candidate-system {
+  --candidate-canvas: #f5f7fa;
+  --candidate-surface: #ffffff;
+  --candidate-surface-raised: #ffffff;
+  --candidate-surface-hover: #f0f4f7;
+  --candidate-border: #dce3ea;
+  --candidate-border-strong: #c5d0da;
+  --candidate-text: #17212f;
+  --candidate-text-secondary: #46566a;
+  --candidate-text-muted: #68788c;
+  --candidate-signal: #087f96;
+  --candidate-signal-soft: rgba(8, 127, 150, 0.08);
+  --candidate-success: #16835e;
+  --candidate-warning: #a56b0a;
+  --candidate-danger: #b83c4b;
+  --candidate-focus: 0 0 0 3px rgba(8, 127, 150, 0.18);
+}
+
+.candidate-system .candidate-surface {
+  background: var(--candidate-canvas);
+  color: var(--candidate-text);
+}
+
+.candidate-system main.candidate-surface > .pointer-events-none.fixed {
+  display: none;
+}
+
+.candidate-system .candidate-surface .liquid-nav,
+.candidate-system .candidate-surface .liquid-card {
+  border-color: var(--candidate-border);
+  background: var(--candidate-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  backdrop-filter: none;
+}
+
+.candidate-system .candidate-surface .liquid-nav {
+  border-radius: 14px;
+}
+
+.candidate-system .candidate-surface .liquid-card {
+  border-radius: 16px;
+}
+
+.candidate-system .candidate-surface .liquid-card::before,
+.candidate-system .candidate-surface .liquid-nav::before {
+  display: none;
+}
+
+.candidate-system .candidate-surface .liquid-button,
+.candidate-system .candidate-surface .liquid-button-primary,
+.candidate-system .candidate-surface .liquid-input {
+  border-radius: 10px;
+}
+
+.candidate-system :is(a, button, input, select, textarea):focus-visible {
+  outline: none;
+  box-shadow: var(--candidate-focus);
+}
+
+.candidate-system .candidate-answer-option {
+  position: relative;
+  cursor: pointer;
+}
+
+.candidate-system .candidate-answer-option:focus-within {
+  border-color: var(--candidate-signal);
+  box-shadow: var(--candidate-focus);
+}
+
+.candidate-system .candidate-answer-option[data-selected="true"] {
+  border-color: color-mix(in srgb, var(--candidate-signal) 52%, transparent);
+  background: var(--candidate-signal-soft);
+}
+
+.candidate-system .candidate-answer-option[data-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.candidate-system .candidate-answer-radio {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 auto;
+  margin-top: 0.55rem;
+  accent-color: var(--candidate-signal);
+}
+
+.candidate-submit-dialog {
+  width: min(31rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  margin: auto;
+  overflow: auto;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--candidate-text);
+}
+
+.candidate-submit-dialog::backdrop {
+  background: rgba(3, 7, 12, 0.76);
+}
+
+.candidate-submit-dialog__panel {
+  border: 1px solid var(--candidate-border-strong);
+  border-radius: 15px;
+  padding: 1.5rem;
+  background: var(--candidate-surface-raised);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+}
+
+.candidate-submit-dialog__context {
+  margin: 0;
+  color: var(--candidate-warning);
+  font-size: 0.75rem;
+  font-weight: 680;
+}
+
+.candidate-submit-dialog__title {
+  margin: 0.6rem 0 0;
+  color: var(--candidate-text);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.candidate-submit-dialog__description {
+  margin: 0.75rem 0 0;
+  color: var(--candidate-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.candidate-submit-dialog__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.candidate-submit-dialog__button {
+  min-height: 2.75rem;
+  border: 1px solid var(--candidate-border);
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  background: var(--candidate-surface);
+  color: var(--candidate-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.candidate-submit-dialog__button:hover:not(:disabled) {
+  border-color: var(--candidate-border-strong);
+  background: var(--candidate-surface-hover);
+  color: var(--candidate-text);
+}
+
+.candidate-submit-dialog__button--confirm {
+  border-color: color-mix(in srgb, var(--candidate-success) 35%, transparent);
+  background: color-mix(in srgb, var(--candidate-success) 12%, transparent);
+  color: var(--candidate-success);
+}
+
+.candidate-submit-dialog__button:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+body:has(.candidate-submit-dialog[open]) {
+  overflow: hidden;
+}
+
+@media (max-width: 479px) {
+  .candidate-submit-dialog__actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .candidate-system *,
+  .candidate-system *::before,
+  .candidate-system *::after {
+    scroll-behavior: auto;
+    transition-duration: 0.01ms;
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
+}

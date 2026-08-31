@@ -24,7 +24,7 @@ import CandidateBrand from "@/app/candidate/ui/CandidateBrand";
 import PoweredBy from "@/app/candidate/ui/PoweredBy";
 import { getOrganizationBranding } from "@/lib/organization-branding";
 import { getOrganizationSubscriptionState } from "@/lib/organization-subscription";
-import { getExamSections } from "@/lib/exam-sections";
+import { getExamSectionsForAssignment } from "@/lib/exam-sections";
 import AppIcon from "@/app/ui/AppIcon";
 
 
@@ -228,10 +228,11 @@ export default async function CandidatePage() {
       )
       .single();
 
-  const portalSections = await getExamSections(supabase, String(exam.id));
+  const portalSections = await getExamSectionsForAssignment(supabase, String(exam.id), String(assignment.id));
   const portalModuleLabel = portalSections.length > 1
     ? portalSections.map((section) => section.moduleName).join(" → ")
-    : module?.name ?? "Modul";
+    : portalSections[0]?.moduleName ?? module?.name ?? "Modul";
+  const portalModuleCode = portalSections[0]?.moduleCode ?? module?.code ?? "-";
 
 
   // =====================================
@@ -429,10 +430,10 @@ export default async function CandidatePage() {
 
                 <div className="flex flex-wrap items-center gap-2">
 
-                  {(portalSections.length > 1 || module?.code) && (
+                  {(portalSections.length > 1 || portalModuleCode) && (
 
                     <span className="font-mono text-xs tracking-[0.14em] text-blue-300/75">
-                      {portalSections.length > 1 ? `${portalSections.length} SESI MODUL` : module?.code}
+                      {portalSections.length > 1 ? `${portalSections.length} SESI MODUL` : portalModuleCode}
                     </span>
 
                   )}

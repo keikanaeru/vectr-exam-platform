@@ -171,7 +171,7 @@ export default function CandidateLoginPage() {
 
             {state.error && (
 
-              <div className="mt-5 rounded-[18px] border border-rose-400/15 bg-rose-400/[0.055] p-4">
+              <div role="alert" aria-live="assertive" className="mt-5 rounded-[18px] border border-rose-400/15 bg-rose-400/[0.055] p-4">
 
                 <div className="flex items-start gap-3">
 

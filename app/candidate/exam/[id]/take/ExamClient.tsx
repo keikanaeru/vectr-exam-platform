@@ -15,6 +15,7 @@ import type { ExamPolicy } from "@/lib/exam-policy";
 import CandidateThemeToggle from "@/app/candidate/ui/CandidateThemeToggle";
 import CandidateBrand from "@/app/candidate/ui/CandidateBrand";
 import PoweredBy from "@/app/candidate/ui/PoweredBy";
+import CandidateSubmitDialog from "@/app/candidate/ui/CandidateSubmitDialog";
 import ExamGuard from "./ExamGuard";
 
 import {
@@ -954,7 +955,11 @@ export default function ExamClient({
             {/* OPTIONS */}
             {/* ================================= */}
 
-            <div className="mt-6 space-y-3">
+            <fieldset className="mt-6 space-y-3">
+
+              <legend className="sr-only">
+                Pilih jawaban untuk soal {currentIndex + 1}
+              </legend>
 
               {question.options.map(
                 (
@@ -968,27 +973,19 @@ export default function ExamClient({
                     option.id;
 
 
+                  const optionDisabled = expired || isSaving || submitting;
+
                   return (
-                    <button
+                    <label
                       key={
                         option.id
                       }
-                      type="button"
-                      disabled={
-                        expired ||
-                        isSaving ||
-                        submitting
-                      }
-                      onClick={() =>
-                        selectAnswer(
-                          question.id,
-                          option.id
-                        )
-                      }
+                      data-selected={selected}
+                      data-disabled={optionDisabled}
                       className={
                         selected
-                          ? "group flex w-full items-start gap-4 rounded-[20px] border border-blue-400/35 bg-blue-400/[0.09] p-4 text-left shadow-[0_0_30px_rgba(59,130,246,0.07)] transition disabled:cursor-not-allowed disabled:opacity-50 sm:p-5"
-                          : "group flex w-full items-start gap-4 rounded-[20px] border border-white/[0.065] bg-white/[0.022] p-4 text-left transition hover:-translate-y-0.5 hover:border-white/[0.13] hover:bg-white/[0.04] disabled:cursor-not-allowed disabled:opacity-50 sm:p-5"
+                          ? "candidate-answer-option group flex w-full items-start gap-4 rounded-[16px] border border-blue-400/35 bg-blue-400/[0.09] p-4 text-left transition sm:p-5"
+                          : "candidate-answer-option group flex w-full items-start gap-4 rounded-[16px] border border-white/[0.065] bg-white/[0.022] p-4 text-left transition hover:border-white/[0.13] hover:bg-white/[0.04] sm:p-5"
                       }
                     >
 
@@ -1028,26 +1025,22 @@ export default function ExamClient({
 
                       {/* SELECTED INDICATOR */}
 
-                      <div
-                        className={
-                          selected
-                            ? "mt-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-blue-300/40 bg-blue-400/20"
-                            : "mt-2 h-5 w-5 shrink-0 rounded-full border border-white/[0.12]"
-                        }
-                      >
+                      <input
+                        type="radio"
+                        name={`answer-${question.id}`}
+                        value={option.id}
+                        checked={selected}
+                        disabled={optionDisabled}
+                        onChange={() => selectAnswer(question.id, option.id)}
+                        className="candidate-answer-radio"
+                      />
 
-                        {selected && (
-                          <div className="h-2 w-2 rounded-full bg-blue-300" />
-                        )}
-
-                      </div>
-
-                    </button>
+                    </label>
                   );
                 }
               )}
 
-            </div>
+            </fieldset>
 
 
             {/* ================================= */}
@@ -1486,7 +1479,7 @@ export default function ExamClient({
       {/* SUBMITTING OVERLAY */}
       {/* ================================= */}
 
-      {submitting && (
+      {submitting && !confirmOpen && (
 
         <div className="fixed inset-0 z-[100] flex items-center justify-center candidate-overlay-backdrop px-6 backdrop-blur-md">
 
@@ -1515,30 +1508,19 @@ export default function ExamClient({
       )}
 
     
-      {confirmOpen ? (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center candidate-overlay-backdrop px-5 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="submit-confirm-title">
-          <div className="liquid-card w-full max-w-md p-6">
-            <div className="relative z-10">
-              <span className="liquid-badge px-3 py-1.5 text-[11px] text-amber-200">KONFIRMASI</span>
-              <h2 id="submit-confirm-title" className="mt-4 text-xl font-bold text-white">
-                {section.position < section.total ? `Selesaikan sesi ${section.name}?` : "Selesaikan ujian sekarang?"}
-              </h2>
-              <p className="mt-3 text-sm leading-6 text-slate-400">
-                {blankCount > 0 ? `Masih ada ${blankCount} soal kosong pada sesi ini. ` : ""}
-                {section.position < section.total
-                  ? "Setelah sesi ditutup Anda tidak dapat kembali ke soal sesi ini. Timer total ujian tetap berjalan saat menunggu sesi berikutnya."
-                  : "Setelah dikirim, jawaban tidak dapat diubah lagi."}
-              </p>
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                <button type="button" onClick={() => setConfirmOpen(false)} disabled={submitting} className="liquid-button px-4 py-3 text-sm font-semibold text-slate-300">Kembali Mengerjakan</button>
-                <button type="button" onClick={() => void performSectionFinish(false)} disabled={submitting} className="rounded-[14px] border border-emerald-400/25 bg-emerald-400/[0.14] px-4 py-3 text-sm font-semibold text-emerald-100 disabled:opacity-50">
-                  {submitting ? "Memproses..." : section.position < section.total ? "Ya, Selesaikan Sesi" : "Ya, Kirim Ujian"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <CandidateSubmitDialog
+        open={confirmOpen}
+        pending={submitting}
+        title={section.position < section.total ? `Selesaikan sesi ${section.name}?` : "Kirim ujian sekarang?"}
+        description={`${blankCount > 0 ? `Masih ada ${blankCount} soal kosong pada sesi ini. ` : ""}${
+          section.position < section.total
+            ? "Setelah sesi ditutup Anda tidak dapat kembali ke soal sesi ini. Timer total ujian tetap berjalan saat menunggu sesi berikutnya."
+            : "Setelah dikirim, jawaban tidak dapat diubah lagi."
+        }`}
+        confirmLabel={section.position < section.total ? "Selesaikan sesi" : "Kirim ujian"}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={() => void performSectionFinish(false)}
+      />
 
       <PoweredBy show={branding.showPoweredBy} />
 </main>

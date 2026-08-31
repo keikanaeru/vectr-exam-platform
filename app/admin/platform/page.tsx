@@ -8,6 +8,7 @@ import ActionSubmitButton from "@/app/admin/ui/ActionSubmitButton";
 import AppIcon from "@/app/ui/AppIcon";
 import FlashNotice from "@/app/ui/FlashNotice";
 import { deriveOrganizationSubscriptionState } from "@/lib/organization-subscription";
+import AdminPrimaryHeader from "@/app/admin/ui/AdminPrimaryHeader";
 
 import {
   createCustomerWithAdmin,
@@ -126,27 +127,18 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-10 sm:px-8">
-      <section className="liquid-enter">
-        <div className="admin-page-hero relative overflow-hidden rounded-[28px] border border-white/[0.07] bg-white/[0.025] p-7 sm:p-9">
-          <div className="relative">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="liquid-badge px-3 py-1.5 text-xs text-cyan-200">Platform Owner</span>
-              <span className="text-xs text-slate-600">Pusat kendali</span>
-            </div>
-            <h1 className="mt-5 text-3xl font-bold tracking-tight text-white sm:text-4xl">Pelanggan & Langganan</h1>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
-              Organisasi tetap menjadi identitas tenant di sistem. Di halaman Platform, setiap organisasi diperlakukan sebagai pelanggan dengan masa aktif 30 hari, lalu mode arsip/export selama 90 hari.
-            </p>
-          </div>
-        </div>
-      </section>
+      <AdminPrimaryHeader
+        eyebrow="Pusat Kendali"
+        title="Pelanggan & Langganan"
+        description="Organisasi tetap menjadi identitas tenant di sistem. Di halaman Platform, setiap organisasi diperlakukan sebagai pelanggan dengan masa aktif 30 hari, lalu mode arsip/export selama 90 hari."
+      />
 
       {params.error ? <FlashNotice tone="error" message={params.error} /> : null}
       {params.success ? <FlashNotice tone="success" message={params.success} /> : null}
 
       {subscriptionReadError ? (
         <section className="mt-5">
-          <div className="rounded-[18px] border border-rose-400/20 bg-rose-400/[0.055] px-5 py-4 backdrop-blur-xl">
+            <div className="r9-surface border-rose-400/30 bg-rose-400/[0.055] px-5 py-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-rose-100">Database langganan belum terhubung</p>
@@ -155,7 +147,7 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
                 </p>
                 <p className="mt-2 break-words font-mono text-[11px] leading-5 text-rose-100/70">{subscriptionReadError}</p>
               </div>
-              <span className="rounded-full border border-rose-400/20 bg-rose-400/[0.06] px-3 py-1 text-[11px] font-semibold text-rose-100">SETUP DB</span>
+              <span className="r9-badge r9-badge--danger">SETUP DB</span>
             </div>
           </div>
         </section>
@@ -163,14 +155,14 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
 
       {!platformDatabaseReady && !subscriptionReadError ? (
         <section className="mt-5">
-          <div className="rounded-[18px] border border-amber-400/15 bg-amber-400/[0.04] px-5 py-4">
+          <div className="r9-surface border-amber-400/30 bg-amber-400/[0.04] px-5 py-4">
             <p className="text-sm font-semibold text-amber-200">Direktori Auth R8.3 belum siap</p>
             <p className="mt-1 text-xs leading-5 text-slate-500">Jalankan migration R8.3 lalu ulangi npm.cmd run verify.</p>
           </div>
         </section>
       ) : null}
 
-      <section className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="admin-summary-strip admin-platform-summary mt-5 grid gap-0 sm:grid-cols-2 xl:grid-cols-4">
         <Metric label="Pelanggan aktif" value={activeOrganizations.filter((item) => deriveOrganizationSubscriptionState(subscriptionMap.get(item.id) ?? null).mode === "FULL").length} />
         <Metric label="Total pelanggan" value={organizations.length} />
         <Metric label="Admin aktif" value={activeAdmins.length} />
@@ -178,7 +170,7 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
       </section>
 
       <section className="mt-7">
-        <form action={createCustomerWithAdmin} className="liquid-card overflow-hidden p-0">
+        <form action={createCustomerWithAdmin} className="r9-surface overflow-hidden p-0">
           <div className="grid xl:grid-cols-[1.08fr_0.92fr]">
             <div className="p-6 sm:p-7">
               <SectionTitle
@@ -191,7 +183,7 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
                 <Field name="code" label="Kode Organisasi" placeholder="ORG-TC-2028" required />
               </div>
               <div className="mt-4"><Field name="slug" label="Slug Workspace" placeholder="tax-center-2028" required /></div>
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <div className="admin-platform-onboarding-steps mt-5 grid gap-0 sm:grid-cols-3">
                 <OnboardingStep number="1" label="Organisasi" detail="Tenant dibuat" />
                 <OnboardingStep number="2" label="Langganan" detail="30 hari FULL" />
                 <OnboardingStep number="3" label="Undangan" detail="Klien buat password" />
@@ -206,7 +198,7 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
                 <Field name="admin_full_name" label="Nama PIC / Admin Utama" placeholder="Nama lengkap" required />
                 <Field name="admin_email" label="Email Admin" type="email" placeholder="admin@organisasi.id" required />
               </div>
-              <div className={`mt-5 rounded-[15px] border px-4 py-3 ${resendProductionSender ? "border-emerald-400/15 bg-emerald-400/[0.04]" : resendConfigured ? "border-amber-400/15 bg-amber-400/[0.04]" : "border-rose-400/15 bg-rose-400/[0.04]"}`}>
+              <div className={`mt-5 rounded-[15px] border px-4 py-3 ${resendProductionSender ? "border-emerald-400/30 bg-emerald-400/[0.04]" : resendConfigured ? "border-amber-400/30 bg-amber-400/[0.04]" : "border-rose-400/30 bg-rose-400/[0.04]"}`}>
                 <div className="flex items-center gap-2">
                   <span className={`h-2 w-2 rounded-full ${resendProductionSender ? "bg-emerald-400" : resendConfigured ? "bg-amber-400" : "bg-rose-400"}`} />
                   <p className="text-xs font-semibold text-slate-200">{resendProductionSender ? "Email produksi siap" : resendConfigured ? "Resend masih mode testing" : "Email belum dikonfigurasi"}</p>
@@ -219,7 +211,7 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
                       : "Isi RESEND_API_KEY dan sender email sebelum onboarding pelanggan nyata."}
                 </p>
               </div>
-              <ActionSubmitButton pendingLabel="Membuat pelanggan & mengirim email..." className="liquid-button-primary mt-5 w-full rounded-[14px] px-4 py-3.5 text-sm font-semibold">Buat Pelanggan & Kirim Undangan</ActionSubmitButton>
+              <ActionSubmitButton pendingLabel="Membuat pelanggan & mengirim email..." className="r9-button r9-button--primary mt-5 w-full">Buat Pelanggan & Kirim Undangan</ActionSubmitButton>
             </div>
           </div>
         </form>
@@ -227,22 +219,22 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
 
       <section className="mt-9">
         <div className="mb-4 flex items-end justify-between gap-4">
-          <div><p className="text-[11px] uppercase tracking-[0.17em] text-violet-300/60">Daftar Pelanggan</p><h2 className="mt-2 text-2xl font-semibold text-white">Organisasi Pelanggan</h2></div>
-          <span className="liquid-badge px-3 py-1.5 text-xs text-slate-400">{organizations.length} pelanggan</span>
+          <div><p className="r9-kicker">Daftar Pelanggan</p><h2 className="mt-2 text-2xl font-semibold text-slate-100">Organisasi Pelanggan</h2></div>
+          <span className="r9-badge">{organizations.length} pelanggan</span>
         </div>
         <div className="grid gap-5 xl:grid-cols-2">
           {organizations.map((organization) => {
             const orgMemberships = memberships.filter((m) => m.organization_id === organization.id && m.active);
             const subscription = deriveOrganizationSubscriptionState(subscriptionMap.get(organization.id) ?? null);
             return (
-              <article key={organization.id} className="liquid-card p-6">
+              <article key={organization.id} className="r9-surface p-6">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-[11px] text-violet-300/70">{organization.code}</span>
+                      <span className="font-mono text-[11px] text-cyan-300/70">{organization.code}</span>
                       <StatusBadge active={organization.active} />
                     </div>
-                    <h3 className="mt-2 text-xl font-semibold text-white">{organization.name}</h3>
+                    <h3 className="mt-2 text-xl font-semibold text-slate-100">{organization.name}</h3>
                     <p className="mt-1 text-xs text-slate-600">/{organization.slug} · {orgMemberships.filter((m) => authUserMap.get(m.user_id)?.confirmed).length} admin aktif · {orgMemberships.filter((m) => !authUserMap.get(m.user_id)?.confirmed).length} undangan</p>
                   </div>
                   <div className="rounded-[14px] border border-white/[0.06] bg-white/[0.025] px-3 py-2 text-[11px] text-slate-500">{organization.id.slice(0, 8)}</div>
@@ -258,7 +250,7 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
                       </div>
                     </div>
                     <form action={renewOrganizationSubscription.bind(null, organization.id)}>
-                      <ActionSubmitButton pendingLabel="Memperpanjang..." className="liquid-button-primary rounded-[12px] px-4 py-2.5 text-xs font-semibold">+30 Hari</ActionSubmitButton>
+                      <ActionSubmitButton pendingLabel="Memperpanjang..." className="r9-button r9-button--primary">+30 Hari</ActionSubmitButton>
                     </form>
                   </div>
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -288,13 +280,13 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
                   ) : null}
                 </div>
 
-                <div className="mt-5 rounded-[18px] border border-white/[0.055] bg-black/10 p-4">
+                <div className="r9-surface-subtle mt-5 p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="text-xs font-semibold text-slate-300">Admin & Akses</p>
                       <p className="mt-1 text-[11px] leading-5 text-slate-600">Admin pertama menjadi PIC utama secara operasional. Admin tambahan bisa diundang tanpa password sementara.</p>
                     </div>
-                    <span className="liquid-badge px-2.5 py-1 text-[10px] text-slate-500">{orgMemberships.length} admin</span>
+                    <span className="r9-badge">{orgMemberships.length} admin</span>
                   </div>
 
                   <div className="mt-3 space-y-2">
@@ -307,7 +299,7 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
                               <p className="truncate text-xs font-semibold text-slate-200">{profile.full_name}</p>
-                              {index === 0 ? <span className="rounded-full border border-violet-400/15 bg-violet-400/[0.05] px-2 py-0.5 text-[9px] font-semibold text-violet-200">ADMIN UTAMA</span> : null}
+                              {index === 0 ? <span className="r9-badge">ADMIN UTAMA</span> : null}
                               <AdminInviteBadge active={profile.active} confirmed={Boolean(authUser?.confirmed)} />
                             </div>
                             <p className="mt-1 truncate text-[11px] text-slate-600">{authUser?.email || "Email Auth tidak terbaca"}</p>
@@ -316,11 +308,11 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
                             <div className="flex shrink-0 flex-wrap gap-2">
                               {!authUser.confirmed ? (
                                 <form action={resendOrganizationAdminInvite.bind(null, profile.id, organization.id)}>
-                                  <ActionSubmitButton pendingLabel="Mengirim..." className="liquid-button rounded-[10px] px-3 py-2 text-[10px] font-semibold">Kirim Ulang Undangan</ActionSubmitButton>
+                                  <ActionSubmitButton pendingLabel="Mengirim..." className="r9-button r9-button--secondary">Kirim Ulang Undangan</ActionSubmitButton>
                                 </form>
                               ) : (
                                 <form action={sendAdminPasswordReset.bind(null, profile.id, organization.id)}>
-                                  <ActionSubmitButton pendingLabel="Mengirim..." className="liquid-button rounded-[10px] px-3 py-2 text-[10px] font-semibold">Kirim Link Password</ActionSubmitButton>
+                                  <ActionSubmitButton pendingLabel="Mengirim..." className="r9-button r9-button--secondary">Kirim Link Password</ActionSubmitButton>
                                 </form>
                               )}
                             </div>
@@ -334,7 +326,7 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
                     <input type="hidden" name="organization_id" value={organization.id} />
                     <Field name="full_name" label="Tambah Admin" placeholder="Nama admin" required />
                     <Field name="email" label="Email" type="email" placeholder="admin@organisasi.id" required />
-                    <ActionSubmitButton pendingLabel="Mengirim undangan..." className="liquid-button-primary rounded-[12px] px-4 py-3 text-xs font-semibold">Kirim Undangan</ActionSubmitButton>
+                    <ActionSubmitButton pendingLabel="Mengirim undangan..." className="r9-button r9-button--primary">Kirim Undangan</ActionSubmitButton>
                   </form>
                 </div>
 
@@ -345,12 +337,12 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
                     <Field name="code" label="Kode" defaultValue={organization.code} required />
                   </div>
                   <div className="mt-3"><Field name="slug" label="Slug" defaultValue={organization.slug} required /></div>
-                  <ActionSubmitButton pendingLabel="Menyimpan..." className="liquid-button mt-4 rounded-[12px] px-4 py-2.5 text-xs font-semibold">Simpan Perubahan</ActionSubmitButton>
+                  <ActionSubmitButton pendingLabel="Menyimpan..." className="r9-button r9-button--secondary mt-4">Simpan Perubahan</ActionSubmitButton>
                 </form>
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   <form action={toggleOrganizationStatus.bind(null, organization.id)}>
-                    <ActionSubmitButton pendingLabel="Memproses..." className="liquid-button rounded-[12px] px-4 py-2.5 text-xs font-semibold">{organization.active ? "Nonaktifkan" : "Aktifkan"}</ActionSubmitButton>
+                    <ActionSubmitButton pendingLabel="Memproses..." className="r9-button r9-button--secondary">{organization.active ? "Nonaktifkan" : "Aktifkan"}</ActionSubmitButton>
                   </form>
                   <form action={deleteOrganization.bind(null, organization.id)}>
                     <ConfirmSubmitButton pendingLabel="Menghapus organisasi..." message={`Hapus organisasi ${organization.name}? Hanya bisa jika belum memiliki modul, batch, peserta, atau ujian. Admin yang tidak punya workspace lain ikut dibersihkan.`} className="rounded-[12px] border border-rose-400/15 bg-rose-400/[0.04] px-4 py-2.5 text-xs font-semibold text-rose-200 transition hover:bg-rose-400/[0.08]">Hapus Organisasi</ConfirmSubmitButton>
@@ -364,8 +356,8 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
 
       <section className="mt-10">
         <div className="mb-4 flex items-end justify-between gap-4">
-          <div><p className="text-[11px] uppercase tracking-[0.17em] text-cyan-300/60">Akun Admin</p><h2 className="mt-2 text-2xl font-semibold text-white">Admin Platform</h2></div>
-          <span className="liquid-badge px-3 py-1.5 text-xs text-slate-400">{admins.length} akun</span>
+          <div><p className="r9-kicker">Akun Admin</p><h2 className="mt-2 text-2xl font-semibold text-slate-100">Admin Platform</h2></div>
+          <span className="r9-badge">{admins.length} akun</span>
         </div>
 
         <div className="space-y-5">
@@ -375,13 +367,13 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
             const userMemberships = memberships.filter((m) => m.user_id === profile.id && m.active);
             const isSelf = profile.id === context.userId;
             return (
-              <article key={profile.id} className="liquid-card p-6">
+              <article key={profile.id} className="r9-surface p-6">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <div className="grid h-12 w-12 place-items-center rounded-[18px] border border-white/[0.08] bg-white/[0.045] text-slate-300"><AppIcon name="user" className="h-5 w-5" /></div>
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-lg font-semibold text-white">{profile.full_name}</h3>
+                        <h3 className="text-lg font-semibold text-slate-100">{profile.full_name}</h3>
                         {profile.is_platform_owner ? <span className="rounded-full border border-cyan-400/20 bg-cyan-400/[0.07] px-2.5 py-1 text-[11px] font-semibold text-cyan-200">PLATFORM OWNER</span> : <AdminInviteBadge active={profile.active} confirmed={Boolean(authUser?.confirmed)} />}
                       </div>
                       <p className="mt-1 text-xs text-slate-500">{email || "Email Auth tidak terbaca"} · {profile.role}</p>
@@ -413,12 +405,12 @@ export default async function PlatformPage({ searchParams }: { searchParams: Pro
                     </div>
                   </div>
 
-                  <ActionSubmitButton pendingLabel="Menyimpan admin..." className="liquid-button mt-5 rounded-[12px] px-4 py-2.5 text-xs font-semibold">Simpan Admin</ActionSubmitButton>
+                  <ActionSubmitButton pendingLabel="Menyimpan admin..." className="r9-button r9-button--secondary mt-5">Simpan Admin</ActionSubmitButton>
                 </form>
 
                 {!profile.is_platform_owner ? (
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <form action={toggleAdminStatus.bind(null, profile.id)}><ActionSubmitButton pendingLabel="Memproses admin..." className="liquid-button rounded-[12px] px-4 py-2.5 text-xs font-semibold" disabled={isSelf}>{profile.active ? "Nonaktifkan Admin" : "Aktifkan Admin"}</ActionSubmitButton></form>
+                    <form action={toggleAdminStatus.bind(null, profile.id)}><ActionSubmitButton pendingLabel="Memproses admin..." className="r9-button r9-button--secondary" disabled={isSelf}>{profile.active ? "Nonaktifkan Admin" : "Aktifkan Admin"}</ActionSubmitButton></form>
                     <form action={deleteAdmin.bind(null, profile.id)}><ConfirmSubmitButton pendingLabel="Menghapus admin..." message={`Hapus akun admin ${profile.full_name} beserta akses login dan membership? Data organisasi, modul, peserta, dan ujian tidak ikut dihapus.`} className="rounded-[12px] border border-rose-400/15 bg-rose-400/[0.04] px-4 py-2.5 text-xs font-semibold text-rose-200 transition hover:bg-rose-400/[0.08]">Hapus Admin</ConfirmSubmitButton></form>
                   </div>
                 ) : null}
@@ -463,17 +455,17 @@ function SubscriptionBadge({ mode }: { mode: ReturnType<typeof deriveOrganizatio
 }
 
 function Metric({ label, value }: { label: string; value: number }) {
-  return <div className="liquid-card p-5"><p className="text-[11px] uppercase tracking-[0.14em] text-slate-600">{label}</p><p className="mt-2 text-2xl font-semibold text-slate-100">{value}</p></div>;
+  return <div className="admin-primary-summary-cell r9-surface p-5"><p className="r9-kicker">{label}</p><p className="mt-2 text-2xl font-semibold text-slate-100">{value}</p></div>;
 }
 
 function SectionTitle({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
-  return <div><p className="text-[11px] uppercase tracking-[0.16em] text-violet-300/60">{eyebrow}</p><h2 className="mt-2 text-xl font-semibold text-white">{title}</h2><p className="mt-2 text-xs leading-5 text-slate-600">{description}</p></div>;
+  return <div><p className="r9-kicker">{eyebrow}</p><h2 className="mt-2 text-xl font-semibold text-slate-100">{title}</h2><p className="mt-2 text-xs leading-5 text-slate-500">{description}</p></div>;
 }
 
 function Field({ name, label, type = "text", placeholder, defaultValue, required = false }: { name: string; label: string; type?: string; placeholder?: string; defaultValue?: string; required?: boolean }) {
-  return <label className="block"><span className="mb-2 block text-xs text-slate-400">{label}</span><input name={name} type={type} placeholder={placeholder} defaultValue={defaultValue} required={required} className="w-full rounded-[14px] border border-white/[0.07] bg-white/[0.025] px-4 py-3 text-sm text-slate-200 outline-none transition placeholder:text-slate-700 focus:border-cyan-400/20 focus:bg-cyan-400/[0.025]" /></label>;
+  return <label className="block"><span className="r9-field-label">{label}</span><input name={name} type={type} placeholder={placeholder} defaultValue={defaultValue} required={required} className="r9-input" /></label>;
 }
 
 function StatusBadge({ active }: { active: boolean }) {
-  return <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${active ? "border-emerald-400/20 bg-emerald-400/[0.07] text-emerald-200" : "border-slate-400/10 bg-slate-400/[0.04] text-slate-500"}`}>{active ? "AKTIF" : "NONAKTIF"}</span>;
+  return <span className={active ? "r9-badge r9-badge--success" : "r9-badge"}>{active ? "AKTIF" : "NONAKTIF"}</span>;
 }

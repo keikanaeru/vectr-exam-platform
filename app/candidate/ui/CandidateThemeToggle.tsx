@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 type ThemePreference = "auto" | "light" | "dark";
 type ResolvedTheme = "light" | "dark";
@@ -20,6 +20,9 @@ function applyTheme(preference: ThemePreference) {
 }
 
 export default function CandidateThemeToggle({ compact = false }: { compact?: boolean }) {
+  const panelId = useId();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const [preference, setPreference] = useState<ThemePreference>("auto");
   const [open, setOpen] = useState(false);
 
@@ -38,6 +41,27 @@ export default function CandidateThemeToggle({ compact = false }: { compact?: bo
     return () => media.removeEventListener("change", onChange);
   }, []);
 
+  useEffect(() => {
+    if (!open) return;
+
+    const onPointerDown = (event: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) setOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
   const choose = (next: ThemePreference) => {
     setPreference(next);
     window.localStorage.setItem(STORAGE_KEY, next);
@@ -49,11 +73,13 @@ export default function CandidateThemeToggle({ compact = false }: { compact?: bo
   const symbol = preference === "auto" ? "◐" : preference === "light" ? "☀" : "☾";
 
   return (
-    <div className="candidate-theme-control relative z-[70]">
+    <div ref={rootRef} className="candidate-theme-control relative z-[70]">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
+        aria-controls={panelId}
         aria-label="Pilih tema tampilan"
         className="candidate-theme-button liquid-button gap-2 rounded-[12px] px-3 py-2 text-xs font-semibold"
       >
@@ -61,7 +87,7 @@ export default function CandidateThemeToggle({ compact = false }: { compact?: bo
         {compact ? null : <span>{label}</span>}
       </button>
       {open ? (
-        <div className="candidate-theme-menu absolute right-0 mt-2 w-40 rounded-[16px] border border-white/[0.09] bg-slate-950/95 p-1.5 shadow-2xl backdrop-blur-xl">
+        <div id={panelId} aria-label="Pilihan tema tampilan" className="candidate-theme-menu absolute right-0 mt-2 w-40 rounded-[16px] border border-white/[0.09] bg-slate-950/95 p-1.5 shadow-2xl backdrop-blur-xl">
           {([
             ["auto", "◐", "Ikuti perangkat"],
             ["light", "☀", "Terang"],
@@ -70,6 +96,7 @@ export default function CandidateThemeToggle({ compact = false }: { compact?: bo
             <button
               key={value}
               type="button"
+              aria-pressed={preference === value}
               onClick={() => choose(value)}
               className={`flex w-full items-center gap-2 rounded-[11px] px-3 py-2 text-left text-xs transition ${preference === value ? "bg-cyan-400/[0.09] text-cyan-100" : "text-slate-300 hover:bg-white/[0.05]"}`}
             >

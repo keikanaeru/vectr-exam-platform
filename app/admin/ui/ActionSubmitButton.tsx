@@ -6,7 +6,7 @@ import { useFormStatus } from "react-dom";
 export default function ActionSubmitButton({
   children,
   pendingLabel = "Memproses...",
-  className = "liquid-button rounded-[12px] px-4 py-2.5 text-xs font-semibold",
+  className = "r9-button r9-button--secondary",
   disabled = false,
 }: {
   children: ReactNode;
@@ -20,13 +20,13 @@ export default function ActionSubmitButton({
   return (
     <button
       type="submit"
-      className={className}
+      className={`r9-submit ${className}`}
       disabled={isDisabled}
       aria-busy={pending}
     >
       {pending ? (
-        <span className="inline-flex items-center gap-2">
-          <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-r-transparent opacity-80" aria-hidden="true" />
+        <span className="r9-button__pending" role="status">
+          <span className="r9-spinner" aria-hidden="true" />
           <span>{pendingLabel}</span>
         </span>
       ) : children}

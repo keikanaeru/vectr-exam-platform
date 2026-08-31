@@ -67,9 +67,9 @@ export default function FlashNotice({
     <div
       role={tone === "error" ? "alert" : "status"}
       aria-live={tone === "error" ? "assertive" : "polite"}
-      className="fixed bottom-4 left-4 right-4 z-[300] sm:left-auto sm:right-5 sm:w-[min(480px,calc(100vw-40px))]"
+      className="flash-notice-region fixed bottom-4 left-4 right-4 z-[300] sm:left-auto sm:right-5 sm:w-[min(480px,calc(100vw-40px))]"
     >
-      <div className={`flash-notice flash-notice-${tone} liquid-enter rounded-[18px] border p-4 backdrop-blur-2xl`}>
+      <div className={`flash-notice flash-notice-${tone} rounded-[18px] border p-4 backdrop-blur-2xl`}>
         <div className="flex items-start gap-3">
           <span className="flash-notice-dot mt-1.5 h-2 w-2 shrink-0 rounded-full" />
           <div className="min-w-0 flex-1">

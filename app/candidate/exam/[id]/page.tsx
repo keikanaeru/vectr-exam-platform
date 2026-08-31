@@ -13,7 +13,7 @@ import {
   verifyCandidateSessionToken,
 } from "@/lib/candidate-session";
 import { getExamPolicy } from "@/lib/exam-policy";
-import { getExamSections } from "@/lib/exam-sections";
+import { getExamSectionsForAssignment } from "@/lib/exam-sections";
 import { getOrganizationBranding } from "@/lib/organization-branding";
 import { getOrganizationSubscriptionState } from "@/lib/organization-subscription";
 import CandidateThemeToggle from "@/app/candidate/ui/CandidateThemeToggle";
@@ -244,11 +244,12 @@ export default async function CandidateExamPage({
       .single();
 
 
-  const sections = await getExamSections(supabase, examId);
+  const sections = await getExamSectionsForAssignment(supabase, examId, String(assignment.id));
   const effectiveSections = sections.length ? sections : [{
     id: "legacy", module_id: String(exam.module_id), order_index: 1, duration_minutes: Number(exam.duration_minutes),
     exam_id: examId, moduleCode: module?.code ? String(module.code) : "-", moduleName: module?.name ? String(module.name) : "Modul",
   }];
+  const effectiveModuleCode = effectiveSections[0]?.moduleCode ?? module?.code ?? "-";
 
   const { data: org } = await supabase.from("organizations").select("name").eq("id", exam.organization_id).maybeSingle();
   const branding = await getOrganizationBranding(String(exam.organization_id), org?.name ? String(org.name) : "VECTR Exam Platform");
@@ -259,34 +260,11 @@ export default async function CandidateExamPage({
   // QUESTION COUNT
   // =====================================
 
-  const {
-    count: questionCount,
-  } =
-    await supabase
-      .from("questions")
-      .select(
-        "*",
-        {
-          count: "exact",
-          head: true,
-        }
-      )
-      .eq(
-        "module_id",
-        exam.module_id
-      )
-      .eq(
-        "status",
-        "ACTIVE"
-      );
-
-
-  let totalQuestionCount = questionCount ?? 0;
-  if (effectiveSections.length > 1) {
-    const moduleIds = effectiveSections.map((section) => section.module_id);
-    const { count } = await supabase.from("questions").select("*", { count: "exact", head: true }).in("module_id", moduleIds).eq("status", "ACTIVE");
-    totalQuestionCount = count ?? 0;
-  }
+  const moduleIds = [...new Set(effectiveSections.map((section) => section.module_id))];
+  const { count: questionCount } = moduleIds.length
+    ? await supabase.from("questions").select("*", { count: "exact", head: true }).in("module_id", moduleIds).eq("status", "ACTIVE")
+    : { count: 0 };
+  const totalQuestionCount = questionCount ?? 0;
 
 
   // =====================================
@@ -384,10 +362,10 @@ export default async function CandidateExamPage({
               </span>
 
 
-              {(effectiveSections.length > 1 || module?.code) && (
+              {(effectiveSections.length > 1 || effectiveModuleCode) && (
 
                 <span className="liquid-badge px-2.5 py-1 text-[10px] text-slate-400">
-                  {effectiveSections.length > 1 ? `${effectiveSections.length} SESI MODUL` : module?.code}
+                  {effectiveSections.length > 1 ? `${effectiveSections.length} SESI MODUL` : effectiveModuleCode}
                 </span>
 
               )}

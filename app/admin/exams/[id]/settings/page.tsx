@@ -45,13 +45,12 @@ export default async function ExamSettingsPage({
         eyebrow="Tata Kelola Ujian"
         title="Pengaturan Ujian"
         organizationName={organization.name}
-        status={<span className="liquid-badge px-3 py-1.5 text-[11px] font-semibold text-slate-400">{String(exam.status)}</span>}
+        status={<span className="r9-badge">{String(exam.status)}</span>}
         description={<span>{String(exam.title)} · Atur keamanan, punishment, sesi, hasil, dan instruksi peserta dari satu tempat.</span>}
         backHref="/admin/exams"
         backLabel="Kembali ke Ujian"
-        accent="cyan"
         actions={
-          <Link href={`/admin/exams/${examId}/proctor`} className="liquid-button rounded-[14px] px-5 py-3 text-sm font-semibold text-slate-200">
+          <Link href={`/admin/exams/${examId}/proctor`} className="r9-button r9-button--secondary">
             Buka Proctor Monitor →
           </Link>
         }
@@ -60,7 +59,7 @@ export default async function ExamSettingsPage({
       {query.error ? <FlashNotice tone="error" message={query.error} /> : null}
       {query.success ? <FlashNotice tone="success" message={query.success} /> : null}
 
-      <div className="mt-6 rounded-[20px] border border-amber-400/15 bg-amber-400/[0.04] p-5">
+      <div className="r9-surface mt-6 border-amber-400/30 bg-amber-400/[0.04] p-5">
         <p className="text-sm font-semibold text-amber-200">Catatan tentang screenshot</p>
         <p className="mt-2 text-xs leading-5 text-slate-400">
           Browser tidak bisa menjamin pemblokiran screenshot OS 100%. Mode ini melakukan deteksi <span className="font-mono text-slate-300">PrintScreen</span> best-effort,
@@ -70,8 +69,8 @@ export default async function ExamSettingsPage({
 
 
       {runtimeLocked ? (
-        <div className="mt-4 rounded-[20px] border border-violet-400/15 bg-violet-400/[0.04] p-5">
-          <p className="text-sm font-semibold text-violet-100">Aturan runtime sudah dikunci</p>
+        <div className="r9-surface mt-4 border-amber-400/30 bg-amber-400/[0.04] p-5">
+          <p className="text-sm font-semibold text-amber-100">Aturan runtime sudah dikunci</p>
           <p className="mt-2 text-xs leading-5 text-slate-400">Sejak ujian diaktifkan, Security, Punishment, Kontrol Sesi, dan Instruksi Peserta tidak lagi dapat diubah agar seluruh peserta menjalani aturan yang sama. Visibilitas Hasil tetap dapat diatur untuk kebutuhan publikasi hasil.</p>
         </div>
       ) : null}
@@ -96,7 +95,7 @@ export default async function ExamSettingsPage({
             <Toggle name="detect_offline" label="Catat perangkat offline" description="Mencatat event ketika koneksi browser terputus." checked={policy.security.detectOffline} />
           </div>
 
-          <div className="mt-6 rounded-[20px] border border-white/[0.06] bg-black/10 p-5">
+          <div className="r9-surface-subtle mt-6 p-5">
             <div>
               <p className="text-sm font-semibold text-slate-200">Punishment per jenis pelanggaran</p>
               <p className="mt-1 text-[11px] leading-5 text-slate-600">LOG = hanya audit, COUNT = masuk violation counter, SUBMIT = langsung finalisasi sesi pada event pertama.</p>
@@ -117,9 +116,9 @@ export default async function ExamSettingsPage({
           </div>
 
           <div className="mt-5 grid gap-4 lg:grid-cols-[220px_1fr_1fr]">
-            <label className="rounded-[18px] border border-white/[0.06] bg-black/10 p-4">
+            <label className="r9-surface-subtle p-4">
               <span className="text-xs font-semibold text-slate-300">Batas pelanggaran</span>
-              <input name="violation_limit" type="number" min="1" max="50" step="1" defaultValue={policy.security.violationLimit} className="field mt-3" />
+              <input name="violation_limit" type="number" min="1" max="50" step="1" defaultValue={policy.security.violationLimit} className="r9-input mt-3" />
               <span className="mt-2 block text-[11px] leading-4 text-slate-600">Total event yang dihitung sebelum limit tercapai.</span>
             </label>
             <Toggle name="warn_before_auto_submit" label="Warning sebelum punishment" description="Tampilkan jumlah pelanggaran dan sisa toleransi kepada peserta." checked={policy.security.warnBeforeAutoSubmit} large />
@@ -131,9 +130,9 @@ export default async function ExamSettingsPage({
         <fieldset disabled={runtimeLocked} className={runtimeLocked ? "opacity-60" : ""}>
         <Section title="Kontrol Sesi" description="Kontrol attempt, resume, navigasi, dan pengalaman pengerjaan.">
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            <label className="rounded-[18px] border border-white/[0.06] bg-black/10 p-4">
+            <label className="r9-surface-subtle p-4">
               <span className="text-xs font-semibold text-slate-300">Maksimum attempt</span>
-              <input name="max_attempts" type="number" min="1" max="10" step="1" defaultValue={policy.session.maxAttempts} className="field mt-3" />
+              <input name="max_attempts" type="number" min="1" max="10" step="1" defaultValue={policy.session.maxAttempts} className="r9-input mt-3" />
               <span className="mt-2 block text-[11px] leading-4 text-slate-600">Dicek sebelum kandidat memulai / membuat sesi baru.</span>
             </label>
             <Toggle name="allow_resume" label="Izinkan resume" description="Peserta boleh melanjutkan sesi ACTIVE setelah refresh/login ulang." checked={policy.session.allowResume} />
@@ -152,9 +151,9 @@ export default async function ExamSettingsPage({
             <Toggle name="show_score_breakdown" label="Tampilkan benar/salah/kosong" description="Membuka breakdown jumlah jawaban." checked={policy.results.showScoreBreakdown} />
             <Toggle name="show_completion_summary" label="Tampilkan progress jawaban" description="Menampilkan jumlah soal terjawab dan completion rate." checked={policy.results.showCompletionSummary} />
             <Toggle name="show_pass_fail" label="Tampilkan Lulus / Tidak Lulus" description="Bisa dipakai tanpa membuka angka nilai akhir." checked={policy.results.showPassFail} />
-            <label className="rounded-[18px] border border-white/[0.06] bg-black/10 p-4">
+            <label className="r9-surface-subtle p-4">
               <span className="text-xs font-semibold text-slate-300">Passing score</span>
-              <input name="passing_score" type="number" min="0" max="100" step="0.01" defaultValue={policy.results.passingScore} className="field mt-3" />
+              <input name="passing_score" type="number" min="0" max="100" step="0.01" defaultValue={policy.results.passingScore} className="r9-input mt-3" />
               <span className="mt-2 block text-[11px] leading-4 text-slate-600">Ambang status Lulus, skala nilai akhir 0-100.</span>
             </label>
           </div>
@@ -168,13 +167,13 @@ export default async function ExamSettingsPage({
             rows={7}
             maxLength={4000}
             placeholder={'Contoh:\n- Dilarang menggunakan kalkulator selain yang disediakan.\n- Tidak boleh berkomunikasi dengan peserta lain.\n- Pelanggaran ke-3 menyebabkan submit otomatis.'}
-            className="field min-h-40 resize-y leading-6"
+            className="r9-input min-h-40 resize-y leading-6"
           />
         </Section>
         </fieldset>
 
         <div className="sticky bottom-5 z-20 flex justify-end">
-          <button className="liquid-button-primary rounded-[15px] px-6 py-3.5 text-sm font-semibold shadow-2xl">{runtimeLocked ? "Simpan Pengaturan Hasil" : "Simpan Semua Pengaturan"}</button>
+          <button className="r9-button r9-button--primary shadow-2xl">{runtimeLocked ? "Simpan Pengaturan Hasil" : "Simpan Semua Pengaturan"}</button>
         </div>
       </form>
 </main>
@@ -182,11 +181,11 @@ export default async function ExamSettingsPage({
 }
 
 function Section({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
-  return <section className="liquid-card p-6 sm:p-7"><div className="mb-5"><h2 className="text-lg font-semibold text-white">{title}</h2><p className="mt-1 text-xs leading-5 text-slate-500">{description}</p></div>{children}</section>;
+  return <section className="r9-surface p-6 sm:p-7"><div className="mb-5"><h2 className="text-lg font-semibold text-slate-100">{title}</h2><p className="mt-1 text-xs leading-5 text-slate-500">{description}</p></div>{children}</section>;
 }
 
 function Toggle({ name, label, description, checked, large = false, danger = false }: { name: string; label: string; description: string; checked: boolean; large?: boolean; danger?: boolean }) {
-  return <label className={`flex cursor-pointer items-start gap-3 rounded-[18px] border p-4 transition hover:bg-white/[0.025] ${danger ? "border-rose-400/12 bg-rose-400/[0.025]" : "border-white/[0.06] bg-black/10"} ${large ? "min-h-28" : ""}`}><input type="checkbox" name={name} defaultChecked={checked} className="mt-0.5 h-4 w-4 shrink-0 accent-cyan-400" /><span><span className={`block text-xs font-semibold ${danger ? "text-rose-200" : "text-slate-300"}`}>{label}</span><span className="mt-1.5 block text-[11px] leading-4 text-slate-600">{description}</span></span></label>;
+  return <label className={`r9-surface-subtle flex cursor-pointer items-start gap-3 p-4 transition hover:border-cyan-400/30 ${danger ? "border-rose-400/30 bg-rose-400/[0.025]" : ""} ${large ? "min-h-28" : ""}`}><input type="checkbox" name={name} defaultChecked={checked} className="mt-0.5 h-4 w-4 shrink-0 accent-cyan-400" /><span><span className={`block text-xs font-semibold ${danger ? "text-rose-200" : "text-slate-300"}`}>{label}</span><span className="mt-1.5 block text-[11px] leading-4 text-slate-500">{description}</span></span></label>;
 }
 
 function PunishmentSelect({ name, label, value }: { name: string; label: string; value: "LOG" | "COUNT" | "SUBMIT" }) {
@@ -196,4 +195,3 @@ function PunishmentSelect({ name, label, value }: { name: string; label: string;
     { value: "SUBMIT", label: "AUTO SUBMIT", description: "Langsung submit pada event pertama" },
   ]} /></div>;
 }
-

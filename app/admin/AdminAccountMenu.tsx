@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import AppIcon from "@/app/ui/AppIcon";
@@ -18,20 +18,15 @@ function resolveTheme(preference: ThemePreference): ResolvedTheme {
 }
 
 function applyTheme(preference: ThemePreference) {
-  const resolved = resolveTheme(preference);
-  document.documentElement.dataset.adminTheme = resolved;
+  document.documentElement.dataset.adminTheme = resolveTheme(preference);
   document.documentElement.dataset.adminThemePreference = preference;
 }
 
-export default function AdminAccountMenu({
-  fullName,
-  role,
-}: {
-  fullName: string;
-  role: string;
-}) {
+export default function AdminAccountMenu({ fullName, role }: { fullName: string; role: string }) {
   const router = useRouter();
+  const panelId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const [preference, setPreference] = useState<ThemePreference>("auto");
   const [signingOut, setSigningOut] = useState(false);
@@ -52,19 +47,26 @@ export default function AdminAccountMenu({
   }, []);
 
   useEffect(() => {
+    if (!open) return;
+
     function outside(event: MouseEvent) {
       if (rootRef.current && !rootRef.current.contains(event.target as Node)) setOpen(false);
     }
+
     function escape(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
     }
+
     document.addEventListener("mousedown", outside);
     document.addEventListener("keydown", escape);
     return () => {
       document.removeEventListener("mousedown", outside);
       document.removeEventListener("keydown", escape);
     };
-  }, []);
+  }, [open]);
 
   const chooseTheme = (next: ThemePreference) => {
     setPreference(next);
@@ -84,66 +86,64 @@ export default function AdminAccountMenu({
   };
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className="r9-account">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((current) => !current)}
         aria-expanded={open}
-        aria-haspopup="menu"
-        className="admin-account-trigger flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.035] px-3 py-2 text-left backdrop-blur-xl transition hover:border-white/[0.14] hover:bg-white/[0.05]"
+        aria-controls={panelId}
+        aria-haspopup="dialog"
+        className="r9-account__trigger"
       >
-        <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-slate-300">
-          <AppIcon name="user" className="h-4 w-4" />
+        <span className="r9-account__avatar" aria-hidden="true">
+          <AppIcon name="user" />
         </span>
-        <span className="hidden leading-tight sm:block">
-          <span className="block text-xs font-medium text-slate-200">{fullName}</span>
-          <span className="mt-0.5 block text-[11px] uppercase tracking-wider text-slate-500">{role}</span>
+        <span className="r9-account__identity">
+          <span className="r9-account__name">{fullName}</span>
+          <span className="r9-account__role">{role}</span>
         </span>
-        <span className={`text-[10px] text-slate-500 transition ${open ? "rotate-180" : ""}`}>▼</span>
+        <span className="r9-account__chevron" aria-hidden="true">{open ? "⌃" : "⌄"}</span>
       </button>
 
       {open ? (
-        <div
-          role="menu"
-          className="admin-account-menu absolute right-0 top-[calc(100%+10px)] z-[200] w-[270px] rounded-[20px] border border-white/[0.1] bg-[#07101f]/95 p-3 shadow-[0_28px_80px_rgba(0,0,0,.55)] backdrop-blur-2xl"
-        >
-          <div className="rounded-[15px] border border-white/[0.06] bg-white/[0.025] px-3 py-3">
-            <p className="text-sm font-semibold text-slate-100">{fullName}</p>
-            <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-slate-500">{role}</p>
+        <div id={panelId} className="r9-account__panel" aria-label="Pengaturan akun admin">
+          <div className="r9-account__summary">
+            <strong>{fullName}</strong>
+            <span>{role}</span>
           </div>
 
-          <div className="mt-3">
-            <p className="px-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-600">Tema Admin</p>
-            <div className="mt-2 grid grid-cols-3 gap-1.5 rounded-[14px] border border-white/[0.06] bg-black/10 p-1.5">
-              {([
-                ["auto", "Auto"],
-                ["light", "Terang"],
-                ["dark", "Gelap"],
-              ] as const).map(([value, label]) => (
+          <fieldset className="r9-theme-choice">
+            <legend>Tema admin</legend>
+            <div className="r9-theme-choice__options">
+              {([[
+                "auto",
+                "Auto",
+              ], [
+                "light",
+                "Terang",
+              ], [
+                "dark",
+                "Gelap",
+              ]] as const).map(([value, label]) => (
                 <button
                   key={value}
                   type="button"
+                  aria-pressed={preference === value}
                   onClick={() => chooseTheme(value)}
-                  className={`rounded-[10px] px-2 py-2 text-[11px] font-semibold transition ${
-                    preference === value
-                      ? "bg-cyan-400/[0.11] text-cyan-100"
-                      : "text-slate-500 hover:bg-white/[0.045] hover:text-slate-200"
-                  }`}
+                  className="r9-theme-choice__option"
                 >
                   {label}
                 </button>
               ))}
             </div>
-          </div>
-
-          <div className="my-3 h-px bg-white/[0.06]" />
+          </fieldset>
 
           <button
             type="button"
-            role="menuitem"
             disabled={signingOut}
             onClick={signOut}
-            className="flex w-full items-center justify-between rounded-[13px] border border-rose-400/10 bg-rose-400/[0.035] px-3 py-2.5 text-xs font-semibold text-rose-200 transition hover:bg-rose-400/[0.07] disabled:opacity-50"
+            className="r9-account__signout"
           >
             <span>{signingOut ? "Keluar..." : "Keluar dari Admin"}</span>
             <span aria-hidden="true">↗</span>

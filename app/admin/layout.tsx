@@ -1,3 +1,8 @@
+import "./r9-tokens.css";
+import "./r9/primitives.css";
+import "./r9/shell.css";
+import "./r9/overview.css";
+
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -45,13 +50,13 @@ export default async function AdminLayout({
     !context.activeOrganization
   ) {
     return (
-      <div className="admin-shell admin-performance-shell relative min-h-screen">
+      <div className="admin-shell r9-admin admin-performance-shell relative min-h-screen">
         <div className="fixed right-5 top-5 z-50">
           <AdminAccountMenu fullName={context.profile.fullName} role={context.profile.globalRole || "ADMIN"} />
         </div>
         <main className="flex min-h-screen items-center justify-center px-6">
 
-        <div className="liquid-card liquid-enter max-w-lg p-8 text-center">
+        <div className="r9-surface max-w-lg p-8 text-center">
 
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-xl shadow-lg backdrop-blur-xl">
             !
@@ -102,7 +107,7 @@ export default async function AdminLayout({
   // =====================================
 
   return (
-    <div className="admin-shell admin-performance-shell relative isolate min-h-screen overflow-x-clip">
+    <div className="admin-shell r9-admin admin-performance-shell relative isolate min-h-screen overflow-x-clip">
 
       <AdminActionScrollMemory />
 
@@ -112,9 +117,9 @@ export default async function AdminLayout({
       {/* FLOATING GLASS HEADER */}
       {/* ================================= */}
 
-      <div className="admin-header-stage sticky top-0 z-50 px-3 pt-3 sm:px-5">
+      <div className="r9-shell-stage">
 
-        <header className="admin-header-nav liquid-nav mx-auto max-w-7xl overflow-visible rounded-[24px]">
+        <header className="r9-shell-header overflow-visible">
 
           <div className="px-4 sm:px-6">
 
@@ -122,7 +127,7 @@ export default async function AdminLayout({
             {/* TOP BAR */}
             {/* ================================= */}
 
-            <div className="flex flex-col gap-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="r9-shell-topbar">
 
               {/* ================================= */}
               {/* BRAND + ORGANIZATION */}
@@ -134,7 +139,7 @@ export default async function AdminLayout({
 
                 <Link
                   href="/admin"
-                  className="group flex items-center gap-3"
+                  className="r9-shell-brand"
                 >
 
                   <VectrBrand compact subtitle="Exam Platform · Administration" />
@@ -176,12 +181,12 @@ export default async function AdminLayout({
                      STATIC ORGANIZATION */
                   /* ================================= */
 
-                  <div className="flex items-center gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.035] px-4 py-2.5 backdrop-blur-xl">
+                  <div className="r9-workspace-chip">
 
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.8)]" />
+                    <span className="r9-workspace-chip__signal" aria-hidden="true" />
 
 
-                    <span className="text-sm font-medium text-slate-300">
+                    <span className="r9-workspace-chip__name">
                       {organization.name}
                     </span>
 
@@ -196,7 +201,7 @@ export default async function AdminLayout({
               {/* ADMIN INFO */}
               {/* ================================= */}
 
-              <div className="flex flex-wrap items-center gap-2 text-sm">
+              <div className="r9-shell-account">
 
                 <AdminAccountMenu
                   fullName={context.profile.fullName}
@@ -206,7 +211,7 @@ export default async function AdminLayout({
 
                 {isPlatformOwner && (
 
-                  <span className="liquid-badge liquid-badge-success px-3 py-1.5 text-[11px] font-semibold tracking-wide">
+                  <span className="r9-owner-badge">
                     PLATFORM OWNER
                   </span>
 
@@ -221,10 +226,10 @@ export default async function AdminLayout({
             {/* NAVIGATION */}
             {/* ================================= */}
 
-            <div className="liquid-divider" />
+            <div className="r9-shell-divider" />
 
 
-            <div className="overflow-x-auto py-2">
+            <div className="r9-shell-nav">
 
               <AdminNav
                 isPlatformOwner={
@@ -247,7 +252,7 @@ export default async function AdminLayout({
 
       <div className="mx-auto mt-3 max-w-7xl px-5 sm:px-8">
 
-        <div className="flex flex-col gap-2 rounded-2xl border border-white/[0.06] bg-white/[0.025] px-4 py-2.5 text-xs backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
+        <div className="r9-workspace-context text-xs">
 
           <div className="flex items-center gap-2 text-slate-500">
 
@@ -272,7 +277,7 @@ export default async function AdminLayout({
 
             {isPlatformOwner && (
 
-              <span className="hidden text-[11px] uppercase tracking-[0.14em] text-blue-300/40 sm:inline">
+              <span className="hidden text-[11px] uppercase tracking-[0.14em] text-cyan-300/60 sm:inline">
                 Platform Workspace
               </span>
 
@@ -350,7 +355,7 @@ export default async function AdminLayout({
       {/* PAGE CONTENT */}
       {/* ================================= */}
 
-      <div className="liquid-enter">
+      <div className="r9-page-stage">
         <AdminSubscriptionGate state={subscriptionState} isPlatformOwner={isPlatformOwner}>
           {children}
         </AdminSubscriptionGate>

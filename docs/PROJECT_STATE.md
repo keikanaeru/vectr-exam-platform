@@ -14,6 +14,7 @@ The database migration set includes:
 - `20260815000000_r6_accessibility_branding_multisection.sql`
 - `20260817000100_r8_2_concurrency_hardening.sql`
 - `20260817000200_r8_3_admin_speed_ux.sql`
+- `20260831000000_r9_remedial_assignment_sections.sql` (per-candidate remedial module overrides)
 
 ## Runtime stack
 
@@ -38,6 +39,10 @@ Candidate flow is approximately:
 → answer/flag persistence
 → section completion/final submit
 → `/candidate/exam/[id]/result`
+
+For remedial exams, the active assignment may resolve to a candidate-specific
+module set. If no override exists, the runtime intentionally falls back to the
+exam's global sections.
 
 R8.2 introduced server-side device identity in the signed candidate session and server-side device-lock checks. A second device must not silently take over an active session.
 
@@ -65,6 +70,9 @@ npm.cmd run verify
 ```
 
 Expected gates include database contract audit, release audit, and Next production build/type-check.
+
+The database preflight also requires
+`exam_platform_r9_remedial_healthcheck()` after the R9 migration is applied.
 
 ## Tooling branch
 

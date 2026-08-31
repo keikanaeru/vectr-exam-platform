@@ -91,6 +91,46 @@ export async function getExamSections(
   });
 }
 
+/**
+ * Resolve the immutable module list for one assignment.
+ *
+ * An assignment without override rows intentionally falls back to the exam's
+ * global sections, preserving every existing exam. Once at least one row is
+ * present, only the explicitly selected sections are returned, in the order
+ * configured on the exam. The table-missing fallback keeps old databases
+ * usable while the additive migration is rolled out.
+ */
+export async function getExamSectionsForAssignment(
+  supabase: AdminClient,
+  examId: string,
+  assignmentId: string
+): Promise<ExamSectionView[]> {
+  const globalSections = await getExamSections(supabase, examId);
+  if (!globalSections.length || !assignmentId) return globalSections;
+
+  const { data: overrides, error } = await supabase
+    .from("exam_assignment_sections")
+    .select("exam_section_id, order_index")
+    .eq("assignment_id", assignmentId)
+    .order("order_index", { ascending: true });
+
+  // The migration is additive. Before it is applied, regular/global exams
+  // must remain readable rather than failing candidate login altogether.
+  if (error?.code === "42P01" || error?.code === "PGRST205") return globalSections;
+  if (error) throw new Error(`Gagal membaca modul remedial peserta: ${error.message}`);
+  if (!overrides?.length) return globalSections;
+
+  const byId = new Map(globalSections.map((section) => [section.id, section]));
+  const resolved = overrides
+    .map((row) => byId.get(String(row.exam_section_id)))
+    .filter((section): section is ExamSectionView => Boolean(section));
+
+  // A stale/malformed override must never produce an empty candidate exam.
+  // The server action prevents this state; this guard is defense in depth for
+  // rows written by an older release or an interrupted migration.
+  return resolved.length ? resolved : globalSections;
+}
+
 async function ensureLegacySection(supabase: AdminClient, examId: string) {
   const existing = await getExamSections(supabase, examId);
   if (existing.length) return existing;
@@ -119,17 +159,24 @@ export async function ensureExamSectionsForSession(
   examId: string,
   sessionId: string
 ) {
-  const sections = await ensureLegacySection(supabase, examId);
-  if (!sections.length) throw new Error("Ujian tidak memiliki sesi modul.");
-
   const { data: session, error: sessionError } = await supabase
     .from("exam_sessions")
-    .select("id, started_at, deadline_at, status, snapshot_ready_at")
+    .select("id, assignment_id, started_at, deadline_at, status, snapshot_ready_at")
     .eq("id", sessionId)
     .maybeSingle();
   if (sessionError || !session) {
     throw new Error(`Sesi ujian tidak ditemukan${sessionError?.message ? `: ${sessionError.message}` : "."}`);
   }
+
+  // Ensure legacy exams have their first section before resolving an optional
+  // per-assignment remedial override.
+  await ensureLegacySection(supabase, examId);
+  const sections = await getExamSectionsForAssignment(
+    supabase,
+    examId,
+    String(session.assignment_id ?? "")
+  );
+  if (!sections.length) throw new Error("Ujian tidak memiliki sesi modul.");
   if (String(session.status) !== "ACTIVE") return sections;
 
   // Once the immutable question snapshot + section progress are complete,
@@ -425,7 +472,17 @@ export async function calculateSectionScores(
   examId: string,
   sessionId: string
 ): Promise<SectionScore[]> {
-  const sections = await getExamSections(supabase, examId);
+  const { data: session, error: sessionError } = await supabase
+    .from("exam_sessions")
+    .select("assignment_id")
+    .eq("id", sessionId)
+    .maybeSingle();
+  if (sessionError) throw new Error(`Sesi hasil ujian gagal dibaca: ${sessionError.message}`);
+  const sections = await getExamSectionsForAssignment(
+    supabase,
+    examId,
+    session?.assignment_id ? String(session.assignment_id) : ""
+  );
   if (!sections.length) return [];
 
   const { data: questions, error: questionError } = await supabase

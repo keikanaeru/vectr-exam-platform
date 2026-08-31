@@ -1,6 +1,9 @@
 import { requireAdminReadAccess } from "@/lib/organization-subscription";
 import { createAdminClient } from "@/lib/supabase/admin";
 import FlashNotice from "@/app/ui/FlashNotice";
+import Link from "next/link";
+import AdminPrimaryHeader from "@/app/admin/ui/AdminPrimaryHeader";
+import BrandLogoField from "./BrandLogoField";
 
 import { saveOrganizationBranding } from "./actions";
 
@@ -24,35 +27,26 @@ export default async function BrandingPage({ searchParams }: { searchParams: Pro
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-10 sm:px-8">
-      <section className="admin-page-hero relative overflow-hidden rounded-[28px] border border-white/[0.07] bg-white/[0.025] p-7 sm:p-9">
-        <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" />
-        <div className="relative">
-          <span className="liquid-badge px-3 py-1.5 text-xs text-cyan-200">Branding Organisasi</span>
-          <h1 className="mt-5 text-3xl font-bold tracking-tight text-white sm:text-4xl">Branding Peserta</h1>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
-            Logo dan nama di Tautan Peserta, portal kandidat, ruang ujian, dan halaman hasil. Branding tidak mengubah data ujian.
-          </p>
-        </div>
-      </section>
+      <AdminPrimaryHeader
+        eyebrow="Identitas Tampilan"
+        title="Branding Peserta"
+        description="Logo dan nama di Tautan Peserta, portal kandidat, ruang ujian, dan halaman hasil. Branding tidak mengubah data ujian."
+      />
 
       {params.error ? <FlashNotice tone="error" message={params.error} /> : null}
       {params.success ? <FlashNotice tone="success" message={params.success} /> : null}
 
       <section className="mt-7 grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-        <form action={saveOrganizationBranding} className="liquid-card p-6 sm:p-7">
+        <form action={saveOrganizationBranding} className="r9-surface p-6 sm:p-7">
           <h2 className="text-xl font-semibold text-white">Identitas tampilan</h2>
           <p className="mt-2 text-xs leading-5 text-slate-500">Gunakan logo yang tetap terbaca pada latar terang maupun gelap.</p>
 
           <label className="mt-6 block">
-            <span className="mb-2 block text-xs text-slate-400">Nama Tampilan</span>
-            <input name="display_name" maxLength={120} defaultValue={data?.display_name ? String(data.display_name) : organization.name} className="field" />
+            <span className="r9-field-label mb-2">Nama Tampilan</span>
+            <input name="display_name" maxLength={120} defaultValue={data?.display_name ? String(data.display_name) : organization.name} className="r9-input" />
           </label>
 
-          <label className="mt-5 block">
-            <span className="mb-2 block text-xs text-slate-400">Logo Organisasi</span>
-            <input name="logo" type="file" accept="image/png,image/jpeg,image/webp" className="field file:mr-3 file:rounded-lg file:border-0 file:bg-white/[0.07] file:px-3 file:py-2 file:text-xs file:text-slate-200" />
-            <span className="mt-2 block text-[11px] leading-5 text-slate-600">PNG/JPG/WEBP · maksimal 512 KB.</span>
-          </label>
+          <BrandLogoField />
 
           {logoPath ? (
             <label className="mt-4 flex items-center gap-3 rounded-[15px] border border-white/[0.06] bg-white/[0.02] p-4 text-xs text-slate-400">
@@ -69,29 +63,94 @@ export default async function BrandingPage({ searchParams }: { searchParams: Pro
             </span>
           </label>
 
-          <button className="liquid-button-primary mt-6 rounded-[14px] px-5 py-3 text-sm font-semibold">Simpan Branding</button>
+          <button className="r9-button r9-button--primary mt-6">Simpan Branding</button>
         </form>
 
-        <aside className="liquid-card h-fit p-6">
-          <p className="text-[11px] uppercase tracking-[0.14em] text-slate-600">Pratinjau</p>
-          <div className="mt-4 rounded-[22px] border border-white/[0.07] bg-slate-950/55 p-6 text-center">
-            {logoUrl ? (
-              <div className="mx-auto flex h-20 w-20 items-center justify-center overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.05]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={logoUrl} alt="Pratinjau logo" className="h-full w-full object-contain p-2" />
-              </div>
-            ) : (
-              <div className="mx-auto max-w-[220px] rounded-[16px] border border-dashed border-white/10 bg-white/[0.02] px-4 py-3 text-[11px] text-slate-600">
-                Belum ada logo · area logo tidak ditampilkan ke peserta
-              </div>
-            )}
-            <p className="mt-5 text-lg font-semibold text-white">{data?.display_name ? String(data.display_name) : organization.name}</p>
-            <p className="mt-1 text-xs text-slate-500">Portal Peserta</p>
-            {data?.show_powered_by ? <p className="mt-5 text-[10px] uppercase tracking-[0.18em] text-slate-600">Powered by VECTR Exam Platform</p> : null}
+        <aside className="admin-brand-preview-panel r9-surface h-fit p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="admin-brand-preview-kicker">Pratinjau</p>
+              <h2 className="mt-1 text-base font-semibold text-white">
+                Portal Peserta
+              </h2>
+            </div>
+
+            <span className="admin-brand-preview-badge">
+              PREVIEW
+            </span>
           </div>
+
+          <div className="admin-brand-preview-canvas mt-5">
+            <div
+              className="admin-brand-preview-browser"
+              aria-hidden="true"
+            >
+              <span />
+              <span />
+              <span />
+            </div>
+
+            <div className="admin-brand-preview-content">
+              {logoUrl ? (
+                <div className="admin-brand-preview-logo">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={logoUrl}
+                    alt="Pratinjau logo"
+                    className="h-full w-full object-contain p-2.5"
+                  />
+                </div>
+              ) : (
+                <div className="admin-brand-preview-placeholder">
+                  <span
+                    className="admin-brand-preview-placeholder-mark"
+                    aria-hidden="true"
+                  >
+                    V
+                  </span>
+
+                  <div>
+                    <p>Logo belum dipasang</p>
+                    <span>
+                      Area logo tidak ditampilkan ke peserta
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <p className="admin-brand-preview-name">
+                {data?.display_name
+                  ? String(data.display_name)
+                  : organization.name}
+              </p>
+
+              <p className="admin-brand-preview-label">
+                Portal Peserta
+              </p>
+
+              <Link
+                href="/candidate/login"
+                target="_blank"
+                rel="noreferrer"
+                className="admin-brand-preview-action"
+              >
+                Buka Portal Peserta ↗
+              </Link>
+
+              {data?.show_powered_by ? (
+                <p className="admin-brand-preview-powered">
+                  Powered by VECTR Exam Platform
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          <p className="mt-4 text-[11px] leading-5 text-slate-500">
+            Buka Portal Peserta untuk melihat halaman login sebenarnya.
+            Perubahan pada form ini baru tampil di portal setelah Branding disimpan.
+          </p>
         </aside>
       </section>
     </main>
   );
 }
-

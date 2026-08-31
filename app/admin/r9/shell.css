@@ -1,0 +1,567 @@
+/*
+ * VECTR R9 ADMIN SHELL
+ *
+ * The shell is intentionally structural:
+ * no glass card header,
+ * no ambient glow,
+ * no animated navigation orb.
+ */
+
+.r9-admin {
+  min-height: 100vh;
+  background:
+    var(--r9-canvas);
+  color:
+    var(--r9-text);
+}
+
+/* =========================================================
+   GLOBAL HEADER
+   ========================================================= */
+
+.r9-admin .r9-shell-stage {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+
+  border-bottom:
+    1px solid
+    var(--r9-border);
+
+  background:
+    var(--r9-canvas);
+}
+
+.r9-admin .r9-shell-header {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline:
+    var(--r9-space-5);
+}
+
+.r9-admin .r9-shell-topbar {
+  display: flex;
+  min-height: 4.25rem;
+
+  align-items: center;
+  justify-content: space-between;
+  gap:
+    var(--r9-space-5);
+
+  padding-block:
+    var(--r9-space-3);
+}
+
+.r9-admin .r9-shell-brand {
+  display: inline-flex;
+  align-items: center;
+  gap:
+    var(--r9-space-3);
+
+  color:
+    var(--r9-text);
+
+  text-decoration: none;
+}
+
+/* =========================================================
+   ACTIVE WORKSPACE
+   ========================================================= */
+
+.r9-admin .r9-workspace-chip {
+  display: inline-flex;
+  min-height: 2.25rem;
+
+  align-items: center;
+  gap:
+    var(--r9-space-2);
+
+  border-left:
+    1px solid
+    var(--r9-border);
+
+  padding-left:
+    var(--r9-space-4);
+}
+
+.r9-admin
+  .r9-workspace-chip__signal {
+  width: 0.42rem;
+  height: 0.42rem;
+
+  flex: 0 0 auto;
+
+  border-radius:
+    var(--r9-radius-pill);
+
+  background:
+    var(--r9-success);
+}
+
+.r9-admin
+  .r9-workspace-chip__name {
+  max-width: 17rem;
+
+  overflow: hidden;
+
+  color:
+    var(--r9-text-secondary);
+
+  font-size: 0.8125rem;
+  font-weight: 600;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.r9-admin .r9-shell-account {
+  display: flex;
+  flex-wrap: wrap;
+
+  align-items: center;
+  justify-content: flex-end;
+
+  gap:
+    var(--r9-space-2);
+}
+
+.r9-admin .r9-owner-badge {
+  display: inline-flex;
+  min-height: 1.6rem;
+
+  align-items: center;
+
+  border:
+    1px solid
+    var(--r9-accent-border);
+
+  border-radius:
+    var(--r9-radius-pill);
+
+  padding:
+    0.25rem
+    0.55rem;
+
+  background:
+    var(--r9-accent-soft);
+
+  color:
+    var(--r9-accent-strong);
+
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1rem;
+  letter-spacing: 0.04em;
+}
+
+.r9-admin .r9-shell-divider {
+  height: 1px;
+
+  background:
+    var(--r9-border);
+}
+
+.r9-admin .r9-shell-nav {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.r9-admin
+  .r9-shell-nav::-webkit-scrollbar {
+  display: none;
+}
+
+/* =========================================================
+   NAVIGATION — VECTR SIGNAL RAIL
+   ========================================================= */
+
+.r9-admin .r9-nav {
+  display: flex;
+  min-width: max-content;
+
+  align-items: stretch;
+  gap:
+    var(--r9-space-1);
+}
+
+.r9-admin .r9-nav__link {
+  position: relative;
+
+  display: inline-flex;
+  min-height: 3rem;
+
+  align-items: center;
+  gap:
+    var(--r9-space-2);
+
+  padding:
+    0.7rem
+    0.8rem
+    0.8rem;
+
+  color:
+    var(--r9-text-muted);
+
+  font-size: 0.8125rem;
+  font-weight: 580;
+  line-height: 1rem;
+
+  text-decoration: none;
+
+  transition:
+    color
+      var(--r9-motion-fast)
+      ease,
+    background
+      var(--r9-motion-fast)
+      ease;
+}
+
+.r9-admin
+  .r9-nav__link:hover {
+  background:
+    var(--r9-surface-muted);
+
+  color:
+    var(--r9-text-secondary);
+}
+
+.r9-admin
+  .r9-nav__link[data-active="true"] {
+  color:
+    var(--r9-text);
+}
+
+.r9-admin .r9-nav__icon {
+  width: 1rem;
+  height: 1rem;
+
+  color:
+    currentColor;
+}
+
+.r9-admin .r9-nav__signal {
+  position: absolute;
+
+  right: 0.8rem;
+  bottom: -1px;
+  left: 0.8rem;
+
+  height: 2px;
+
+  background:
+    transparent;
+}
+
+.r9-admin
+  .r9-nav__link[data-active="true"]
+  .r9-nav__signal {
+  background:
+    var(--r9-accent);
+}
+
+/* =========================================================
+   WORKSPACE CONTEXT
+   ========================================================= */
+
+.r9-admin .r9-workspace-context {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap:
+    var(--r9-space-4);
+
+  border-bottom:
+    1px solid
+    var(--r9-border);
+
+  padding:
+    var(--r9-space-3)
+    0;
+
+  background:
+    transparent;
+}
+
+/* =========================================================
+   PAGE STAGE
+   ========================================================= */
+
+.r9-admin .r9-page-stage {
+  min-width: 0;
+}
+
+/* =========================================================
+   WORKSPACE SELECT
+   ========================================================= */
+
+.r9-admin .r9-workspace-select {
+  min-width: 12rem;
+}
+
+.r9-admin .r9-workspace-select__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.r9-admin .r9-workspace-select__input {
+  width: 100%;
+  min-height: 2.5rem;
+  appearance: none;
+  border: 1px solid var(--r9-border);
+  border-radius: var(--r9-radius-control);
+  padding: 0.6rem 2.25rem 0.6rem 1.8rem;
+  background: var(--r9-surface-raised);
+  color: var(--r9-text-secondary);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.r9-admin .r9-workspace-select__input:hover:not(:disabled) {
+  border-color: var(--r9-border-strong);
+  background: var(--r9-surface-hover);
+}
+
+.r9-admin .r9-workspace-select__input:focus-visible {
+  border-color: var(--r9-accent-border);
+  outline: none;
+  box-shadow: var(--r9-focus);
+}
+
+.r9-admin .r9-workspace-select__input:disabled {
+  cursor: progress;
+  opacity: 0.65;
+}
+
+.r9-admin .r9-workspace-select__signal {
+  position: absolute;
+  left: 0.75rem;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: var(--r9-radius-pill);
+  background: var(--r9-success);
+  pointer-events: none;
+}
+
+.r9-admin .r9-workspace-select__chevron {
+  position: absolute;
+  right: 0.75rem;
+  color: var(--r9-text-muted);
+  pointer-events: none;
+}
+
+/* =========================================================
+   ACCOUNT PANEL
+   ========================================================= */
+
+.r9-admin .r9-account {
+  position: relative;
+}
+
+.r9-admin .r9-account__trigger {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  gap: var(--r9-space-2);
+  border: 1px solid var(--r9-border);
+  border-radius: var(--r9-radius-control);
+  padding: 0.35rem 0.55rem;
+  background: var(--r9-surface-raised);
+  color: var(--r9-text-secondary);
+  text-align: left;
+}
+
+.r9-admin .r9-account__trigger:hover {
+  border-color: var(--r9-border-strong);
+  background: var(--r9-surface-hover);
+}
+
+.r9-admin .r9-account__trigger:focus-visible,
+.r9-admin .r9-theme-choice__option:focus-visible,
+.r9-admin .r9-account__signout:focus-visible {
+  outline: none;
+  box-shadow: var(--r9-focus);
+}
+
+.r9-admin .r9-account__avatar {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  border-radius: var(--r9-radius-control);
+  background: var(--r9-surface-muted);
+  color: var(--r9-text-muted);
+}
+
+.r9-admin .r9-account__avatar svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.r9-admin .r9-account__identity {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.r9-admin .r9-account__name {
+  max-width: 11rem;
+  overflow: hidden;
+  color: var(--r9-text);
+  font-size: 0.75rem;
+  font-weight: 620;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.r9-admin .r9-account__role {
+  max-width: 11rem;
+  overflow: hidden;
+  color: var(--r9-text-muted);
+  font-size: 0.625rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.r9-admin .r9-account__chevron {
+  color: var(--r9-text-subtle);
+  font-size: 0.7rem;
+}
+
+.r9-admin .r9-account__panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 200;
+  width: min(17rem, calc(100vw - 2rem));
+  border: 1px solid var(--r9-border-strong);
+  border-radius: var(--r9-radius-popover);
+  padding: var(--r9-space-3);
+  background: var(--r9-surface-raised);
+  box-shadow: var(--r9-shadow-md);
+}
+
+.r9-admin .r9-account__summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--r9-space-1);
+  padding: var(--r9-space-2);
+}
+
+.r9-admin .r9-account__summary strong {
+  color: var(--r9-text);
+  font-size: 0.8125rem;
+}
+
+.r9-admin .r9-account__summary span,
+.r9-admin .r9-theme-choice legend {
+  color: var(--r9-text-muted);
+  font-size: 0.6875rem;
+}
+
+.r9-admin .r9-theme-choice {
+  margin: var(--r9-space-3) 0 0;
+  border: 0;
+  padding: var(--r9-space-3) 0 0;
+  border-top: 1px solid var(--r9-border);
+}
+
+.r9-admin .r9-theme-choice__options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--r9-space-1);
+  margin-top: var(--r9-space-2);
+}
+
+.r9-admin .r9-theme-choice__option {
+  min-height: 2.25rem;
+  border: 1px solid transparent;
+  border-radius: var(--r9-radius-control);
+  background: transparent;
+  color: var(--r9-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 620;
+}
+
+.r9-admin .r9-theme-choice__option:hover {
+  background: var(--r9-surface-hover);
+  color: var(--r9-text);
+}
+
+.r9-admin .r9-theme-choice__option[aria-pressed="true"] {
+  border-color: var(--r9-accent-border);
+  background: var(--r9-accent-soft);
+  color: var(--r9-accent-strong);
+}
+
+.r9-admin .r9-account__signout {
+  display: flex;
+  width: 100%;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--r9-space-3);
+  border: 1px solid color-mix(in srgb, var(--r9-danger) 28%, transparent);
+  border-radius: var(--r9-radius-control);
+  padding: 0.65rem 0.75rem;
+  background: var(--r9-danger-soft);
+  color: var(--r9-danger);
+  font-size: 0.75rem;
+  font-weight: 620;
+}
+
+.r9-admin .r9-account__signout:disabled {
+  cursor: progress;
+  opacity: 0.58;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1023px) {
+  .r9-admin .r9-shell-topbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .r9-admin .r9-shell-account {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 639px) {
+  .r9-admin .r9-shell-header {
+    padding-inline:
+      var(--r9-space-4);
+  }
+
+  .r9-admin .r9-workspace-chip {
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .r9-admin .r9-workspace-context {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .r9-admin .r9-nav__link {
+    padding-inline:
+      0.7rem;
+  }
+}
+
+@media (
+  prefers-reduced-motion:
+  reduce
+) {
+  .r9-admin .r9-nav__link {
+    transition: none;
+  }
+}

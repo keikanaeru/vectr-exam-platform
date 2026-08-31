@@ -64,7 +64,7 @@ function rpc(name, body, trend) {
   return response;
 }
 
-export default function () {
+export default function statefulExamLoad() {
   const row = rows[(__VU - 1) % users];
   localIteration += 1;
 

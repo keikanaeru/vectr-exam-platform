@@ -216,7 +216,7 @@ export default function SendModeFields() {
 
         <ModeButton
           active={sendMode === "SCHEDULED"}
-          tone="violet"
+          tone="accent"
           title="Jadwalkan"
           description="Pilih tanggal dan jam WIB untuk pengiriman otomatis."
           onClick={() => setSendMode("SCHEDULED")}
@@ -226,11 +226,11 @@ export default function SendModeFields() {
       <input type="hidden" name="send_mode" value={sendMode} />
 
       {sendMode === "SCHEDULED" ? (
-        <div className="liquid-enter mt-4 overflow-hidden rounded-[24px] border border-violet-400/10 bg-violet-400/[0.02]">
+        <div className="r9-datetime r9-surface mt-4 overflow-hidden">
           <div className="border-b border-white/[0.06] p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-[11px] uppercase tracking-[0.16em] text-violet-300/60">
+                <p className="r9-datetime__muted text-[11px] uppercase tracking-[0.16em]">
                   Jadwal Pengiriman
                 </p>
 
@@ -243,12 +243,12 @@ export default function SendModeFields() {
                 </p>
               </div>
 
-              <div className="rounded-[16px] border border-violet-400/10 bg-violet-400/[0.04] px-4 py-3">
-                <p className="text-[11px] uppercase tracking-wider text-slate-600">
+              <div className="r9-datetime__zone px-4 py-3">
+                <p className="text-[11px] uppercase tracking-wider">
                   Zona Waktu
                 </p>
 
-                <p className="mt-1 text-xs font-medium text-violet-200">
+                <p className="r9-datetime__accent-text mt-1 text-xs font-medium">
                   WIB · UTC+7
                 </p>
               </div>
@@ -331,16 +331,16 @@ export default function SendModeFields() {
                       onClick={() => setSelectedDate(currentDate)}
                       className={
                         isSelected
-                          ? "relative flex h-10 items-center justify-center rounded-xl border border-violet-300/30 bg-violet-400/[0.14] text-xs font-semibold text-violet-100 shadow-[0_0_20px_rgba(139,92,246,0.12)]"
+                          ? "r9-datetime__day r9-datetime__day--selected relative flex h-10 items-center justify-center text-xs font-semibold"
                           : isPast
                             ? "flex h-10 cursor-not-allowed items-center justify-center rounded-xl text-xs text-slate-800"
-                            : "relative flex h-10 items-center justify-center rounded-xl border border-transparent text-xs text-slate-400 transition hover:border-white/[0.07] hover:bg-white/[0.035] hover:text-white"
+                            : "r9-datetime__day relative flex h-10 items-center justify-center text-xs"
                       }
                     >
                       {day}
 
                       {isToday && !isSelected ? (
-                        <span className="absolute bottom-1 h-1 w-1 rounded-full bg-cyan-400" />
+                        <span className="r9-datetime__accent-dot absolute bottom-1 h-1 w-1 rounded-full" />
                       ) : null}
                     </button>
                   );
@@ -348,8 +348,8 @@ export default function SendModeFields() {
               </div>
             </div>
 
-            <div className="border-t border-white/[0.06] p-5 lg:border-l lg:border-t-0">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-cyan-300/60">
+            <div className="r9-datetime__time-panel border-t p-5 lg:border-l lg:border-t-0">
+              <p className="r9-datetime__muted text-[11px] uppercase tracking-[0.16em]">
                 Waktu
               </p>
 
@@ -372,10 +372,10 @@ export default function SendModeFields() {
                 min={0}
                 max={59}
                 onValueChange={changeMinute}
-                accent="violet"
+                accent="accent"
               />
 
-              <div className="mt-5 rounded-[15px] border border-white/[0.055] bg-black/10 p-3">
+              <div className="r9-datetime__note mt-5 p-3">
                 <p className="text-[11px] leading-5 text-slate-500">
                   Waktu dapat diatur hingga presisi 1 menit. Backend tetap
                   memvalidasi jadwal sebelum campaign disimpan.
@@ -392,12 +392,12 @@ export default function SendModeFields() {
 
           <div className="border-t border-white/[0.06] px-5 py-4">
             <div className="flex items-start gap-3">
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-violet-400 shadow-[0_0_8px_rgba(167,139,250,0.7)]" />
+              <span className="r9-datetime__note-signal mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" />
 
               <p className="text-[11px] leading-5 text-slate-500">
                 Kampanye disimpan sebagai draft terlebih dahulu. Status baru
                 menjadi{" "}
-                <span className="font-medium text-violet-300">
+                <span className="font-medium text-cyan-300">
                   SCHEDULED
                 </span>{" "}
                 setelah provider menerima jadwal.
@@ -406,12 +406,12 @@ export default function SendModeFields() {
           </div>
         </div>
       ) : (
-        <div className="mt-4 rounded-[18px] border border-blue-400/10 bg-blue-400/[0.025] p-4">
+        <div className="r9-datetime__note mt-4 p-4">
           <div className="flex items-start gap-3">
-            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.7)]" />
+            <span className="r9-datetime__note-signal mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" />
 
             <div>
-              <p className="text-xs font-medium text-blue-200">
+              <p className="text-xs font-medium text-cyan-200">
                 Kampanye Kirim Sekarang
               </p>
 
@@ -436,7 +436,7 @@ function ModeButton({
   onClick,
 }: {
   active: boolean;
-  tone: "cyan" | "violet";
+  tone: "cyan" | "accent";
   title: string;
   description: string;
   onClick: () => void;
@@ -444,18 +444,18 @@ function ModeButton({
   const activeClass =
     tone === "cyan"
       ? "border-cyan-400/20 bg-cyan-400/[0.055]"
-      : "border-violet-400/20 bg-violet-400/[0.055]";
+      : "border-cyan-400/20 bg-cyan-400/[0.055]";
 
   const dotClass =
     tone === "cyan"
       ? "bg-cyan-300 shadow-[0_0_10px_rgba(103,232,249,0.8)]"
-      : "bg-violet-300 shadow-[0_0_10px_rgba(196,181,253,0.8)]";
+      : "bg-cyan-300 shadow-[0_0_10px_rgba(103,232,249,0.8)]";
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`relative overflow-hidden rounded-[20px] border p-4 text-left transition ${
+      className={`r9-surface-subtle relative overflow-hidden p-4 text-left transition ${
         active
           ? activeClass
           : "border-white/[0.06] bg-white/[0.02] hover:border-white/[0.1] hover:bg-white/[0.035]"
@@ -496,7 +496,7 @@ function IconButton({
       type="button"
       aria-label={label}
       onClick={onClick}
-      className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-sm text-slate-400 transition hover:border-white/[0.12] hover:bg-white/[0.05] hover:text-white"
+      className="r9-datetime__mini-button flex h-9 w-9 items-center justify-center text-sm"
     >
       {children}
     </button>
@@ -516,7 +516,7 @@ function TimeControl({
   min: number;
   max: number;
   onValueChange: (value: number) => void;
-  accent: "cyan" | "violet";
+  accent: "cyan" | "accent";
 }) {
   const [draft, setDraft] = useState(pad(value));
 
@@ -533,26 +533,23 @@ function TimeControl({
 
   const inputClass = accent === "cyan"
     ? "font-mono text-xl font-semibold text-cyan-200"
-    : "font-mono text-xl font-semibold text-violet-200";
+    : "r9-datetime__accent-text font-mono text-xl font-semibold";
 
   return (
     <div className="mt-5">
-      <p className="text-[11px] uppercase tracking-wider text-slate-600">{label}</p>
+      <p className="r9-datetime__muted text-[11px] uppercase tracking-wider">{label}</p>
 
       <div className="mt-2 grid grid-cols-[40px_1fr_40px] items-center gap-2">
         <button
           type="button"
           onClick={() => onValueChange(Math.max(min, value - 1))}
           disabled={value <= min}
-          className="flex h-10 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-400 transition hover:bg-white/[0.05] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+          className="r9-datetime__mini-button flex h-10 items-center justify-center text-slate-400 disabled:cursor-not-allowed disabled:opacity-30"
         >
           −
         </button>
 
-        <div className={accent === "cyan"
-          ? "flex h-12 items-center justify-center rounded-[14px] border border-cyan-400/10 bg-cyan-400/[0.035]"
-          : "flex h-12 items-center justify-center rounded-[14px] border border-violet-400/10 bg-violet-400/[0.035]"
-        }>
+        <div className="r9-datetime__time-input flex h-12 items-center justify-center">
           <input
             type="text"
             inputMode="numeric"
@@ -592,12 +589,12 @@ function TimeControl({
           type="button"
           onClick={() => onValueChange(Math.min(max, value + 1))}
           disabled={value >= max}
-          className="flex h-10 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-400 transition hover:bg-white/[0.05] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+          className="r9-datetime__mini-button flex h-10 items-center justify-center text-slate-400 disabled:cursor-not-allowed disabled:opacity-30"
         >
           +
         </button>
       </div>
-      <p className="mt-2 text-center text-[10px] text-slate-700">Bisa diketik · {label === "Jam" ? "00–23" : "00–59"}</p>
+      <p className="r9-datetime__muted mt-2 text-center text-[10px]">Bisa diketik · {label === "Jam" ? "00–23" : "00–59"}</p>
     </div>
   );
 }

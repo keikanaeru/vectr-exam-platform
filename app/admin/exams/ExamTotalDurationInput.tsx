@@ -45,7 +45,7 @@ export default function ExamTotalDurationInput({
               event.currentTarget.blur();
             }
           }}
-          className="field pr-16"
+          className="r9-input pr-16"
         />
         <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-600">menit</span>
       </div>

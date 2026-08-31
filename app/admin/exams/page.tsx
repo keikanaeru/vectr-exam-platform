@@ -5,6 +5,8 @@ import { requireAdminReadAccess } from "@/lib/organization-subscription";
 import GlassSelect from "@/app/admin/ui/GlassSelect";
 import ConfirmSubmitButton from "@/app/admin/ui/ConfirmSubmitButton";
 import FlashNotice from "@/app/ui/FlashNotice";
+import AdminPrimaryHeader from "@/app/admin/ui/AdminPrimaryHeader";
+import { MetricStrip, Status as R9Status } from "@/app/admin/r9/ui";
 import { getExamPolicy } from "@/lib/exam-policy";
 
 import {
@@ -27,6 +29,7 @@ export const dynamic = "force-dynamic";
 type SearchParams = { error?: string; success?: string };
 
 type AssignmentRow = {
+  id: string;
   exam_id: string;
   candidate_id: string;
   access_code_hash: string | null;
@@ -54,7 +57,7 @@ function nowWibLabel() {
 
 export default async function ExamsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams;
-  const { organizationId, organization } = await requireAdminReadAccess();
+  const { organizationId } = await requireAdminReadAccess();
   const supabase = createAdminClient();
 
   const [modulesResult, batchesResult, candidatesResult, examsResult] = await Promise.all([
@@ -89,7 +92,7 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
       ? supabase
           .from("exam_assignments")
           .select(
-            "exam_id, candidate_id, access_code_hash, access_code_ciphertext, access_code_generated_at, active"
+            "id, exam_id, candidate_id, access_code_hash, access_code_ciphertext, access_code_generated_at, active"
           )
           .in("exam_id", examIds)
           .eq("active", true)
@@ -149,6 +152,7 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
   const assignments: AssignmentRow[] = (
     assignmentsResult.data ?? []
   ).map((row) => ({
+    id: String(row.id),
     exam_id: String(row.exam_id),
     candidate_id: String(row.candidate_id),
     access_code_hash: row.access_code_hash
@@ -162,6 +166,26 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
       : null,
     active: Boolean(row.active),
   }));
+
+  const assignmentIds = assignments.map((assignment) => assignment.id);
+  const remedialOverrideResult = assignmentIds.length
+    ? await supabase
+        .from("exam_assignment_sections")
+        .select("assignment_id")
+        .in("assignment_id", assignmentIds)
+    : { data: [], error: null };
+  if (remedialOverrideResult.error && !["42P01", "PGRST205"].includes(remedialOverrideResult.error.code ?? "")) {
+    throw new Error("Gagal membaca kesiapan modul remedial peserta.");
+  }
+
+  const remedialAssignmentIdsByExam = new Map<string, Set<string>>();
+  for (const row of remedialOverrideResult.data ?? []) {
+    const assignment = assignments.find((item) => item.id === String(row.assignment_id));
+    if (!assignment) continue;
+    const current = remedialAssignmentIdsByExam.get(assignment.exam_id) ?? new Set<string>();
+    current.add(assignment.id);
+    remedialAssignmentIdsByExam.set(assignment.exam_id, current);
+  }
 
   const assignmentsByExam =
     new Map<string, AssignmentRow[]>();
@@ -287,37 +311,38 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-10 sm:px-8">
-      <section className="liquid-enter">
-        <div className="admin-page-hero relative overflow-hidden rounded-[28px] border border-white/[0.07] bg-white/[0.025] p-7 sm:p-9">
-          <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" />
-          <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <div className="flex flex-wrap items-center gap-2"><span className="liquid-badge px-3 py-1.5 text-xs text-slate-300">{organization.name}</span><span className="text-xs text-slate-600">Kontrol ujian</span></div>
-              <h1 className="mt-5 text-3xl font-bold tracking-tight text-white sm:text-4xl">Ujian</h1>
-              <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">Buat, edit jadwal, sinkronkan peserta, generate credential, buka/tutup kembali akses, dan export hasil dari satu halaman.</p>
-            </div>
-            <div className="rounded-[18px] border border-cyan-400/10 bg-cyan-400/[0.035] px-4 py-3"><p className="text-[11px] uppercase tracking-wider text-slate-600">Sekarang</p><p className="mt-1 text-xs font-medium text-cyan-100">{nowWibLabel()} WIB</p></div>
+      <AdminPrimaryHeader
+        eyebrow="Kontrol Ujian"
+        title="Ujian"
+        description="Buat, edit jadwal, sinkronkan peserta, generate credential, buka/tutup kembali akses, dan export hasil dari satu halaman."
+        aside={
+          <div className="admin-primary-clock">
+            <p>Sekarang</p>
+            <strong>{nowWibLabel()} WIB</strong>
           </div>
-        </div>
-      </section>
+        }
+      />
 
       {params.error ? <FlashNotice tone="error" message={params.error} /> : null}
       {params.success ? <FlashNotice tone="success" message={params.success} /> : null}
 
-      <section className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Metric label="Total" value={exams.length} />
-        <Metric label="Draft" value={draftCount} />
-        <Metric label="Active" value={activeCount} accent />
-        <Metric label="Closed" value={closedCount} />
-      </section>
+      <MetricStrip
+        className="mt-5"
+        items={[
+          { label: "Total", value: exams.length },
+          { label: "Draft", value: draftCount },
+          { label: "Active", value: activeCount, tone: "success" },
+          { label: "Closed", value: closedCount, tone: "danger" },
+        ]}
+      />
 
-      <section className="mt-7 grid gap-6 xl:grid-cols-[430px_1fr]">
-        <form action={createExam} className="liquid-card h-fit p-6">
-          <p className="text-[11px] uppercase tracking-[0.16em] text-violet-300/60">New Exam</p>
+      <section className="admin-exam-workspace mt-7 grid gap-6 xl:grid-cols-[430px_1fr]">
+        <form action={createExam} className="admin-exam-create-panel r9-surface h-fit p-6">
+          <p className="r9-kicker">Ujian Baru</p>
           <h2 className="mt-2 text-xl font-semibold text-white">Buat Ujian</h2>
           <p className="mt-2 text-xs leading-5 text-slate-600">Assignment awal dibuat dari peserta aktif pada batch. Peserta yang diimpor sesudahnya bisa disinkronkan otomatis.</p>
 
-          <label className="mt-5 block"><span className="mb-2 block text-xs text-slate-400">Judul Ujian</span><input name="title" required placeholder="Brevet 2027 - Try Out 1" className="field" /></label>
+          <label className="mt-5 block"><span className="r9-field-label mb-2">Judul Ujian</span><input name="title" required placeholder="Brevet 2027 - Try Out 1" className="r9-input" /></label>
 
           <ExamSectionsBuilder
             initialTotalDuration={60}
@@ -329,14 +354,14 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
               defaultDuration: Number(module.default_duration_minutes ?? 60),
             }))}
           />
-          <div className="mt-4"><label className="mb-2 block text-xs text-slate-400">Batch Peserta</label><GlassSelect name="batch_id" required placeholder="Pilih batch peserta" options={activeBatches.map((batch) => ({ value: String(batch.id), label: String(batch.name), description: `${batch.code} · ${batchCount(String(batch.id))} peserta aktif` }))} /></div>
+          <div className="mt-4"><label className="r9-field-label mb-2">Batch Peserta</label><GlassSelect name="batch_id" required placeholder="Pilih batch peserta" options={activeBatches.map((batch) => ({ value: String(batch.id), label: String(batch.name), description: `${batch.code} · ${batchCount(String(batch.id))} peserta aktif` }))} /></div>
 
           <ExamDateTimeFields />
-          <button disabled={!selectableModules.length || !activeBatches.length} className="liquid-button-primary mt-5 w-full rounded-[14px] px-4 py-3 text-sm font-semibold disabled:opacity-40">Buat sebagai Draft</button>
+          <button disabled={!selectableModules.length || !activeBatches.length} className="r9-button r9-button--primary mt-5 w-full disabled:opacity-40">Buat sebagai Draft</button>
         </form>
 
         <div className="space-y-5">
-          {exams.length === 0 ? <div className="liquid-card p-8 text-center text-sm text-slate-500">Belum ada ujian.</div> : null}
+          {exams.length === 0 ? <div className="admin-exam-empty r9-surface p-8 text-center text-sm text-slate-500">Belum ada ujian.</div> : null}
 
           {exams.map((exam) => {
             const examId = String(exam.id);
@@ -348,6 +373,8 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
             const syncMissing = credential.missing;
             const syncStale = credential.stale;
             const syncMismatch = credential.mismatch;
+            const activeAssignmentIds = new Set((assignmentsByExam.get(examId) ?? []).filter((assignment) => assignment.active).map((assignment) => assignment.id));
+            const remedialAssignmentIds = remedialAssignmentIdsByExam.get(examId) ?? new Set<string>();
             const closePassed = new Date(String(exam.hard_close_at)).getTime() <= Date.now();
             const scheduledEmailCount = scheduledEmailCountByExam.get(examId) ?? 0;
             const policy = getExamPolicy(exam.settings);
@@ -355,6 +382,7 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
             const sectionDurationTotal = examSections.reduce((sum, section) => sum + Number(section.duration_minutes || 0), 0);
             if (!batch || String(batch.status) !== "ACTIVE") readinessBlockers.push("Batch peserta belum aktif atau tidak ditemukan.");
             if (totalBatch < 1) readinessBlockers.push("Batch belum memiliki peserta aktif.");
+            if (remedialAssignmentIds.size > 0 && remedialAssignmentIds.size < activeAssignmentIds.size) readinessBlockers.push(`${activeAssignmentIds.size - remedialAssignmentIds.size} peserta belum memiliki modul remedial. Buka menu Modul Remedial per Peserta.`);
             if (!examSections.length) readinessBlockers.push("Ujian belum memiliki sesi modul.");
             if (sectionDurationTotal > Number(exam.duration_minutes)) readinessBlockers.push(`Total batas sesi ${sectionDurationTotal} menit melebihi durasi total ${exam.duration_minutes} menit.`);
             for (const section of examSections) {
@@ -374,7 +402,7 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
             const examReady = readinessBlockers.length === 0;
 
             return (
-              <article key={examId} className="liquid-card overflow-hidden">
+              <article key={examId} className="admin-exam-record r9-surface overflow-hidden">
                 <div className="p-6">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
@@ -382,7 +410,7 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
                       <h3 className="mt-3 text-xl font-semibold text-white">{exam.title}</h3>
                       <p className="mt-1 text-xs text-slate-500">{sectionNames.join(" → ")} · {batch?.name ?? "Batch tidak ditemukan"}</p>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="admin-exam-participant-meta grid grid-cols-3 gap-0">
                       <Mini label="Batch Peserta" value={totalBatch} />
                       <Mini label="Assigned" value={credential.assigned} warn={syncMismatch > 0} />
                       <Mini label="Ready" value={credential.ready} good={credential.allReady} />
@@ -405,7 +433,7 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
                     </div>
                   ) : null}
 
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  <div className="admin-exam-schedule-grid mt-5 grid gap-0 sm:grid-cols-2 xl:grid-cols-4">
                     <Schedule label="Login Dibuka" value={formatWib(exam.login_open_at ? String(exam.login_open_at) : null)} />
                     <Schedule label="Ujian Mulai" value={formatWib(exam.starts_at ? String(exam.starts_at) : null)} />
                     <Schedule label="Hard Close" value={formatWib(exam.hard_close_at ? String(exam.hard_close_at) : null)} danger={closePassed} />
@@ -413,16 +441,16 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
                   </div>
 
                   {scheduledEmailCount > 0 ? (
-                    <div className="mt-5 rounded-[18px] border border-violet-400/15 bg-violet-400/[0.035] p-4">
-                      <p className="text-xs font-semibold text-violet-200">Jadwal ujian dikunci oleh {scheduledEmailCount} email terjadwal</p>
+                    <div className="r9-surface-subtle mt-5 border-cyan-400/30 bg-cyan-400/[0.035] p-4">
+                      <p className="text-xs font-semibold text-cyan-200">Jadwal ujian dikunci oleh {scheduledEmailCount} email terjadwal</p>
                       <p className="mt-1 text-[11px] leading-5 text-slate-500">Batalkan campaign terjadwal di menu Komunikasi sebelum mengubah judul, batch, modul, atau jadwal agar isi email peserta tidak berbeda dari konfigurasi ujian.</p>
                     </div>
                   ) : null}
 
-                  <details className="mt-5 rounded-[18px] border border-white/[0.055] bg-black/10 p-4">
+                  <details className="admin-exam-edit mt-5">
                     <summary className="cursor-pointer list-none text-xs font-semibold text-slate-300">Edit Judul & Jadwal</summary>
                     <form action={updateExamSchedule.bind(null, examId)} className="mt-4">
-                      <label className="block"><span className="mb-2 block text-xs text-slate-400">Judul</span><input name="title" defaultValue={String(exam.title)} required className="field" /></label>
+                      <label className="block"><span className="r9-field-label mb-2">Judul</span><input name="title" defaultValue={String(exam.title)} required className="r9-input" /></label>
                       {exam.status === "DRAFT" ? (
                         <>
                           <ExamSectionsBuilder
@@ -432,7 +460,7 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
                             }))}
                             initialSections={examSections.map((section) => ({ id: section.id, moduleId: String(section.module_id), durationMinutes: Number(section.duration_minutes) }))}
                           />
-                          <div className="mt-3"><label className="mb-2 block text-xs text-slate-400">Batch Peserta</label><GlassSelect name="batch_id" defaultValue={String(exam.batch_id)} placeholder="Pilih batch peserta" options={activeBatches.map((item) => ({ value: String(item.id), label: String(item.name), description: `${item.code} · ${batchCount(String(item.id))} peserta` }))} /></div>
+                          <div className="mt-3"><label className="r9-field-label mb-2">Batch Peserta</label><GlassSelect name="batch_id" defaultValue={String(exam.batch_id)} placeholder="Pilih batch peserta" options={activeBatches.map((item) => ({ value: String(item.id), label: String(item.name), description: `${item.code} · ${batchCount(String(item.id))} peserta` }))} /></div>
                         </>
                       ) : null}
                       {exam.status !== "DRAFT" ? (
@@ -442,23 +470,23 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
                         />
                       ) : null}
                       <ExamDateTimeFields compact initialLoginOpenAt={String(exam.login_open_at)} initialStartsAt={String(exam.starts_at)} initialHardCloseAt={String(exam.hard_close_at)} />
-                      <button disabled={scheduledEmailCount > 0} className="liquid-button mt-4 rounded-[12px] px-4 py-2.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40">{scheduledEmailCount > 0 ? "Batalkan Email Terjadwal Dulu" : "Simpan Jadwal"}</button>
+                      <button disabled={scheduledEmailCount > 0} className="r9-button r9-button--secondary mt-4 disabled:cursor-not-allowed disabled:opacity-40">{scheduledEmailCount > 0 ? "Batalkan Email Terjadwal Dulu" : "Simpan Jadwal"}</button>
                     </form>
                   </details>
 
-                  <div className="mt-5 grid gap-3 lg:grid-cols-2">
+                  <div className="admin-exam-sync-row mt-5 grid gap-3 lg:grid-cols-2">
                     <form action={syncExamParticipants.bind(null, examId)}>
-                      <button className="liquid-button w-full rounded-[14px] px-4 py-3 text-xs font-semibold">
+                      <button className="r9-button r9-button--secondary w-full">
                         ↻ {exam.status === "ACTIVE" ? "Sinkronkan Peserta & Credential" : "Sinkronkan Peserta"} {syncMismatch ? `(${syncMismatch} perubahan)` : ""}
                       </button>
                     </form>
                     {exam.status === "ACTIVE" ? (
                       credential.pending > 0 || syncMismatch > 0 ? (
                         <form action={generateExamAccessCodes.bind(null, examId)}>
-                          <button className="liquid-button-primary w-full rounded-[14px] px-4 py-3 text-xs font-semibold">Buat / Perbaiki Credential</button>
+                          <button className="r9-button r9-button--primary w-full">Buat / Perbaiki Credential</button>
                         </form>
                       ) : (
-                        <div className="flex items-center justify-center gap-2 rounded-[14px] border border-emerald-400/12 bg-emerald-400/[0.035] px-4 py-3 text-xs font-semibold text-emerald-200">
+                        <div className="admin-exam-credential-state flex items-center gap-2 px-1 py-3 text-xs font-semibold text-emerald-200">
                           <span className="h-2 w-2 rounded-full bg-emerald-300" />
                           Credential lengkap
                         </div>
@@ -468,8 +496,8 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
                     )}
                   </div>
 
-                  <div className="mt-5 grid gap-3 lg:grid-cols-2">
-                    <div className="rounded-[18px] border border-white/[0.055] bg-white/[0.018] p-4">
+                  <div className="admin-exam-detail-grid mt-5 grid gap-0 lg:grid-cols-2">
+                    <div className="admin-exam-detail-section">
                       <div className="flex items-center justify-between gap-3">
                         <div><p className="text-xs font-semibold text-slate-300">Link & Credential Peserta</p><p className="mt-1 text-[11px] text-slate-600">Bagikan akses dan unduh daftar credential.</p></div>
                         <span className={`text-[11px] font-semibold ${credential.allReady && credential.inSync ? "text-emerald-300" : "text-amber-300"}`}>{credential.ready}/{totalBatch} READY</span>
@@ -482,17 +510,24 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
                       </div>
                     </div>
 
-                    <div className="rounded-[18px] border border-emerald-400/10 bg-emerald-400/[0.025] p-4">
+                    <div className="admin-exam-detail-section admin-exam-results">
                       <div><p className="text-xs font-semibold text-emerald-100">Hasil Ujian</p><p className="mt-1 text-[11px] text-slate-600">Rekap nilai keseluruhan dan nilai tiap modul/sesi.</p></div>
                       <div className="mt-3 grid grid-cols-3 gap-2">
-                        <Link href={`/admin/exams/${examId}/results/docx`} className="liquid-button flex items-center justify-center rounded-[12px] px-3 py-2.5 text-xs font-semibold text-slate-300">Word</Link>
-                        <Link href={`/admin/exams/${examId}/results/pdf`} className="liquid-button flex items-center justify-center rounded-[12px] px-3 py-2.5 text-xs font-semibold text-slate-300">PDF</Link>
-                        <Link href={`/admin/exams/${examId}/results/xlsx`} className="liquid-button flex items-center justify-center rounded-[12px] px-3 py-2.5 text-xs font-semibold text-slate-300">Excel</Link>
+                        <Link href={`/admin/exams/${examId}/results/docx`} className="r9-button r9-button--secondary">Word</Link>
+                        <Link href={`/admin/exams/${examId}/results/pdf`} className="r9-button r9-button--secondary">PDF</Link>
+                        <Link href={`/admin/exams/${examId}/results/xlsx`} className="r9-button r9-button--secondary">Excel</Link>
                       </div>
                     </div>
                   </div>
 
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <Link href={`/admin/exams/${examId}/remedial`} className="rounded-[16px] border border-cyan-300/20 bg-cyan-300/[0.045] p-4 transition hover:bg-cyan-300/[0.08]">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-xs font-semibold text-cyan-100">Modul Remedial per Peserta</p>
+                        <span className="r9-badge r9-badge--accent">Buka →</span>
+                      </div>
+                      <p className="mt-2 text-[11px] leading-5 text-slate-500">Atur peserta A hanya Modul A, peserta B Modul C, atau kombinasi lain tanpa mengubah modul global ujian.</p>
+                    </Link>
                     <Link href={`/admin/exams/${examId}/settings`} className="rounded-[16px] border border-cyan-400/12 bg-cyan-400/[0.035] p-4 transition hover:bg-cyan-400/[0.06]">
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-xs font-semibold text-cyan-100">Pengaturan & Punishment</p>
@@ -501,10 +536,10 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
                       <p className="mt-2 text-[11px] leading-5 text-slate-500">Tab switch, fullscreen, screenshot best-effort, copy/paste, shortcut, duplicate tab, limit pelanggaran, attempt, navigasi, dan hasil.</p>
                       <p className="mt-2 text-[11px] font-medium text-cyan-300/70">Limit: {policy.security.violationLimit} · Auto-submit: {policy.security.autoSubmitOnLimit ? "ON" : "OFF"} →</p>
                     </Link>
-                    <Link href={`/admin/exams/${examId}/proctor`} className="rounded-[16px] border border-violet-400/12 bg-violet-400/[0.03] p-4 transition hover:bg-violet-400/[0.055]">
-                      <p className="text-xs font-semibold text-violet-100">Proctor Monitor</p>
+                    <Link href={`/admin/exams/${examId}/proctor`} className="r9-surface-subtle block border-cyan-400/20 bg-cyan-400/[0.03] p-4 transition hover:bg-cyan-400/[0.055]">
+                      <p className="text-xs font-semibold text-cyan-100">Proctor Monitor</p>
                       <p className="mt-2 text-[11px] leading-5 text-slate-500">Pantau sesi aktif, jumlah violation, jenis pelanggaran terakhir, dan submit paksa jika diperlukan.</p>
-                      <p className="mt-2 text-[11px] font-medium text-violet-300/70">Buka monitoring →</p>
+                      <p className="mt-2 text-[11px] font-medium text-cyan-300/80">Buka monitoring →</p>
                     </Link>
                   </div>
 
@@ -515,11 +550,11 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
                         <p className="mt-1 text-[11px] text-slate-600">Aksi operasional. Status ujian tetap ditampilkan pada badge di bagian atas kartu.</p>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {exam.status === "DRAFT" ? <form action={activateExam.bind(null, examId)}><ConfirmSubmitButton disabled={!examReady} title={examReady ? "Aktifkan ujian" : "Selesaikan seluruh kendala kesiapan terlebih dahulu"} message={`Aktifkan ujian ${exam.title}? Peserta batch akan disinkronkan dan aturan Keamanan, Punishment, Kontrol Sesi, serta Instruksi akan dikunci demi konsistensi ujian.`} className="liquid-button-primary rounded-[12px] px-4 py-2.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40">{examReady ? "Aktifkan Ujian" : "Belum Siap Diaktifkan"}</ConfirmSubmitButton></form> : null}
-                        {exam.status === "ACTIVE" ? <form action={closeExam.bind(null, examId)}><ConfirmSubmitButton message={`Tutup login baru untuk ${exam.title}? Peserta yang sudah memiliki sesi aktif tetap dapat ditangani sesuai kebijakan resume.`} className="liquid-button rounded-[12px] border-amber-400/15 px-4 py-2.5 text-xs font-semibold text-amber-200">Tutup Login Peserta Baru</ConfirmSubmitButton></form> : null}
-                        {exam.status === "CLOSED" ? <form action={reopenExam.bind(null, examId)}><ConfirmSubmitButton message={`Buka kembali login peserta untuk ${exam.title}? Pastikan Hard Close dan masa langganan masih valid.`} className="liquid-button rounded-[12px] border-cyan-400/15 px-4 py-2.5 text-xs font-semibold text-cyan-200">Buka Login Peserta</ConfirmSubmitButton></form> : null}
-                        <Link href={`/admin/exams/${examId}/communication`} className="liquid-button rounded-[12px] px-4 py-2.5 text-xs font-semibold">Komunikasi</Link>
-                        {exam.status === "DRAFT" ? <form action={deleteExam.bind(null, examId)}><ConfirmSubmitButton message={`Hapus draft ujian ${exam.title}?`} className="rounded-[12px] border border-rose-400/15 bg-rose-400/[0.04] px-4 py-2.5 text-xs font-semibold text-rose-200">Hapus Draft</ConfirmSubmitButton></form> : null}
+                        {exam.status === "DRAFT" ? <form action={activateExam.bind(null, examId)}><ConfirmSubmitButton disabled={!examReady} title={examReady ? "Aktifkan ujian" : "Selesaikan seluruh kendala kesiapan terlebih dahulu"} message={`Aktifkan ujian ${exam.title}? Peserta batch akan disinkronkan dan aturan Keamanan, Punishment, Kontrol Sesi, serta Instruksi akan dikunci demi konsistensi ujian.`} className="r9-button r9-button--primary disabled:cursor-not-allowed disabled:opacity-40">{examReady ? "Aktifkan Ujian" : "Belum Siap Diaktifkan"}</ConfirmSubmitButton></form> : null}
+                        {exam.status === "ACTIVE" ? <form action={closeExam.bind(null, examId)}><ConfirmSubmitButton message={`Tutup login baru untuk ${exam.title}? Peserta yang sudah memiliki sesi aktif tetap dapat ditangani sesuai kebijakan resume.`} className="r9-button r9-button--secondary">Tutup Login Peserta Baru</ConfirmSubmitButton></form> : null}
+                        {exam.status === "CLOSED" ? <form action={reopenExam.bind(null, examId)}><ConfirmSubmitButton message={`Buka kembali login peserta untuk ${exam.title}? Pastikan Hard Close dan masa langganan masih valid.`} className="r9-button r9-button--secondary">Buka Login Peserta</ConfirmSubmitButton></form> : null}
+                        <Link href={`/admin/exams/${examId}/communication`} className="r9-button r9-button--secondary">Komunikasi</Link>
+                        {exam.status === "DRAFT" ? <form action={deleteExam.bind(null, examId)}><ConfirmSubmitButton message={`Hapus draft ujian ${exam.title}?`} className="r9-button r9-button--danger">Hapus Draft</ConfirmSubmitButton></form> : null}
                       </div>
                     </div>
                   </div>
@@ -533,9 +568,7 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
   );
 }
 
-function Metric({ label, value, accent = false }: { label: string; value: number; accent?: boolean }) { return <div className="liquid-card p-5"><p className="text-[11px] uppercase tracking-[0.13em] text-slate-600">{label}</p><p className={`mt-2 text-2xl font-semibold ${accent ? "text-cyan-200" : "text-slate-100"}`}>{value}</p></div>; }
-function Mini({ label, value, good = false, warn = false }: { label: string; value: number; good?: boolean; warn?: boolean }) { return <div className="min-w-16 rounded-[13px] border border-white/[0.055] bg-black/10 px-3 py-2"><p className="text-[11px] uppercase tracking-wider text-slate-700">{label}</p><p className={`mt-1 text-sm font-semibold ${good ? "text-emerald-300" : warn ? "text-amber-300" : "text-slate-300"}`}>{value}</p></div>; }
-function Status({ status }: { status: string }) { const cls = status === "ACTIVE" ? "border-emerald-400/20 bg-emerald-400/[0.07] text-emerald-200" : status === "CLOSED" ? "border-rose-400/15 bg-rose-400/[0.05] text-rose-200" : "border-violet-400/15 bg-violet-400/[0.05] text-violet-200"; const label = status === "ACTIVE" ? "AKTIF" : status === "CLOSED" ? "LOGIN DITUTUP" : "DRAFT"; return <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${cls}`}>{label}</span>; }
-function Schedule({ label, value, danger = false }: { label: string; value: string; danger?: boolean }) { return <div className={`rounded-[15px] border p-3 ${danger ? "border-rose-400/12 bg-rose-400/[0.03]" : "border-white/[0.055] bg-black/10"}`}><p className="text-[11px] uppercase tracking-wider text-slate-700">{label}</p><p className={`mt-2 text-[11px] font-medium ${danger ? "text-rose-200" : "text-slate-300"}`}>{value}</p></div>; }
-function DownloadLink({ href, label, ready }: { href: string; label: string; ready: boolean }) { return ready ? <Link href={href} className="liquid-button flex items-center justify-center rounded-[12px] px-3 py-2.5 text-xs font-semibold text-slate-300">{label}</Link> : <span className="flex cursor-not-allowed items-center justify-center rounded-[12px] border border-white/[0.04] bg-white/[0.015] px-3 py-2.5 text-xs font-semibold text-slate-700">{label}</span>; }
-
+function Mini({ label, value, good = false, warn = false }: { label: string; value: number; good?: boolean; warn?: boolean }) { return <div className="admin-exam-mini px-3 py-1.5 text-left"><p className="text-[11px] text-slate-600">{label}</p><p className={`mt-1 text-sm font-semibold ${good ? "text-emerald-300" : warn ? "text-amber-300" : "text-slate-300"}`}>{value}</p></div>; }
+function Status({ status }: { status: string }) { const tone = status === "ACTIVE" ? "success" : status === "CLOSED" ? "danger" : "neutral"; const label = status === "ACTIVE" ? "AKTIF" : status === "CLOSED" ? "LOGIN DITUTUP" : "DRAFT"; return <R9Status tone={tone}>{label}</R9Status>; }
+function Schedule({ label, value, danger = false }: { label: string; value: string; danger?: boolean }) { return <div className="admin-exam-schedule px-3 py-2"><p className="text-[11px] text-slate-600">{label}</p><p className={`mt-1 text-[11px] font-medium ${danger ? "text-rose-200" : "text-slate-300"}`}>{value}</p></div>; }
+function DownloadLink({ href, label, ready }: { href: string; label: string; ready: boolean }) { return ready ? <Link href={href} className="r9-button r9-button--secondary">{label}</Link> : <span aria-disabled="true" className="r9-button r9-button--quiet pointer-events-none opacity-50">{label}</span>; }

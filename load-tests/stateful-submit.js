@@ -38,7 +38,7 @@ if (!secretKey.startsWith("sb_secret_")) {
   headers.Authorization = `Bearer ${secretKey}`;
 }
 
-export default function () {
+export default function statefulSubmitLoad() {
   const index = exec.scenario.iterationInTest;
   const row = rows[index];
   if (!row) return;
