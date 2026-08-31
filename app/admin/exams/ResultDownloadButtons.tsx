@@ -165,7 +165,7 @@ export default function ResultDownloadButtons({
             onClick={() =>
               void download(format, label)
             }
-            className="liquid-button flex items-center justify-center gap-2 rounded-[12px] px-3 py-2.5 text-xs font-semibold text-slate-300 disabled:cursor-wait disabled:opacity-50"
+            className="r9-button r9-button--secondary flex items-center justify-center gap-2 px-3 py-2.5 text-xs disabled:cursor-wait disabled:opacity-50"
           >
             {isActive ? (
               <>
