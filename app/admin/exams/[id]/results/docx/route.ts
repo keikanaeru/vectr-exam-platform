@@ -19,16 +19,46 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
     const { id: examId } = await context.params;
     const { organizationId, organization } = await requireAdminExportAccess();
     const data = await loadExamResultExportData(createAdminClient(), examId, organizationId, String(organization.name));
-    const headers = ["No", "Kode", "Nama", "Status", "Nilai", "Kelulusan", ...data.sections.map((section) => section.moduleCode)];
+    const headers = [
+      "No",
+      "Kode",
+      "Nama",
+      "Status",
+      "Nilai Akhir",
+      ...data.sections.map((section) => section.moduleCode),
+      "Status Ujian",
+    ];
+
+    const moduleResult = (
+      value: number | "" | null | undefined
+    ) => {
+      if (value === "" || value == null) return "-";
+      return `${value} | ${Number(value) >= data.passingScore ? "LULUS" : "TIDAK LULUS"}`;
+    };
+
+    const examStatus = (value: string) =>
+      value === "LULUS"
+        ? "LULUS UJIAN"
+        : value === "TIDAK LULUS"
+          ? "TIDAK LULUS UJIAN"
+          : value || "-";
     const rows = data.rows.map((row, index) => new TableRow({ children: [
-      cell(String(index + 1)), cell(row.code), cell(row.name), cell(row.sessionStatus), cell(row.finalScore === "" ? "-" : String(row.finalScore)), cell(row.passFail || "-"),
-      ...data.sections.map((section) => cell(row.sectionScores[section.id] === "" || row.sectionScores[section.id] == null ? "-" : String(row.sectionScores[section.id]))),
+      cell(String(index + 1)),
+      cell(row.code),
+      cell(row.name),
+      cell(row.sessionStatus),
+      cell(row.finalScore === "" ? "-" : String(row.finalScore)),
+      ...data.sections.map((section) =>
+        cell(moduleResult(row.sectionScores[section.id]))
+      ),
+      cell(examStatus(row.passFail)),
     ] }));
     const doc = new Document({ sections: [{ properties: { page: { size: { width: 16838, height: 11906, orientation: PageOrientation.LANDSCAPE }, margin: { top: 720, right: 720, bottom: 720, left: 720 } } }, children: [
       new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "HASIL UJIAN", bold: true, size: 30, font: "Arial" })] }),
       new Paragraph({ children: [new TextRun({ text: data.exam.title, bold: true, size: 22, font: "Arial" })] }),
       new Paragraph({ children: [new TextRun({ text: `${data.organizationName} · ${formatWib(data.exam.startsAt)}`, size: 18, font: "Arial" })] }),
-      new Paragraph({ children: [new TextRun({ text: `Passing score: ${data.passingScore} · Peserta: ${data.rows.length}`, size: 18, font: "Arial" })] }),
+      new Paragraph({ children: [new TextRun({ text: `Passing per modul: ${data.passingScore} · Peserta: ${data.rows.length}`, size: 18, font: "Arial" })] }),
+      new Paragraph({ children: [new TextRun({ text: "Nilai Akhir bersifat informatif. Kelulusan ditentukan berdasarkan nilai setiap modul.", italics: true, size: 16, font: "Arial" })] }),
       new Paragraph({ text: "" }),
       new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [new TableRow({ children: headers.map((value) => cell(value, true)) }), ...rows] }),
     ] }] });

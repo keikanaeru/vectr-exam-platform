@@ -1,3 +1,4 @@
+import ResultDownloadButtons from "./ResultDownloadButtons";
 import Link from "next/link";
 
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -513,9 +514,7 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
                     <div className="admin-exam-detail-section admin-exam-results">
                       <div><p className="text-xs font-semibold text-emerald-100">Hasil Ujian</p><p className="mt-1 text-[11px] text-slate-600">Rekap nilai keseluruhan dan nilai tiap modul/sesi.</p></div>
                       <div className="mt-3 grid grid-cols-3 gap-2">
-                        <Link href={`/admin/exams/${examId}/results/docx`} className="r9-button r9-button--secondary">Word</Link>
-                        <Link href={`/admin/exams/${examId}/results/pdf`} className="r9-button r9-button--secondary">PDF</Link>
-                        <Link href={`/admin/exams/${examId}/results/xlsx`} className="r9-button r9-button--secondary">Excel</Link>
+                        <ResultDownloadButtons examId={examId} />
                       </div>
                     </div>
                   </div>
