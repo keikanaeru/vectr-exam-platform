@@ -7,5 +7,5 @@
     "scripts/stateful-load-cleanup.mjs",
     "scripts/stateful-load-seed.mjs"
   ],
-  "ignoreDependencies": ["k6"]
+  "ignoreDependencies": ["k6", "supabase"]
 }

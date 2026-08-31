@@ -87,7 +87,12 @@ async function loginCandidateForExam(page, examId) {
   await page.getByLabel("Kode Akses Ujian").fill(process.env.E2E_CANDIDATE_ACCESS_CODE);
   await page.getByRole("button", { name: /Masuk ke Ujian/i }).click();
 
-  await expect(page).toHaveURL(/\/candidate\/?(?:\?.*)?(?:#.*)?$/, { timeout: 30_000 });
+  // Exact-exam links intentionally redirect straight to the exam preparation
+  // page instead of the global candidate dashboard.
+  await expect(page).toHaveURL(
+    new RegExp(`/candidate(?:/exam/${examId})?(?:\\?.*)?(?:#.*)?$`),
+    { timeout: 30_000 }
+  );
 
   const cookies = await page.context().cookies();
   const sessionCookie = cookies.find((cookie) => cookie.name === "candidate_session");
