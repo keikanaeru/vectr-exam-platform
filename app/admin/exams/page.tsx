@@ -525,7 +525,7 @@ export default async function ExamsPage({ searchParams }: { searchParams: Promis
                         <p className="text-xs font-semibold text-cyan-100">Modul Remedial per Peserta</p>
                         <span className="r9-badge r9-badge--accent">Buka →</span>
                       </div>
-                      <p className="mt-2 text-[11px] leading-5 text-slate-500">Atur peserta A hanya Modul A, peserta B Modul C, atau kombinasi lain tanpa mengubah modul global ujian.</p>
+                      <p className="mt-2 text-[11px] leading-5 text-slate-500">Jalur modul per peserta sebelum ujian aktif: peserta A bisa Modul A, peserta B Modul C, atau kombinasi lain. Ini bukan retake otomatis setelah Hard Close.</p>
                     </Link>
                     <Link href={`/admin/exams/${examId}/settings`} className="rounded-[16px] border border-cyan-400/12 bg-cyan-400/[0.035] p-4 transition hover:bg-cyan-400/[0.06]">
                       <div className="flex items-center justify-between gap-3">

@@ -96,6 +96,20 @@ export default async function ExamRemedialPage({
       {query.error ? <FlashNotice tone="error" message={query.error} /> : null}
       {query.success ? <FlashNotice tone="success" message={query.success} /> : null}
 
+      <section className="r9-surface-subtle mt-6 border-cyan-400/20 bg-cyan-400/[0.03] p-5 sm:p-6">
+        <p className="r9-kicker">Alur yang disarankan</p>
+        <h2 className="mt-2 text-lg font-semibold text-white">Ini jalur modul per peserta, bukan retake otomatis</h2>
+        <ol className="mt-3 grid gap-3 text-xs leading-5 text-slate-400 sm:grid-cols-2">
+          <li><span className="font-semibold text-cyan-200">1. Sebelum aktif:</span> pilih modul yang harus dikerjakan tiap peserta, simpan, lalu aktifkan ujian.</li>
+          <li><span className="font-semibold text-cyan-200">2. Saat ujian:</span> peserta tetap memakai link dan credential ujian yang sama, tetapi hanya melihat modul pada assignment-nya.</li>
+          <li><span className="font-semibold text-cyan-200">3. Reopen:</span> hanya untuk melanjutkan sesi ACTIVE yang terputus sebelum Hard Close, bukan untuk membuat remedial baru.</li>
+          <li><span className="font-semibold text-cyan-200">4. Remedial setelah hasil/Hard Close:</span> buat ujian baru (batch boleh sama atau baru), beri judul jelas seperti “Remedial · Ujian 1”, lalu atur modul per peserta di ujian baru itu.</li>
+        </ol>
+        <p className="mt-4 border-t border-white/[0.07] pt-3 text-[11px] leading-5 text-amber-200/80">
+          Ujian yang sudah ACTIVE/CLOSED dikunci supaya soal, waktu, dan hasil historis tidak berubah. Jadi aplikasi tidak memindahkan peserta atau membuat batch remedial secara otomatis.
+        </p>
+      </section>
+
       <section className="r9-surface mt-6 p-5 sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>

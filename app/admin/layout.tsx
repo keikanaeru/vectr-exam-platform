@@ -14,6 +14,7 @@ import AdminAccountMenu from "./AdminAccountMenu";
 import { setActiveOrganization } from "./organization-actions";
 import AdminSubscriptionGate from "./AdminSubscriptionGate";
 import AdminActionScrollMemory from "./ui/AdminActionScrollMemory";
+import AdminActionFeedback from "./ui/AdminActionFeedback";
 import { getCachedOrganizationSubscriptionState } from "@/lib/organization-subscription";
 import { getCachedAdminDatabaseHealth } from "@/lib/admin-database-health";
 
@@ -110,6 +111,7 @@ export default async function AdminLayout({
     <div className="admin-shell r9-admin admin-performance-shell relative isolate min-h-screen overflow-x-clip">
 
       <AdminActionScrollMemory />
+      <AdminActionFeedback />
 
       <div className="relative z-10">
 

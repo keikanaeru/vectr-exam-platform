@@ -521,6 +521,11 @@ export default async function CandidateExamPage({
               </div>
             ) : null}
 
+            <div className="mt-4 rounded-[18px] border border-cyan-400/10 bg-cyan-400/[0.025] p-4">
+              <p className="text-xs font-semibold text-cyan-100">Jalur modul Anda</p>
+              <p className="mt-1 text-[11px] leading-5 text-slate-500">Modul yang tampil di sini mengikuti assignment Anda pada ujian ini. Jika Anda perlu remedial setelah ujian ditutup, penyelenggara akan memberikan link ujian remedial baru.</p>
+            </div>
+
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <div className="rounded-[18px] border border-cyan-400/10 bg-cyan-400/[0.025] p-4">
                 <p className="text-[11px] uppercase tracking-[0.12em] text-slate-600">Mulai Ujian</p>
