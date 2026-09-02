@@ -67,7 +67,7 @@ export default function OrganizationSwitcher({
   }
 
   return (
-    <form action={switchAction} className="r9-workspace-select">
+    <form action={switchAction} data-action-feedback="off" className="r9-workspace-select">
       <input type="hidden" name="return_to" value={pathname || "/admin"} />
       <WorkspaceSelect organizations={organizations} activeOrganizationId={activeOrganizationId} />
     </form>

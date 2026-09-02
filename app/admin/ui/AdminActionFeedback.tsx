@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 type PendingAction = {
   label: string;
@@ -23,7 +24,18 @@ function getSubmitLabel(event: SubmitEvent, form: HTMLFormElement) {
 }
 
 export default function AdminActionFeedback() {
-  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(
+    null,
+  );
+  const pendingFormRef = useRef<HTMLFormElement | null>(null);
+  const navigationKey = `${usePathname()}?${useSearchParams().toString()}`;
+  const lastNavigationKeyRef = useRef(navigationKey);
+
+  function clearPending() {
+    pendingFormRef.current?.removeAttribute("aria-busy");
+    pendingFormRef.current = null;
+    setPendingAction(null);
+  }
 
   useEffect(() => {
     const handleSubmit = (event: SubmitEvent) => {
@@ -34,11 +46,11 @@ export default function AdminActionFeedback() {
       if (form.dataset.actionFeedback === "off") return;
       if (form.getAttribute("method")?.toLowerCase() === "get") return;
 
+      pendingFormRef.current?.removeAttribute("aria-busy");
+      pendingFormRef.current = form;
       setPendingAction({ label: getSubmitLabel(event, form) });
       form.setAttribute("aria-busy", "true");
     };
-
-    const clearPending = () => setPendingAction(null);
 
     document.addEventListener("submit", handleSubmit);
     window.addEventListener("pagehide", clearPending);
@@ -46,13 +58,25 @@ export default function AdminActionFeedback() {
     return () => {
       document.removeEventListener("submit", handleSubmit);
       window.removeEventListener("pagehide", clearPending);
+      clearPending();
     };
   }, []);
+
+  useEffect(() => {
+    if (lastNavigationKeyRef.current === navigationKey) return;
+    lastNavigationKeyRef.current = navigationKey;
+    clearPending();
+  }, [navigationKey]);
 
   if (!pendingAction) return null;
 
   return (
-    <div className="r9-action-feedback" role="status" aria-live="polite" aria-atomic="true">
+    <div
+      className="r9-action-feedback"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
       <div className="r9-action-feedback__panel">
         <span className="r9-action-feedback__spinner" aria-hidden="true" />
         <span className="r9-action-feedback__copy">
