@@ -89,7 +89,7 @@ export default function ImportParticipantForm({
 
   return (
     <div className="space-y-5">
-      <form action={formAction} className="r9-surface p-6 sm:p-7">
+      <form action={formAction} data-action-feedback="off" className="r9-surface p-6 sm:p-7">
         <div className="relative z-10">
           <div className="flex items-start justify-between gap-4">
             <div>

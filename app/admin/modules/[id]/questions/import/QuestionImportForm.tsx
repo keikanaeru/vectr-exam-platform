@@ -37,7 +37,7 @@ export default function QuestionImportForm({ moduleId }: { moduleId: string }) {
 
   return (
     <div className="space-y-5">
-      <form action={formAction} className="r9-surface p-6 sm:p-7">
+      <form action={formAction} data-action-feedback="off" className="r9-surface p-6 sm:p-7">
         <div className="relative z-10">
           <p className="text-[11px] uppercase tracking-[0.18em] text-cyan-300/65">Bulk Question Import</p>
           <h2 className="mt-2 text-xl font-semibold text-white">Upload Bank Soal</h2>
