@@ -179,21 +179,26 @@ async function syncExamParticipantsInternal(
     throw new Error("Ujian tidak ditemukan pada organisasi aktif.");
   }
 
-  const { data: candidates, error: candidatesError } = await supabase
-    .from("candidates")
-    .select("id")
-    .eq("organization_id", organizationId)
-    .eq("batch_id", exam.batch_id)
-    .eq("active", true);
+  const [candidateResult, assignmentResult] = await Promise.all([
+    supabase
+      .from("candidates")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .eq("batch_id", exam.batch_id)
+      .eq("active", true),
+    supabase
+      .from("exam_assignments")
+      .select("id, candidate_id, active")
+      .eq("exam_id", examId),
+  ]);
+
+  const { data: candidates, error: candidatesError } = candidateResult;
 
   if (candidatesError) {
     throw new Error("Gagal membaca peserta aktif pada batch ujian.");
   }
 
-  const { data: currentAssignments, error: assignmentsError } = await supabase
-    .from("exam_assignments")
-    .select("id, candidate_id, active")
-    .eq("exam_id", examId);
+  const { data: currentAssignments, error: assignmentsError } = assignmentResult;
 
   if (assignmentsError) {
     throw new Error("Gagal membaca assignment peserta ujian.");

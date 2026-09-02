@@ -39,6 +39,12 @@ function refreshParticipants() {
   revalidatePath("/admin");
 }
 
+function refreshParticipantStatus() {
+  revalidatePath("/admin/participants");
+  revalidatePath("/admin/exams");
+  revalidatePath("/admin");
+}
+
 async function ensureCandidateHasNoScheduledEmail(
   supabase: ReturnType<typeof createAdminClient>,
   organizationId: string,
@@ -66,6 +72,29 @@ async function ensureCandidateHasNoScheduledEmail(
       "Data peserta belum dapat diubah karena masih ada email terjadwal untuk peserta ini. Batalkan jadwal email di menu Ujian → Komunikasi terlebih dahulu agar nama, kode, atau alamat penerima tidak berbeda dari email yang sudah dijadwalkan."
     );
   }
+}
+
+async function runCandidateStatusGuards(
+  supabase: ReturnType<typeof createAdminClient>,
+  organizationId: string,
+  candidateId: string
+) {
+  // These reads are independent. Run them together, but preserve the old
+  // error priority: a scheduled-email block is reported before an exam lock.
+  const [emailCheck, activeExamCheck] = await Promise.allSettled([
+    ensureCandidateHasNoScheduledEmail(supabase, organizationId, candidateId),
+    getActiveExamUsingCandidate(supabase, organizationId, candidateId),
+  ]);
+
+  if (emailCheck.status === "rejected") {
+    throw emailCheck.reason;
+  }
+
+  if (activeExamCheck.status === "rejected") {
+    throw activeExamCheck.reason;
+  }
+
+  return activeExamCheck.value;
 }
 
 async function findCandidateDuplicate({
@@ -423,9 +452,7 @@ export async function toggleCandidateActive(candidateId: string) {
   const { organizationId } = await requireAdminWriteAccess();
   const supabase = createAdminClient();
 
-  await ensureCandidateHasNoScheduledEmail(supabase, organizationId, candidateId);
-
-  const activeExamLock = await getActiveExamUsingCandidate(supabase, organizationId, candidateId);
+  const activeExamLock = await runCandidateStatusGuards(supabase, organizationId, candidateId);
   if (activeExamLock) redirectWithError(activeExamCandidateStatusLockMessage(activeExamLock));
 
   const { data: candidate, error } = await supabase
@@ -446,7 +473,7 @@ export async function toggleCandidateActive(candidateId: string) {
 
   if (updateError) redirectWithError(databaseErrorMessage("CANDIDATE_STATUS_UPDATE", "Status peserta gagal diubah.", updateError));
 
-  refreshParticipants();
+  refreshParticipantStatus();
   redirectWithSuccess(`${candidate.display_name} sekarang ${next ? "aktif" : "nonaktif"}.`);
 }
 
